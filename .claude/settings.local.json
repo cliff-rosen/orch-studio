@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(aws route53:*)",
+      "Bash(aws sts:*)",
+      "Bash(aws configure:*)",
+      "Bash(aws acm:*)",
+      "Bash(aws s3:*)",
+      "Bash(aws cloudfront:*)",
+      "Bash(aws s3api:*)",
+      "Bash(nslookup:*)",
+      "Bash(pip show:*)",
+      "Bash(gcloud version:*)",
+      "Bash(command -v gcloud)",
+      "Bash(where gam:*)",
+      "Read(//c/Users/cliff/**)",
+      "Bash(ls /c/GAMADV*)",
+      "Bash(ls /c/GAM*)",
+      "Read(//c//**)",
+      "Read(//c/Users/cliff/AppData/Local/Programs/**)"
+    ]
+  }
+}
