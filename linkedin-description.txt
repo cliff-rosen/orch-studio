@@ -1,0 +1,19 @@
+Company Name: Orchestrator Studios
+
+Tagline: Building reliable, production-grade AI products for specialized verticals.
+
+Description:
+
+Orchestrator Studios is an AI product studio that develops systematic methodologies to overcome the well-known limitations of LLMs — hallucinations, reliability gaps, context constraints — and partners with domain experts to embed real-world industry knowledge into research and productivity tools.
+
+Most AI products fail in production because they treat LLMs as magic. We're built around a different premise: that getting AI to work in specialized, high-stakes domains requires methodology, not just models. We identify the failure modes, build systems that work around them, and make sure the output is trustworthy enough to act on.
+
+Our portfolio includes Knowledge Horizon (AI-powered scientific literature monitoring for life sciences and legal defense) and TableThat (chat-driven structured data for analysts and researchers).
+
+Website: orchestratorstudios.com
+
+Industry: Technology, Information and Internet
+
+Company size: 2-10 employees
+
+Type: Privately Held
