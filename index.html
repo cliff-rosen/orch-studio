@@ -6,6 +6,14 @@
     <title>Orchestrator Studios — AI Product Studio</title>
     <meta name="description" content="Building reliable, production-grade AI products for specialized verticals.">
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-9RJRR593J6"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-9RJRR593J6');
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
@@ -26,10 +34,6 @@
             --bg-alt: #f8fafc;
             --border: #e2e8f0;
             --radius: 12px;
-        }
-
-        html {
-            scroll-behavior: smooth;
         }
 
         body {
@@ -77,11 +81,12 @@
             color: var(--accent);
             text-decoration: none;
             letter-spacing: -0.02em;
+            cursor: pointer;
         }
 
         .nav-links {
             display: flex;
-            gap: 32px;
+            gap: 8px;
             list-style: none;
         }
 
@@ -90,11 +95,21 @@
             color: var(--text-secondary);
             font-size: 0.9rem;
             font-weight: 500;
-            transition: color 0.2s;
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: color 0.2s, background 0.2s;
+            cursor: pointer;
         }
 
         .nav-links a:hover {
             color: var(--accent);
+            background: var(--accent-subtle);
+        }
+
+        .nav-links a.active {
+            color: var(--accent);
+            background: var(--accent-subtle);
+            font-weight: 600;
         }
 
         .mobile-toggle {
@@ -116,7 +131,8 @@
 
         /* ── Hero ── */
         .hero {
-            padding: 120px 0 100px;
+            padding: 80px 0 64px;
+            border-bottom: 1px solid var(--border);
         }
 
         .hero-content {
@@ -147,33 +163,26 @@
             font-size: 1.05rem;
             color: var(--text-secondary);
             max-width: 620px;
-            margin-bottom: 40px;
         }
 
-        .btn {
-            display: inline-block;
-            padding: 14px 32px;
-            background: var(--accent);
-            color: #fff;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 0.95rem;
-            border-radius: 8px;
-            transition: background 0.2s, transform 0.15s;
+        /* ── Tab Panels ── */
+        .tab-panel {
+            display: none;
+            animation: fadeIn 0.3s ease;
         }
 
-        .btn:hover {
-            background: var(--accent-light);
-            transform: translateY(-1px);
+        .tab-panel.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         /* ── Section shared ── */
         .section {
-            padding: 100px 0;
-        }
-
-        .section-alt {
-            background: var(--bg-alt);
+            padding: 80px 0;
         }
 
         .section-label {
@@ -267,6 +276,59 @@
             color: var(--accent-light);
         }
 
+        /* ── Article Cards ── */
+        .article-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-top: 48px;
+        }
+
+        .article-card {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 32px;
+            text-decoration: none;
+            color: inherit;
+            transition: box-shadow 0.25s, transform 0.2s;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .article-card:hover {
+            box-shadow: 0 8px 30px rgba(55, 48, 163, 0.08);
+            transform: translateY(-2px);
+        }
+
+        .article-date {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .article-card h3 {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 1.15rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            line-height: 1.35;
+        }
+
+        .article-excerpt {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.65;
+            flex-grow: 1;
+        }
+
+        .article-read {
+            margin-top: 16px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--accent);
+        }
+
         /* ── Leadership ── */
         .leaders-grid {
             display: grid;
@@ -338,10 +400,48 @@
             height: 16px;
         }
 
+        /* ── About: Approach ── */
+        .approach {
+            margin-bottom: 64px;
+            padding-bottom: 64px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        /* ── Contact ── */
+        .contact-content {
+            max-width: 560px;
+        }
+
+        .contact-content p {
+            font-size: 1.05rem;
+            color: var(--text-secondary);
+            line-height: 1.8;
+            margin-bottom: 32px;
+        }
+
+        .contact-email {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--accent);
+            text-decoration: none;
+            padding: 16px 32px;
+            border: 2px solid var(--accent);
+            border-radius: 10px;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .contact-email:hover {
+            background: var(--accent);
+            color: #fff;
+        }
+
         /* ── Footer ── */
         footer {
             border-top: 1px solid var(--border);
-            padding: 48px 0;
+            padding: 32px 0;
         }
 
         .footer-inner {
@@ -376,8 +476,8 @@
                 right: 0;
                 background: var(--bg);
                 flex-direction: column;
-                padding: 24px;
-                gap: 20px;
+                padding: 16px;
+                gap: 4px;
                 border-bottom: 1px solid var(--border);
                 box-shadow: 0 8px 24px rgba(0,0,0,0.06);
             }
@@ -391,10 +491,11 @@
             }
 
             .hero {
-                padding: 80px 0 60px;
+                padding: 60px 0 48px;
             }
 
-            .cards {
+            .cards,
+            .article-grid {
                 grid-template-columns: 1fr;
             }
 
@@ -414,7 +515,7 @@
             }
 
             .section {
-                padding: 64px 0;
+                padding: 48px 0;
             }
         }
     </style>
@@ -424,14 +525,15 @@
     <!-- Nav -->
     <nav>
         <div class="container nav-inner">
-            <a href="#" class="nav-logo">Orchestrator Studios</a>
+            <a class="nav-logo" onclick="switchTab('work')">Orchestrator Studios</a>
             <button class="mobile-toggle" aria-label="Menu" onclick="document.querySelector('.nav-links').classList.toggle('active')">
                 <span></span><span></span><span></span>
             </button>
             <ul class="nav-links">
-                <li><a href="#work">Work</a></li>
-                <li><a href="#about">About</a></li>
-                <li><a href="#contact">Contact</a></li>
+                <li><a data-tab="work" class="active">Work</a></li>
+                <li><a data-tab="insights">Insights</a></li>
+                <li><a data-tab="about">About</a></li>
+                <li><a data-tab="contact">Contact</a></li>
             </ul>
         </div>
     </nav>
@@ -442,85 +544,180 @@
             <h1>Orchestrator <span>Studios</span></h1>
             <p class="hero-sub">Building reliable, production-grade AI products for specialized verticals.</p>
             <p class="hero-body">We develop systematic methodologies to overcome the well-known limitations of LLMs — hallucinations, reliability gaps, context constraints — and partner with domain experts to embed real-world industry knowledge into research and productivity tools.</p>
-            <a href="#work" class="btn">See Our Work</a>
         </div>
     </section>
 
-    <!-- Our Approach -->
-    <section class="section section-alt" id="about">
-        <div class="container">
-            <p class="section-label">What We Do</p>
-            <h2 class="section-title">Our Approach</h2>
-            <p class="section-body">Most AI products fail in production because they treat LLMs as magic — reliable, accurate, consistent. They aren't. Orchestrator Studios is built around a different premise: that getting AI to work in specialized, high-stakes domains requires methodology, not just models.</p>
-            <p class="section-body" style="margin-top: 20px;">We identify the failure modes, build systems that work around them, and partner with domain experts to make sure the output is trustworthy enough to act on. Every product in our portfolio is the result of that process.</p>
-        </div>
-    </section>
-
-    <!-- Portfolio -->
-    <section class="section" id="work">
-        <div class="container">
-            <p class="section-label">Portfolio</p>
-            <h2 class="section-title">Our Work</h2>
-            <div class="cards">
-                <div class="card">
-                    <h3 class="card-name">Knowledge Horizon</h3>
-                    <p class="card-descriptor">AI-powered scientific literature monitoring</p>
-                    <p class="card-desc">Knowledge Horizon helps pharmaceutical and legal defense teams systematically discover, filter, analyze, and act on emerging research. The scientific literature moves fast — new studies, new findings, new risk signals — and the teams who need to track it are already stretched thin. Knowledge Horizon monitors the literature continuously, surfaces what matters, and delivers it in a form that's ready to use. Built for professionals where missing a key paper isn't just inefficient — it's a liability.</p>
-                    <span class="card-tag">Life Sciences · Legal Defense</span>
-                    <a href="https://knowledgehorizon.ai" target="_blank" rel="noopener" class="card-link">Visit Knowledge Horizon &rarr;</a>
-                </div>
-                <div class="card">
-                    <h3 class="card-name">TableThat</h3>
-                    <p class="card-descriptor">Chat-driven structured data</p>
-                    <p class="card-desc">TableThat turns plain-English descriptions into structured, populated tables — then lets you direct AI toward every row to analyze, enrich, and score your data. It's built for analysts and researchers who live in spreadsheets but want AI working alongside them without having to learn a new tool or write a single line of code. Describe what you want, and the table appears. Then keep directing it from there.</p>
-                    <span class="card-tag">Productivity · Research</span>
-                    <a href="https://tablethat.ai" target="_blank" rel="noopener" class="card-link">Visit TableThat &rarr;</a>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Leadership -->
-    <section class="section section-alt" id="leadership">
-        <div class="container">
-            <p class="section-label">Team</p>
-            <h2 class="section-title">Leadership</h2>
-            <div class="leaders-grid">
-                <div class="leader">
-                    <div class="leader-avatar">CR</div>
-                    <div class="leader-info">
-                        <h3>Cliff Rosen</h3>
-                        <p class="leader-title">Founder & CTO</p>
-                        <p class="leader-bio">Cliff is a technology veteran with over 20 years of experience applying emerging technology to develop B2B and B2C applications. He has held executive and SVP positions at multiple software companies, including serving as co-founding CTO of sixdegrees.com, one of the Internet's first social networking platforms. His expertise spans system design, software development, product management, and process development — with a focus on identifying the intersection of business needs with technological capabilities. He holds a B.A. in Economics from the University of Pennsylvania.</p>
-                        <a href="https://www.linkedin.com/in/cliff-rosen-54b3/" target="_blank" rel="noopener" class="leader-link">
-                            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
-                            LinkedIn Profile
-                        </a>
+    <!-- Tab: Work -->
+    <div class="tab-panel active" id="tab-work">
+        <section class="section">
+            <div class="container">
+                <p class="section-label">Portfolio</p>
+                <h2 class="section-title">Our Work</h2>
+                <div class="cards">
+                    <div class="card">
+                        <h3 class="card-name">Knowledge Horizon</h3>
+                        <p class="card-descriptor">AI-powered scientific literature monitoring</p>
+                        <p class="card-desc">Knowledge Horizon helps pharmaceutical and legal defense teams systematically discover, filter, analyze, and act on emerging research. The scientific literature moves fast — new studies, new findings, new risk signals — and the teams who need to track it are already stretched thin. Knowledge Horizon monitors the literature continuously, surfaces what matters, and delivers it in a form that's ready to use. Built for professionals where missing a key paper isn't just inefficient — it's a liability.</p>
+                        <span class="card-tag">Life Sciences · Legal Defense</span>
+                        <a href="https://knowledgehorizon.ai" target="_blank" rel="noopener" class="card-link">Visit Knowledge Horizon &rarr;</a>
                     </div>
-                </div>
-                <div class="leader">
-                    <div class="leader-avatar">AS</div>
-                    <div class="leader-info">
-                        <h3>Adam Seifer</h3>
-                        <p class="leader-title">Fractional Chief Product Officer</p>
-                        <p class="leader-bio">Adam is a multiple-time product leader and co-founder who has built category-defining platforms at the forefront of social networking, consumer media, and life planning. He's led products from zero to millions of users, authored a bestselling book, and overseen multiple successful exits. From launching Sixdegrees, to scaling Fotolog into a global community, to building Everplans into the leading life-organization platform, Adam combines vision, execution, and team leadership to create products people love and rely on.</p>
-                        <a href="https://www.linkedin.com/in/adam-seifer-65b25" target="_blank" rel="noopener" class="leader-link">
-                            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
-                            LinkedIn Profile
-                        </a>
+                    <div class="card">
+                        <h3 class="card-name">TableThat</h3>
+                        <p class="card-descriptor">Chat-driven structured data</p>
+                        <p class="card-desc">TableThat turns plain-English descriptions into structured, populated tables — then lets you direct AI toward every row to analyze, enrich, and score your data. It's built for analysts and researchers who live in spreadsheets but want AI working alongside them without having to learn a new tool or write a single line of code. Describe what you want, and the table appears. Then keep directing it from there.</p>
+                        <span class="card-tag">Productivity · Research</span>
+                        <a href="https://tablethat.ai" target="_blank" rel="noopener" class="card-link">Visit TableThat &rarr;</a>
                     </div>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
+    </div>
+
+    <!-- Tab: Insights -->
+    <div class="tab-panel" id="tab-insights">
+        <section class="section">
+            <div class="container">
+                <p class="section-label">Insights</p>
+                <h2 class="section-title">Our Thinking</h2>
+                <p class="section-body">We write about the methodology behind building reliable AI systems — the architectural patterns, design principles, and hard-won lessons from shipping AI products in specialized domains.</p>
+                <div class="article-grid">
+                    <a href="/articles/principled-orchestration.html" class="article-card">
+                        <span class="article-date">March 2026</span>
+                        <h3>Principled Orchestration: Extracting Reliable Value from LLMs</h3>
+                        <p class="article-excerpt">LLMs have three core architectural shortcomings that aren't bugs the next release will fix. Six principles of orchestration address them systematically.</p>
+                        <span class="article-read">Read article &rarr;</span>
+                    </a>
+                    <a href="/articles/delegation-tree.html" class="article-card">
+                        <span class="article-date">February 2026</span>
+                        <h3>The Delegation Tree: A Framework for AI-Augmented Productivity</h3>
+                        <p class="article-excerpt">Using AI effectively isn't about handing everything off. It's about recursive decisions — at every level — about what to delegate, what to retain, and what infrastructure makes delegation trustworthy.</p>
+                        <span class="article-read">Read article &rarr;</span>
+                    </a>
+                    <a href="/articles/two-roles-of-llms.html" class="article-card">
+                        <span class="article-date">January 2026</span>
+                        <h3>The Two Roles of LLMs: Workers and Planners</h3>
+                        <p class="article-excerpt">Every AI system beyond single-turn interactions must decide how to allocate control between execution and planning. The most effective systems combine both.</p>
+                        <span class="article-read">Read article &rarr;</span>
+                    </a>
+                    <a href="/articles/llms-structure-of-work.html" class="article-card">
+                        <span class="article-date">January 2026</span>
+                        <h3>LLMs and the Structure of Knowledge Work</h3>
+                        <p class="article-excerpt">All knowledge work reduces to atomic operations. LLMs change which of those operations can be delegated to machines — and who decides the sequence.</p>
+                        <span class="article-read">Read article &rarr;</span>
+                    </a>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Tab: About -->
+    <div class="tab-panel" id="tab-about">
+        <section class="section">
+            <div class="container">
+                <div class="approach">
+                    <p class="section-label">What We Do</p>
+                    <h2 class="section-title">Our Approach</h2>
+                    <p class="section-body">Most AI products fail in production because they treat LLMs as magic — reliable, accurate, consistent. They aren't. Orchestrator Studios is built around a different premise: that getting AI to work in specialized, high-stakes domains requires methodology, not just models.</p>
+                    <p class="section-body" style="margin-top: 20px;">We identify the failure modes, build systems that work around them, and partner with domain experts to make sure the output is trustworthy enough to act on. Every product in our portfolio is the result of that process.</p>
+                </div>
+                <p class="section-label">Team</p>
+                <h2 class="section-title">Leadership</h2>
+                <div class="leaders-grid">
+                    <div class="leader">
+                        <div class="leader-avatar">CR</div>
+                        <div class="leader-info">
+                            <h3>Cliff Rosen</h3>
+                            <p class="leader-title">Founder & CTO</p>
+                            <p class="leader-bio">Cliff is a technology veteran with over 20 years of experience applying emerging technology to develop B2B and B2C applications. He has held executive and SVP positions at multiple software companies, including serving as co-founding CTO of sixdegrees.com, one of the Internet's first social networking platforms. His expertise spans system design, software development, product management, and process development — with a focus on identifying the intersection of business needs with technological capabilities. He holds a B.A. in Economics from the University of Pennsylvania.</p>
+                            <a href="https://www.linkedin.com/in/cliff-rosen-54b3/" target="_blank" rel="noopener" class="leader-link">
+                                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+                                LinkedIn Profile
+                            </a>
+                        </div>
+                    </div>
+                    <div class="leader">
+                        <div class="leader-avatar">AS</div>
+                        <div class="leader-info">
+                            <h3>Adam Seifer</h3>
+                            <p class="leader-title">Fractional Chief Product Officer</p>
+                            <p class="leader-bio">Adam is a multiple-time product leader and co-founder who has built category-defining platforms at the forefront of social networking, consumer media, and life planning. He's led products from zero to millions of users, authored a bestselling book, and overseen multiple successful exits. From launching Sixdegrees, to scaling Fotolog into a global community, to building Everplans into the leading life-organization platform, Adam combines vision, execution, and team leadership to create products people love and rely on.</p>
+                            <a href="https://www.linkedin.com/in/adam-seifer-65b25" target="_blank" rel="noopener" class="leader-link">
+                                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+                                LinkedIn Profile
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Tab: Contact -->
+    <div class="tab-panel" id="tab-contact">
+        <section class="section">
+            <div class="container">
+                <p class="section-label">Get In Touch</p>
+                <h2 class="section-title">Contact</h2>
+                <div class="contact-content">
+                    <p>Interested in what we're building, or want to talk about AI product methodology? We'd love to hear from you.</p>
+                    <a href="mailto:cliff@ironcliff.ai" class="contact-email">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                        cliff@ironcliff.ai
+                    </a>
+                </div>
+            </div>
+        </section>
+    </div>
 
     <!-- Footer -->
-    <footer id="contact">
+    <footer>
         <div class="container footer-inner">
-            <div class="footer-left">© 2026 Orchestrator Studios</div>
+            <div class="footer-left">&copy; 2026 Orchestrator Studios</div>
             <div class="footer-email"><a href="mailto:cliff@ironcliff.ai">cliff@ironcliff.ai</a></div>
         </div>
     </footer>
+
+    <script>
+        function switchTab(tabName) {
+            // Hide all panels
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+            // Deactivate all nav links
+            document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
+
+            // Show target panel
+            const panel = document.getElementById('tab-' + tabName);
+            if (panel) panel.classList.add('active');
+
+            // Activate nav link
+            const link = document.querySelector('.nav-links a[data-tab="' + tabName + '"]');
+            if (link) link.classList.add('active');
+
+            // Close mobile menu
+            document.querySelector('.nav-links').classList.remove('active');
+
+            // Scroll to top of content
+            window.scrollTo({ top: document.querySelector('.hero').offsetHeight + 64, behavior: 'smooth' });
+
+            // Update URL hash
+            history.replaceState(null, '', '#' + tabName);
+        }
+
+        // Attach click handlers to nav links
+        document.querySelectorAll('.nav-links a[data-tab]').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                switchTab(link.dataset.tab);
+            });
+        });
+
+        // Handle initial hash on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            const hash = window.location.hash.replace('#', '');
+            if (['work', 'insights', 'about', 'contact'].includes(hash)) {
+                switchTab(hash);
+            }
+        });
+    </script>
 
 </body>
 </html>

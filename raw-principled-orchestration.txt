@@ -1,0 +1,313 @@
+# Principled Orchestration: Extracting Reliable Value from Large Language Models
+
+**By Cliff Rosen, Ironcliff Partners**
+
+---
+
+## I. THE OPPORTUNITY
+
+Three realizations frame the opportunity:
+
+**A. Knowledge work is atomic.** All knowledge work — legal research, financial analysis, literature review, any of it — reduces to sequences of atomic cognitive operations: ideation, search, retrieval, extraction, summarization, classification, analysis, comparison, compilation, synthesis, verification. Until recently, computers managed the data. Humans supplied the cognition.
+
+**B. LLMs changed that.** For the first time, the atomic operations involving natural language can be delegated to machines. An LLM can read a document and extract key points. It can evaluate relevance, synthesize across sources, summarize, expand, draft, translate, and assess sentiment. Processes that took hours can take minutes. Bottlenecks at human-dependent steps dissolve.
+
+**C. Including the planning.** Beyond executing individual operations, LLMs can participate in — or even drive — the orchestration of those operations. Given a goal and a set of capabilities, an LLM can determine the path: formulate a research plan, execute it, evaluate progress, adjust course, and continue until the goal is met. This is what makes agentic systems possible.
+
+This is where the enormous power lives.
+
+---
+
+## II. THE PROBLEM
+
+But LLMs have three core architectural shortcomings. These are not bugs the next release will fix — they are structural.
+
+### The Memento Effect
+
+Like the protagonist in *Memento* — intelligent, capable, but no persistent memory. Every turn starts fresh. The context window is finite. The LLM has no access to information unless you explicitly provide it.
+
+Since you can't fit everything into the context window, you're forced to select a subset. And now you face the real challenge: how do you ensure the model has *exactly* the context it needs, and not the wrong context, or missing context, or polluted context?
+
+When the LLM is executing a task, wrong context gives you a bad output — catchable if you have quality gates. But when the LLM is *planning*, wrong context means it skips steps it didn't know it needed. The model doesn't know what it doesn't know. It confidently skips the search it didn't realize was necessary. That error is invisible — the right step was never executed, so there's nothing to catch.
+
+There is a related problem — the *Dirty Test Tube*. By your 3rd or 4th message in a conversation, the context contains tangents, dead ends, clarifications, and earlier failed attempts that dilute the signal for the current step. For any focused task, accumulated conversation history is noise.
+
+### Satisficing (No Slow Thinking)
+
+Humans have two modes of thinking: fast and slow. Fast thinking handles routine tasks automatically. Slow thinking engages when something is complex — we pause, break things into parts, allocate more effort. Crucially, we know when to shift gears.
+
+Standard LLMs don't have this switch — they're always in fast-thinking mode. Reasoning models (like OpenAI's o1 family or Claude with extended thinking) represent a partial correction: they allocate more internal compute to harder problems, producing measurably better results on complex tasks. But this is a dial, not a categorical fix. Reasoning models improve the quality of individual steps, yet they still can't recognize when a task should be decomposed differently, when an implicit sub-decision deserves its own dedicated pass, or when the overall approach needs rethinking. The improvement is real but bounded.
+
+You see this in the **"do better" phenomenon**: ask an LLM to write something, then simply say "improve that." It produces a better response — often significantly better. The capability was there; nothing triggered it. The first response satisficed rather than maximized.
+
+You also see it in **hidden intentions**. A request like "make this email more professional and concise" contains implicit sub-decisions: What counts as professional? What information is essential versus removable? What tone is appropriate? The model makes quick judgments about all of these without showing its work. Errors in these implicit steps go undetected.
+
+The result: complex tasks get shallow treatment. Critical sub-decisions happen in passing rather than getting dedicated attention.
+
+### No Ontological Grounding
+
+Everyone knows LLMs "hallucinate." But the reality is more fundamental: LLMs have no relationship to truth, only to plausibility. The model generates statistically likely text, not verified claims.
+
+This goes beyond occasional factual errors:
+
+- **State tracking** is narrative, not actual state. "I've completed steps 1 and 2, now moving to step 3" is generated text about progress, not tracked progress.
+- **Plans** are text about plans, not plans. The LLM can commit to an approach, then wander, skip steps, or abandon it — because there is no actual plan underneath, just text about a plan.
+- **Verification** is what verification *sounds like*. "I've confirmed that X is correct" is a plausible response, not an actual check.
+
+The model produces what things sound like, not what they are.
+
+### The Failure Modes
+
+These shortcomings produce the pattern everyone recognizes: one moment the LLM seems brilliant, the next you're wondering what it was thinking.
+
+- Shallow treatment of complex tasks
+- Invisible wrong turns — steps never taken, nothing to catch
+- Workflow drift — the model abandons its own plan
+- Confident misinformation — wrong answers delivered with full conviction
+
+---
+
+## III. THE REMEDY: PRINCIPLED ORCHESTRATION
+
+The shortcomings are architectural. Better models help but won't eliminate them. The answer is designing systems that account for what LLMs can and cannot do — and encode what humans know.
+
+**Orchestration** coordinates multiple prompts, models, and tools to achieve what single interactions cannot. Six principles guide its design:
+
+### Principle 1: Decompose into Explicit Steps
+
+Don't let critical decisions happen in passing. Force slow thinking by making each decision a dedicated step with focused context.
+
+When you ask an LLM to "fact-check this document," you're hiding dozens of decisions about what constitutes a fact, how to search, and when to stop. Orchestration makes each decision point visible in the workflow. Single instructions collapse implicit steps into one black-box operation. Decomposition makes each step visible and verifiable.
+
+*Addresses: Satisficing.*
+
+### Principle 2: Curate Sterile Context
+
+Each step gets exactly what it needs — not accumulated conversation history, not everything that might be relevant, but precisely what this operation requires.
+
+The Dirty Test Tube problem means that by the time you're several turns in, the context is polluted with tangents, failed attempts, and conversational debris. For any given step, use a sterile conversation with exactly what's needed. Selectively preserve essential information while discarding noise using a **Compress and Carry Forward** pattern: define what constitutes signal vs. noise for the next step, compress accordingly, and carry only the distilled context forward.
+
+*Addresses: The Memento Effect.*
+
+### Principle 3: Externalize State and Control Flow
+
+Loops, counters, progress tracking, and conditional logic live outside the LLM. The system tracks reality; the LLM reasons about language and content.
+
+The LLM can't reliably maintain workflow state — it's statistically driven, not ontologically grounded. If you delegate workflow control to the LLM, you get skipped steps and inconsistent execution. The workflow — the loops, conditionals, and state — lives in code. The LLM executes individual steps; the orchestration system manages the flow.
+
+*Addresses: No Ontological Grounding.*
+
+### Principle 4: Bound Before Delegating
+
+When you use an agentic loop — an LLM with a goal, instructions, and tools, deciding iteratively what to do next — the degrees of freedom should already be appropriate by the time you enter that loop. That's defined by the instructions you supply and the tools you provide. If the agent has too broad a mandate, that's a design failure, not an agent failure.
+
+*Contains all three problems within manageable boundaries.*
+
+### Principle 5: Encode Expertise in Tool Abstraction
+
+Higher-level tools encode "the right way to do this." A research tool that internally handles query formulation, result evaluation, and gap analysis reduces the LLM's decision surface and makes the reliable path the default.
+
+Every decision point for an agent is a potential failure point. Agents reasoning through ten micro-steps have more chances to go wrong than agents selecting among three well-designed macro-capabilities. The internal complexity of those capabilities is handled by deterministic orchestration that's been tested and optimized.
+
+Tools should be organized in layers of abstraction:
+
+| Level | Description | Example |
+|-------|-------------|---------|
+| **Atomic operations** | Irreducible building blocks | `search_corpus`, `extract_entities`, `aggregate_by_field` |
+| **Composed tools** | Meaningful bundles with error handling | `email_search`, `map_reduce_rollup`, `summarize` |
+| **Workflow patterns** | Reusable orchestration templates | Research Pattern, Monitoring Pattern, Processing Pattern |
+| **Domain agents** | Specialized agents with domain knowledge | Email Analysis Agent, Research Agent |
+
+The tool inventory itself becomes a cognitive scaffold — shaping how problems are decomposed and which solution paths are available.
+
+*Captures the Expertise Opportunity.*
+
+### Principle 6: Quality Gates at Critical Junctions
+
+Verify outputs and strategic decisions before proceeding. Don't trust the model's self-assessment that it has enough information or made the right choice.
+
+Garbage in, garbage out. If step 3 produces flawed output, every subsequent step is compromised. Gates prevent error propagation.
+
+Evaluation methods include:
+- **Human review** — For subjective judgment and high-stakes decisions
+- **LLM evaluation** — "Does this response contain all key points?"
+- **Programmatic checks** — Does the JSON parse? Is the format valid? Is the value in range?
+
+Don't proceed past a gate until required conditions are met. If step 3 fails, fix it before step 4.
+
+*Catches failures from all three problems before they propagate.*
+
+---
+
+## IV. THE TWO ROLES OF LLMs IN AI SYSTEMS
+
+Every AI system beyond single-turn interactions must decide how to allocate control between two fundamentally different roles.
+
+### Role 1: Worker
+
+The LLM executes discrete knowledge operations that previously required human cognition. Extract key terms from a contract. Evaluate whether a claim matches policy criteria. Synthesize three reports into a summary. Draft a response. Assess sentiment.
+
+Each operation is bounded: defined input, cognitive task, defined output. The system designer determines what operations occur and in what sequence. The LLM is the worker executing each step.
+
+### Role 2: Planner
+
+Instead of executing a predefined operation, the LLM decides *which* operations to perform and in what order. Given a goal and a set of capabilities — search tools, retrieval tools, analysis tools — it determines the sequence. This is agentic behavior.
+
+### The Spectrum
+
+These roles create a design spectrum:
+
+**Fully Deterministic**: The system designer specifies the complete workflow. Step one, step two, step three. The LLM executes each step but makes no decisions about sequencing. Maximizes predictability, auditability, reproducibility.
+
+**Fully Agentic**: The system provides capabilities and goals, not a prescribed workflow. The LLM interprets requests, plans approaches, selects tools, determines sequencing. Maximizes flexibility, handles novel situations. But the path varies, making it harder to predict, audit, and optimize.
+
+### The Hybrid Reality
+
+The most effective systems combine both modes in layered, recursive architectures.
+
+**Deterministic calling Agentic**: A claims processing workflow is fixed for compliance — receive, validate, assess, calculate, decide. But within "assess coverage," the task is genuinely open-ended. That step invokes an agent with flexibility to investigate. The outer workflow knows *what* it needs; it delegates *how* to an LLM that adapts.
+
+**Agentic calling Deterministic**: A customer service agent handles unpredictable requests. But when it determines the customer needs a policy summary, it doesn't improvise one. It invokes a proven `generate_policy_summary` pipeline. The agent decides *what's needed*; reliable workflows handle *how to produce it*.
+
+**Arbitrary Depth**: These patterns nest recursively. A deterministic workflow calls an agent that selects among deterministic tools, each of which may have agentic substeps. The architecture becomes a tree where each node chooses its mode based on what that layer requires.
+
+### The Design Question
+
+Realization C — that LLMs can plan, not just execute — creates the fundamental design challenge: how much planning do you externalize versus delegate?
+
+Intelligence gets encoded from two complementary directions:
+
+**From above** — in workflow design. The sequence, decision points, and control flow embody domain knowledge. The orchestration *is* the expertise. *(Principles 1, 3, 4)*
+
+**From below** — in tool abstraction. Proven pipelines that the LLM invokes. The expertise is baked into the tools. *(Principle 5)*
+
+Sterile context and quality gates apply everywhere — regardless of where planning lives. *(Principles 2, 6)*
+
+---
+
+## V. EXAMPLE: RESEARCH DONE RIGHT
+
+Consider answering a complex question requiring information from multiple sources. The naive approach: give an LLM a search tool and a goal. It will produce something. But it will be unreliable.
+
+Here's how principled orchestration handles it:
+
+### Phase 1: Clarification
+
+Before any research begins, clarify what's actually being asked. The system generates a disambiguated version: "I'll compare X and Y across these dimensions. Should I focus on any specific aspects?"
+
+This is a quality gate with human validation. It catches misunderstandings before they propagate. The LLM works as a focused Worker — its only job is to surface ambiguity.
+
+### Phase 2: Requirements Analysis
+
+Generate an explicit checklist of what a complete answer requires. For a comparison question: performance benchmarks, pricing, availability, version information.
+
+This makes hidden intentions visible. Instead of the model implicitly deciding what matters, requirements are explicit and inspectable. The question "what makes a good answer?" gets dedicated attention as its own step.
+
+### Phase 3: Iterative Retrieval
+
+Research happens in a structured loop, not freestyle exploration. The system maintains a **Local Transient Knowledge Base** — an explicit data structure *outside* the LLM. This is actual state, not narrative about state.
+
+Each iteration:
+1. **Gap analysis**: Compare current KB against requirements. What's missing?
+2. **Query generation**: For each gap, generate targeted search queries.
+3. **Retrieval and evaluation**: Execute searches, evaluate results against the specific need.
+4. **Integration**: Add new information to the KB. Flag conflicts rather than silently resolving them.
+5. **Completeness check**: Does the KB satisfy requirements? If not, iterate.
+
+The loop continues until requirements are met or a maximum is reached. The exit condition is explicit and verifiable, not a vibes-based judgment.
+
+### Phase 4: Synthesis
+
+Only after the KB is sufficiently complete does synthesis happen. The synthesizer receives the clarified question, requirements checklist, and populated KB. Its job is focused: produce a coherent answer from verified materials, with citations and acknowledged uncertainty.
+
+### What This Demonstrates
+
+- The phases are fixed — encoding expertise *from above*
+- The individual operations leverage LLM capability — the Worker role
+- The tools encode best practices — expertise *from below*
+- The KB is external state (addresses Grounding)
+- The checklist addresses Satisficing
+- Curated context per step addresses Memento
+- Quality gates prevent silent error propagation
+
+---
+
+## VI. THE DELEGATION TREE: A FRAMEWORK FOR AI-AUGMENTED PRODUCTIVITY
+
+Using AI effectively isn't about handing everything off. It's about making recursive decisions — at every level of a problem — about what to delegate, what to retain, and what infrastructure makes delegation trustworthy.
+
+### 1. Strategic Path Filtering
+
+The first decision point isn't about how to use AI on a given task — it's about which tasks to pursue. Before any work begins, evaluate possible pathways and filter by AI-friendliness. You may choose entirely different architectures, methodologies, or product strategies based on which paths decompose well for AI-assisted execution.
+
+### 2. Recursive Delegation Decisions
+
+Once you've selected a path, you walk a decision tree. At each node, the question is: can I hand this entire subtree to AI?
+
+The temptation is to delegate from the top. But at the top of the hierarchy, you cannot supply both the instructions and context and trust the output. So you decompose. You branch down, and at each node ask again: are we at the point where I could hand this subtree off?
+
+This recursive decomposition — deciding where to cut the tree and hand off branches — is the core skill of AI-augmented productivity. It's not the AI's capability that matters most; it's your ability to find the right cut points.
+
+### 3. The Quality-Speed Tradeoff
+
+At any node, you face two paths. Path A: give it to AI, five minutes, done — but you can't fully trust the output. Path B: spend an hour collaborating with AI — iterating, guiding, checking — and get output you can build on.
+
+Path A is seductive. But unreliable output cascades into unreliable decisions downstream. So you end up on Path B — spending time that quality gates and observability would handle automatically. Which leads to the key insight:
+
+### 4. Infrastructure as the Unlock
+
+For any node where you can't delegate, ask: *could you delegate it if you had better evaluation, reporting, and traceability infrastructure?*
+
+Often the answer is yes. The bottleneck isn't the AI's capability at leaf-node tasks. It's the absence of verification scaffolding at intermediate nodes. The right infrastructure converts Path B nodes into Path A nodes.
+
+### 5. Fractal Recursion
+
+Building evaluation infrastructure is itself a delegation tree. You're using AI to build the scaffolding that lets you delegate more to AI. The system bootstraps — but only if you're strategic about order. Build the infrastructure that unlocks the largest subtrees first.
+
+### 6. The Comprehension Problem
+
+When AI generates substantial output, how well do you need to understand it? Understanding should be top-down — architecture, abstractions, decision points.
+
+**Imposition mode** (default): Force AI output to reflect your decomposition, your abstractions, your mental model. Your ability to evaluate and make further delegation decisions depends on this.
+
+**Comprehension mode** (exception): When the AI's framework is genuinely superior, invest the time to fully internalize it until it becomes your own. Half-understanding someone else's architecture is the worst of both worlds.
+
+### 7. Explainability as Structural Necessity
+
+Without a strong top-down mental model, you can't tell which layers require your understanding and which don't. Explainability isn't about intellectual curiosity — it's the scaffolding that supports the entire delegation tree. Without it, you can't evaluate, decompose, or decide what to delegate next.
+
+---
+
+## VII. THE USER EXPERIENCE DIMENSION
+
+When developers don't solve decomposition systematically, users experience AI systems with three categories of gaps:
+
+| Gap | Problem |
+|-----|---------|
+| **Visibility** | Users cannot see what the system perceives, processes, or decides |
+| **Control** | Users cannot govern what the system accesses, when it acts, or how it proceeds |
+| **Awareness** | Users don't know where visibility and control gaps exist |
+
+These manifest as four failure modes:
+- **Context Failure** — Missing critical information leads to poor decisions
+- **Decomposition Problems** — Complex tasks not properly broken into manageable steps
+- **Evaluation Blindness** — Quality problems go undetected during execution
+- **Strategy Misalignment** — Suboptimal approaches chosen without user input
+
+Three enablers address these systematically:
+
+**Asset-Centric UX** — Make all system processes visible. Provide direct control over behavior. Enable real-time intervention. Everything flows through clean data abstractions with context and lineage.
+
+**Workflow Contracts** — Establish explicit system behavior rules. Enforce quality gates and checkpoints. Provide governance over system actions. Set clear expectations about multi-step processes.
+
+**User Guidance** — Alert users to potential issues. Suggest optimal approaches. Provide context about limitations. Help users understand when and how to decompose their own requests.
+
+---
+
+## VIII. THE BOTTOM LINE
+
+The capability is already in the models. Orchestration is how you extract it reliably.
+
+The productivity multiplier of AI isn't a simple coefficient applied to your existing workflow. It's a function of how well you decompose problems, how strategically you build verification infrastructure, and how clearly you maintain your own understanding of the systems you're building.
+
+The technology is powerful. The orchestration architecture determines whether that power translates to reliable value. The model isn't the bottleneck — the usage pattern is.
