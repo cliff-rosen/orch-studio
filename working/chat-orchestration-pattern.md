@@ -110,10 +110,34 @@ global tools + page tools + tab tools + subtab tools
 
 ---
 
-### 4. Payload Types (Structured LLM Outputs)
+### 4. Payload Types and the Proposal Pattern
 
-Payloads define how the LLM produces structured outputs that the frontend can
-parse and render as interactive UI (e.g., proposal diffs with accept/dismiss).
+Payloads are the mechanism for structured LLM outputs. But one of their most
+important functions is enabling **human-gated data updates** — a deliberate
+architectural choice about where the LLM's authority ends.
+
+#### The key design decision
+
+The LLM is never given direct write access to the user's data. It has no tool
+that can insert, update, or delete rows. Instead, when a conversation leads to
+a data change, the LLM is forced to express its intent as a **proposal** — a
+structured payload that describes what it wants to change and why.
+
+The proposal is sent to the frontend, which renders it as a visual diff
+(green highlights for additions, inline changes for edits). The user reviews
+and either accepts or dismisses.
+
+**When the user accepts, the frontend calls a data endpoint directly.** The
+LLM is completely out of the loop at execution time. It never touches the
+actual write path. This means:
+
+- The LLM cannot accidentally corrupt data through a malformed tool call
+- The human gate is not advisory — it's structural. There is no code path
+  where the LLM's output is applied without human review.
+- The execution endpoint can enforce its own validation, constraints, and
+  permissions independently of anything the LLM produced
+
+#### PayloadType schema
 
 ```
 PayloadType
@@ -132,8 +156,19 @@ PayloadType
 - **schema_proposal** — add/modify/remove/reorder columns. Modes: 'create' or 'update'.
 - **data_proposal** — add/update/delete rows using exact column IDs from context.
 
-Both go through the proposal pattern: LLM generates → frontend renders diff →
-user accepts or dismisses → only accepted proposals are applied.
+#### Data flow
+
+```
+LLM generates proposal (structured JSON in response)
+  → Backend parses and validates against payload schema
+    → Frontend renders as interactive diff
+      → User accepts or dismisses
+        → On accept: frontend calls data API directly (LLM not involved)
+          → Data API enforces its own validation and applies the change
+```
+
+The LLM learns the outcome through the conversation manifest — it sees that
+a proposal was accepted or dismissed — but it never participates in execution.
 
 ---
 
