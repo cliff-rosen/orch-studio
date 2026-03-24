@@ -5,7 +5,8 @@
       "Bash(grep -n \"class.*AdminApi\\\\|adminApi\\\\|chatConfigApi\" frontend/src/lib/api/*.ts)",
       "Bash(/c/code/orch-studio/tablethat-dev-todos.md:*)",
       "Bash(./deploy.sh 2>&1)",
-      "mcp__claude_ai_BotBeam__list_devices"
+      "mcp__claude_ai_BotBeam__list_devices",
+      "Bash(xargs grep:*)"
     ]
   }
 }
