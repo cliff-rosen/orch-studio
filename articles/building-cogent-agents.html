@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Building Cogent Agents: Designing for Every Failure Mode — Orchestrator Studios</title>
+    <meta name="description" content="A case study of how Knowledge Horizon's AI assistant architecture addresses the five specification failure modes through layered prompt design, dynamic context injection, and domain-aware tooling.">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-9RJRR593J6"></script>
+    <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-9RJRR593J6');</script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --accent: #3730a3;
+            --accent-light: #4f46e5;
+            --accent-subtle: #eef2ff;
+            --text: #1e1b4b;
+            --text-secondary: #4b5563;
+            --bg: #ffffff;
+            --bg-alt: #f8fafc;
+            --border: #e2e8f0;
+            --radius: 12px;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            color: var(--text);
+            background: var(--bg);
+            line-height: 1.7;
+            font-size: 17px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        h1, h2, h3, h4 {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            line-height: 1.2;
+        }
+
+        /* Nav */
+        nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .nav-inner {
+            max-width: 1120px;
+            margin: 0 auto;
+            padding: 0 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 64px;
+        }
+
+        .nav-logo {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 800;
+            font-size: 1.15rem;
+            color: var(--accent);
+            text-decoration: none;
+            letter-spacing: -0.02em;
+        }
+
+        .nav-back {
+            text-decoration: none;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .nav-back:hover {
+            color: var(--accent);
+        }
+
+        /* Article */
+        .article-container {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 60px 24px 80px;
+        }
+
+        .article-meta {
+            margin-bottom: 48px;
+        }
+
+        .article-title {
+            font-size: clamp(2rem, 4vw, 2.75rem);
+            font-weight: 800;
+            color: var(--text);
+            letter-spacing: -0.03em;
+            margin-bottom: 20px;
+            line-height: 1.15;
+        }
+
+        .article-author {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .article-author strong {
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        .article-date {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .article-body h2 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-top: 56px;
+            margin-bottom: 20px;
+            letter-spacing: -0.02em;
+        }
+
+        .article-body h3 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-top: 40px;
+            margin-bottom: 14px;
+            letter-spacing: -0.01em;
+        }
+
+        .article-body p {
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+            line-height: 1.8;
+        }
+
+        .article-body p strong {
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        .article-body ul, .article-body ol {
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+            padding-left: 24px;
+            line-height: 1.8;
+        }
+
+        .article-body li {
+            margin-bottom: 8px;
+        }
+
+        .article-body blockquote {
+            border-left: 3px solid var(--accent);
+            padding: 16px 24px;
+            margin: 28px 0;
+            background: var(--accent-subtle);
+            border-radius: 0 8px 8px 0;
+            color: var(--text);
+            font-style: italic;
+        }
+
+        .article-body .callout {
+            background: var(--bg-alt);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px 28px;
+            margin: 28px 0;
+        }
+
+        .article-body .callout p:last-child {
+            margin-bottom: 0;
+        }
+
+        .article-body table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 28px 0;
+            font-size: 0.9rem;
+        }
+
+        .article-body thead {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        .article-body th {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 600;
+            text-align: left;
+            padding: 12px 16px;
+            font-size: 0.82rem;
+            letter-spacing: 0.02em;
+        }
+
+        .article-body td {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-secondary);
+            vertical-align: top;
+            line-height: 1.6;
+        }
+
+        .article-body tr:last-child td {
+            border-bottom: none;
+        }
+
+        .article-body tbody tr:nth-child(even) {
+            background: var(--bg-alt);
+        }
+
+        .article-body td strong {
+            color: var(--text);
+        }
+
+        .article-body td em {
+            font-style: italic;
+        }
+
+        .section-label {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--accent);
+            display: inline-block;
+            margin-top: 8px;
+        }
+
+        .download-btn {
+            display: inline-block;
+            margin-top: 24px;
+            padding: 12px 28px;
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 600;
+            font-size: 0.9rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.15s;
+        }
+
+        .download-btn:hover {
+            background: var(--accent-light);
+            transform: translateY(-1px);
+        }
+
+        /* Footer */
+        footer {
+            border-top: 1px solid var(--border);
+            padding: 48px 24px;
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        /* Mobile */
+        @media (max-width: 768px) {
+            .article-container {
+                padding: 40px 20px 60px;
+            }
+
+            .article-body h2 {
+                margin-top: 40px;
+            }
+        }
+
+        /* Print */
+        @media print {
+            nav, .download-btn {
+                display: none !important;
+            }
+
+            body {
+                font-family: Georgia, 'Times New Roman', serif;
+                font-size: 11pt;
+                line-height: 1.6;
+                color: #000;
+            }
+
+            h1, h2, h3, h4 {
+                font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+                color: #000;
+            }
+
+            .article-container {
+                max-width: 100%;
+                padding: 0;
+                margin: 0;
+            }
+
+            .article-title {
+                font-size: 24pt;
+                margin-bottom: 12pt;
+            }
+
+            .article-body h2 {
+                font-size: 16pt;
+                margin-top: 24pt;
+                margin-bottom: 8pt;
+                page-break-after: avoid;
+            }
+
+            .article-body h3 {
+                font-size: 13pt;
+                margin-top: 16pt;
+                margin-bottom: 6pt;
+                page-break-after: avoid;
+            }
+
+            .article-body p {
+                color: #000;
+                margin-bottom: 8pt;
+                orphans: 3;
+                widows: 3;
+            }
+
+            .article-body blockquote {
+                border-left: 2px solid #000;
+                background: none;
+                padding: 8pt 16pt;
+                margin: 12pt 0;
+            }
+
+            .article-body .callout {
+                border: 1px solid #ccc;
+                background: none;
+                padding: 12pt 16pt;
+                margin: 12pt 0;
+            }
+
+            footer {
+                border-top: 1px solid #ccc;
+                padding: 16pt 0;
+                font-size: 9pt;
+            }
+
+            a {
+                color: #000;
+                text-decoration: none;
+            }
+
+            @page {
+                margin: 0.75in;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="nav-inner">
+            <a href="/" class="nav-logo">Orchestrator Studios</a>
+            <a href="/" class="nav-back">&larr; Back to Orchestrator Studios</a>
+        </div>
+    </nav>
+
+    <article class="article-container">
+        <header class="article-meta">
+            <h1 class="article-title">Building Cogent Agents: Designing for Every Failure Mode</h1>
+            <p class="article-author">By <strong>Cliff Rosen</strong>, Founder &amp; CTO, Orchestrator Studios</p>
+            <p class="article-date">March 2026</p>
+            <button class="download-btn" onclick="window.print()">Download PDF</button>
+        </header>
+
+        <div class="article-body">
+
+            <p>In <a href="/articles/agent-failure-diagnostics.html">A Diagnostic Framework for Agent Failure</a>, I laid out a taxonomy of where agents break: five specification properties (coherence, correctness, completeness, sufficiency, density) and two runtime failure modes (tool failure, genuine LLM failure). That framework is diagnostic. It tells you where to look. This article is about what you find when you actually build against those failure modes in a production system.</p>
+
+            <p>The system is Knowledge Horizon, a biomedical research intelligence platform. It monitors PubMed for new publications, generates curated intelligence reports on research topics, and helps users stay current with scientific literature across their domains of interest. An AI assistant is embedded throughout the product. Users can ask it to navigate reports, analyze articles, search PubMed for related work, explain findings, and synthesize information across multiple papers. The agent has access to local report data, PubMed search capabilities, full-text article retrieval, and a deep research mode for complex questions. The users are pharmaceutical researchers and legal defense teams. They make decisions based on what this system tells them.</p>
+
+            <p>That last point is worth sitting with. When a pharmaceutical researcher asks the assistant to summarize the evidence on a drug's hepatotoxicity profile, and the assistant gets it wrong or incomplete, the downstream consequences aren't abstract. When a legal team uses the platform to identify relevant literature for a product liability case and the assistant misses a key paper or mischaracterizes a finding, that's a real problem. The stakes here aren't data corruption in the traditional sense. They're analytical conclusions that inform consequential decisions. That shapes every architectural choice described below.</p>
+
+            <p>What follows is an honest case study. I'll walk through each failure mode and show what Knowledge Horizon's architecture does to address it, where it falls short, and what the gaps tell us. The gaps are as instructive as the solutions.</p>
+
+            <h2>Two Categories of Use</h2>
+
+            <p>When designing Knowledge Horizon's AI assistant, we confronted a problem that seemed simple on the surface but turned out to be one of the most important architectural decisions in the system: users ask two fundamentally different kinds of questions, and each kind requires a completely different context pipeline.</p>
+
+            <p>The first category is navigational. "How do I create a new research stream?" "Where do I find the relevance settings for my report?" "Can I export my report to PDF?" These are questions about the product itself. The user needs help using the application.</p>
+
+            <p>The second category is analytical. "What does this article's stance analysis mean for our hypothesis?" "Search PubMed for recent papers on PFAS exposure and thyroid dysfunction." "Compare the methodology across these three studies." These are questions about the data. The user wants to work with the scientific literature the platform has assembled.</p>
+
+            <p>Both categories share some common context. The agent always needs to know what page the user is on, what data is currently visible, what their role is. But the <em>additional</em> context each category demands is entirely different. For navigational questions, the agent needs product knowledge: how features work, where things are, what's possible. For analytical questions, the agent needs domain data: the articles in the current report, their relevance scores, their stance analyses, the user's research stream configuration.</p>
+
+            <p>We solved this with a split approach. For navigation, the agent has a dedicated help tool backed by a structured knowledge base. The table of contents for this knowledge base is always present in the system prompt — a lightweight index, not the full content. The agent scans the TOC, identifies the relevant topic, and calls the help tool to retrieve the specific answer. For analysis, the agent gets dynamic page context assembled by per-page context builders, plus retrieval tools (PubMed search, deep research) for information that isn't already local.</p>
+
+            <p>Getting this routing right is itself a consistency problem. The agent's classification of the question — "is this navigational or analytical?" — must be consistent with which capabilities it invokes. If it classifies a product question as analytical, it'll try to search PubMed for information about how to export a PDF. If it classifies an analytical question as navigational, it'll look in the help system for scientific findings that aren't there. The system preamble makes this distinction explicit, with dedicated instruction sections for each category, precisely because getting the routing wrong cascades into failures that look like tool problems but are really classification problems.</p>
+
+            <p>This two-category insight turns out to be one of the highest-leverage design decisions in the system. It shapes the prompt structure, the tool selection, the context assembly — everything downstream. And it's generalizable. Most agent systems serve multiple use case types. Identifying those types early and building the context pipeline around them prevents a large class of failures that are otherwise hard to diagnose.</p>
+
+            <h2>The System Prompt: Assembling Cogent Inputs</h2>
+
+            <p>Knowledge Horizon's system prompt is rebuilt fresh for every message. It's not a static string. It's an assembly of eight components, each serving a specific purpose in the cogency chain.</p>
+
+            <p><strong>The global preamble</strong> establishes baseline identity and behavior. The agent is a biomedical research assistant. It uses tools for factual claims. It follows specific output conventions. This layer is constant across all pages and all users.</p>
+
+            <p><strong>Page instructions</strong> define the persona for the user's current location. On the reports page, the agent understands report structure, article lists, and relevance scoring. In the article viewer, it understands full-text content, stance analysis, and citation context. In the tablizer (a tool for building structured comparison tables from article data), it understands column definitions and data extraction. Each page gets a distinct persona because each page represents a different task domain.</p>
+
+            <p><strong>Stream instructions</strong> are an additional layer that org administrators can configure per research stream. A pharmaceutical company monitoring oncology literature might want the agent to emphasize clinical trial methodology. A legal team tracking environmental toxicology might want it to flag regulatory implications. Stream instructions let organizations customize AI behavior for their specific research domains without touching code. This is an additional correctness lever — it narrows the agent's focus to what matters for that particular team.</p>
+
+            <p><strong>Dynamic context</strong> is the live state assembled by per-page context builders. On the reports page, this includes the full list of articles with their relevance scores, AI-generated summaries, and stance analyses. In the article viewer, it includes the article's metadata, abstract, full stance analysis, and relevance assessment. The context is always current — pulled at call time, never cached.</p>
+
+            <p><strong>The payload manifest</strong> is a lightweight index of everything generated in prior conversation turns — PubMed search results, article details, report summaries. It lists what's available with brief summaries, and the agent calls a retrieval tool to load full data on demand. This is the same pattern as the help TOC: the manifest makes the complete tool-generated history accessible without loading it all into the context window. It addresses both completeness (nothing from prior turns is lost) and density (prior results don't dilute the current context until they're actually needed).</p>
+
+            <p><strong>Capabilities</strong> are the tools available on the current page, resolved from a global registry. The reports page gets PubMed search and deep research tools. The article viewer gets citation lookup tools. Tools not in the page's set don't exist to the agent.</p>
+
+            <p><strong>The help section</strong> contains the table of contents of the product knowledge base. Always present, always lightweight. The full content loads only on demand via the help tool.</p>
+
+            <p><strong>Format rules</strong> sit at the outermost layer, ensuring consistent output structure regardless of which persona is active. Markdown conventions, citation formatting, length constraints.</p>
+
+            <p>The ordering matters. When there's tension between layers, the hierarchy defines precedence: global preamble sets the floor, page instructions specialize, stream instructions customize further, format rules govern output. The assembly code enforces this ordering, so a page persona can't accidentally override the global preamble.</p>
+
+            <h2>Addressing Specification Failures</h2>
+
+            <h3>1. Coherence</h3>
+
+            <p>Coherence asks whether the inputs form a clear, unified picture — free of ambiguity, internally consistent, and externally plausible. Knowledge Horizon addresses this at all three levels the framework identifies.</p>
+
+            <p><strong>Ambiguity</strong> is addressed primarily through the two-category routing. By making the navigational/analytical distinction explicit in the preamble with dedicated instruction sections, the system removes the most common source of ambiguity: "what kind of question is this?" Without the explicit split, the agent has to infer from context whether "how does stance analysis work?" means "explain this feature to me" (navigational) or "explain the methodology behind this article's stance score" (analytical). The explicit routing eliminates that interpretation choice. Page-bound personas further reduce ambiguity — the agent on the reports page knows it's working with reports, not guessing from vague cues.</p>
+
+            <p><strong>Internal consistency</strong> is managed through the layered prompt hierarchy. The prompt assembles from discrete layers with explicit precedence: global, then page, then stream, then format rules. Contradictions between layers get resolved structurally rather than left for the LLM to navigate. The system also supports database-driven instruction overrides with defined priority relative to the base layers. Administrators can patch behavior without touching code, and the patch slots into the hierarchy predictably.</p>
+
+            <p><strong>External consistency (plausibility)</strong> is addressed through an explicit architectural rule: the agent must use retrieval tools for factual claims rather than generating from training data. This is operationalized through a three-level data strategy. First, the agent checks local data — the articles, reports, and analyses already in the user's stream. Second, if local data is insufficient, it searches PubMed for additional publications. Third, for complex questions requiring synthesis across many sources, it invokes deep research mode, which conducts a more thorough investigation. Each level is progressively more authoritative. The agent can't just assert that "recent studies show X" from its training data. It has to point to specific articles.</p>
+
+            <p>The two-category routing also reinforces internal consistency. By ensuring that tool selection is always consistent with the actual nature of the question, the agent doesn't reach for PubMed when someone asks how to change their notification settings.</p>
+
+            <p><strong>The gap:</strong> Persona-tool consistency is maintained by convention, not enforcement. Each page declares its own persona and its own tool set, and it's the developer's responsibility to ensure these align. There's no automated check that verifies a persona's described capabilities match the tools actually available. If someone writes a page persona that references a "compare across streams" capability but doesn't include the comparison tool in that page's tool set, the inconsistency ships silently.</p>
+
+            <h3>2. Correctness</h3>
+
+            <p>Correctness asks: even if the inputs are coherent, are they <em>right</em> for what the user actually needs?</p>
+
+            <p>Knowledge Horizon's primary defense is page-bound personas. The persona, context, and tools are all derived from the user's actual location and state. On the reports page, the agent gets the reports persona, the current report's article list as context, and report-level tools. In the article viewer, it gets the article analysis persona, the specific article's full metadata and content as context, and article-level tools. The system reads the state directly rather than guessing what the user might want.</p>
+
+            <p>The live context builders reinforce correctness. Because context is pulled at call time from the actual application state, the agent works with current data. It sees the report as it exists now, with the latest articles and their current relevance scores. It sees the article the user is actually reading, not a stale reference.</p>
+
+            <p>Stream-level instructions add another correctness layer. An organization's administrators can tailor AI behavior for each research stream, ensuring the agent's analytical focus matches the team's actual domain. A stream monitoring cardiovascular safety signals gets different analytical framing than one tracking manufacturing process innovations. This customization happens at the organizational level, not in code, which means domain experts — the people who actually know what "correct" means for their research — can shape the agent's behavior.</p>
+
+            <p>Temperature is set to 0.0. For a system where users make decisions based on the output, non-determinism is a liability, not a feature. The same question about the same article should produce the same analysis.</p>
+
+            <p><strong>The gap:</strong> Personas are static per page. Every visit to the reports page gets the same persona, regardless of whether the user is doing a quick scan of new articles or conducting a deep analysis of conflicting findings. The persona is correct for the typical use case on that page, but unusual tasks on familiar pages get generic framing. The system has no mechanism to detect when a user's intent diverges from the page-level persona and adjust accordingly.</p>
+
+            <h3>3. Completeness</h3>
+
+            <p>Completeness asks whether the specification covers the full task — every phase, capability, and piece of necessary context.</p>
+
+            <p>The per-page context builders are designed with completeness as an explicit goal. The reports page context builder doesn't just include article titles — it includes the full article list with relevance scores, stance analyses (does this article support or challenge the stream's hypothesis?), AI-generated summaries, and publication metadata. The article viewer context builder includes the article's abstract, full stance analysis, relevance assessment, and key findings. The intent is that no phase of an analytical task should stall because the agent is missing something about the current state.</p>
+
+            <p>The tool registry serves the same purpose for capabilities. Rather than ad-hoc tool inclusion, the registry is the canonical list of everything the agent can do. Each page's tool set is a declared subset, and the registry itself is the checkpoint for completeness auditing.</p>
+
+            <p>The payload manifest addresses multi-turn completeness using the same pattern as the help TOC: a lightweight index that makes everything accessible without loading it. The manifest summarizes what was generated in prior turns — search results, article details, report summaries — and the agent retrieves full data on demand. This solves both completeness (nothing from prior turns is lost) and density (prior results don't flood the context for the current step). An article discussed five turns ago is still one tool call away, but it doesn't consume context window for every subsequent turn.</p>
+
+            <p>The admin override system is the operational safety net. When a latent completeness gap surfaces — a scenario the original specification didn't cover — an administrator can add instruction overrides through the configuration interface without a code deployment. A newly discovered edge case in how the agent handles retracted papers can be patched in minutes rather than waiting for a development cycle.</p>
+
+            <p><strong>The gap:</strong> There is no mechanism for the agent to request more context if it suspects its inputs are incomplete. If the context builder for the article viewer doesn't include a piece of information the agent would need for an unusual analytical task — say, the full methods section of a paper when the user is asking about statistical methodology — the agent improvises rather than asking. The context assembly is push-based, with no pull channel.</p>
+
+            <h3>4. Sufficiency</h3>
+
+            <p>Sufficiency is case-specific. A complete specification can still be insufficient for a particular question. This is where the two-category insight pays off most directly.</p>
+
+            <p><strong>For navigational questions,</strong> sufficiency is handled through the help TOC mechanism. The table of contents is always in the prompt — a lightweight index consuming minimal tokens. The agent scans it, identifies the relevant topic, and calls the help tool only when it needs the specific content. This is a density-aware solution to a sufficiency problem. The knowledge is available but not loaded until needed. A user asking "how do I add a new article to my stream?" gets a precise answer drawn from the help system, not a vague response generated from the agent's general understanding of the product.</p>
+
+            <p><strong>For analytical questions,</strong> sufficiency is addressed through a graduated three-level strategy. The first level is local stream data: the articles already in the user's report, with their relevance scores, stance analyses, and summaries. For many questions, this is enough. The agent can synthesize findings across the articles already present. The second level is PubMed search. When the local data isn't sufficient — the user asks about a related compound, a different mechanism of action, a study they've heard about but that isn't in their stream — the agent can search PubMed and retrieve additional articles. The third level is deep research mode for complex questions that require broader investigation across many sources.</p>
+
+            <p>Each level extends the agent's reach when the previous level isn't sufficient. Local data handles "what do we already know?" PubMed search handles "what else is out there?" Deep research handles "give me a thorough investigation of this question." The graduated approach means the agent doesn't over-fetch for simple questions or under-fetch for complex ones.</p>
+
+            <p>The report context itself is designed for sufficiency. Article entries include not just titles and authors but relevance scores (how well does this article match the stream's research focus?), stance analysis (does this article's evidence support or challenge the stream's hypothesis?), and AI-generated summaries. This gives the agent enough analytical depth to do meaningful work without requiring it to retrieve and process full-text articles for every question.</p>
+
+            <p><strong>The gap:</strong> The agent never self-assesses sufficiency. It doesn't ask "what am I missing?" after retrieving search results. A PubMed search that returns ten articles on a topic where there are hundreds looks like a complete answer. More broadly, search result quality isn't validated. A search that returns tangentially related papers because the query terms were too broad is treated the same as one that returns precisely relevant results. The tools address the known unknowns. The unknown unknowns remain invisible.</p>
+
+            <h3>5. Density</h3>
+
+            <p>Density is about signal-to-noise ratio. The right information can be present and still fail to influence the output if it's buried in noise.</p>
+
+            <p><strong>Token budget tracking</strong> monitors context size against the 200K token window and triggers a warning at 70% utilization. This is a blunt instrument, but it prevents the failure mode where context grows unchecked until the model's attention is too thin.</p>
+
+            <p>The context builders produce <strong>curated summaries</strong> rather than raw data dumps. Article entries in the report context are structured representations — relevance score, stance, summary, key metadata — not raw full-text content. This curation is the primary density mechanism: the agent gets what it needs to reason analytically without drowning in unstructured text.</p>
+
+            <p>The <strong>help TOC</strong> is the key density mechanism for navigational context. Rather than loading the entire product knowledge base into every prompt, only the table of contents is present. Full content loads on demand. This keeps the navigational knowledge available (supporting sufficiency) without consuming attention budget that should go to analytical context (protecting density).</p>
+
+            <p><strong>Conversation scope binding</strong> prevents cross-contamination between unrelated interactions. Each conversation is bound to a specific scope — a report, an article, a stream — and context from one scope doesn't leak into another.</p>
+
+            <p><strong>The gap:</strong> There is no context compression for long conversations within a single scope. As a conversation grows, accumulated history takes up more of the context window. The system tracks the budget but doesn't actively compress or summarize earlier turns. By turn fifteen in a deep analytical discussion, the agent is reasoning through a context that's heavily weighted toward historical exchanges rather than the current question.</p>
+
+            <p>There's a second density concern: the global preamble is large. It's structured and layered, so the model may navigate it efficiently. But it's a risk surface. If the preamble's own signal-to-noise ratio degrades as features accrete, the density problem could start in the instructions themselves.</p>
+
+            <h2>Addressing Runtime Failures</h2>
+
+            <h3>Tool Failure</h3>
+
+            <p>When the agent calls PubMed search and the API times out, or a deep research task stalls, the question is whether the system detects and handles the failure or lets it propagate silently.</p>
+
+            <p>Knowledge Horizon uses <strong>typed tool results</strong>. Each tool call returns a structured response with distinct payloads for the LLM (a text explanation of what happened) and for the frontend (data for UI updates). When a tool fails, the LLM gets a clear description it can reason about, not a raw error trace.</p>
+
+            <p>For long-running operations — deep research tasks that might take thirty seconds, large PubMed searches — the system provides <strong>streaming progress</strong>. This is both a UX feature and a failure detection mechanism. A tool that stalls stops emitting progress events, making the failure visible before the operation times out.</p>
+
+            <p>A <strong>configurable max iteration cap</strong> prevents runaway tool loops. If the agent enters a cycle of searches that aren't converging — refining PubMed queries without finding what it needs — the cap forces termination. <strong>Cancellation support</strong> lets users abort operations mid-execution if they see the agent heading in the wrong direction.</p>
+
+            <p><strong>The gap:</strong> There is no tool output validation. Hard failures are handled. But soft failures — where a PubMed search returns well-formed results that happen to be tangentially relevant, or where a deep research task synthesizes findings from low-quality sources — propagate unchecked. The system trusts that if a tool returns a well-formed response, the content is good. This is the most dangerous class of tool failure for a research intelligence platform, and it's unaddressed.</p>
+
+            <h3>Genuine LLM Failure</h3>
+
+            <p>Even with cogent inputs and working tools, the LLM will occasionally produce wrong output. This is the residual failure rate you can't engineer away. You can only contain it.</p>
+
+            <p>Temperature 0.0 reduces non-determinism. The same question about the same data should produce the same analysis. This doesn't prevent errors, but it makes them reproducible, which makes them debuggable.</p>
+
+            <p>The system maintains <strong>full execution traces</strong> — the complete record of what the agent was given, what it generated, what tools it called, and what it received back. When a failure occurs, these traces enable post-hoc diagnosis. You can reconstruct exactly what happened and determine whether the failure was a genuine LLM error or a specification issue.</p>
+
+            <p>The <strong>model is configurable</strong>. Operators can select which LLM backs the assistant, allowing them to balance capability against reliability as the model landscape evolves.</p>
+
+            <p>Unlike a data modification system where the primary risk is corrupting user data, Knowledge Horizon's primary risk is providing wrong analytical conclusions that inform real decisions. A pharmaceutical researcher doesn't need the system to ask permission before providing an analysis — they need the analysis to be right. The quality gate here isn't a confirmation dialog. It's the user's own domain expertise applied to the output. The system provides the evidence trail — source articles, relevance scores, stance analyses — so the user can evaluate the conclusion rather than just accepting it. Whether that's sufficient is a question I'll return to.</p>
+
+            <h2>What the Gaps Reveal</h2>
+
+            <p>Looking across all the gaps, three themes emerge.</p>
+
+            <p><strong>The first is a validation deficit.</strong> The system trusts too many things at face value. It trusts that PubMed search results are relevant without assessing quality. It trusts that deep research synthesis is drawn from appropriate sources. It trusts that persona-tool alignment is correct because a developer configured it. Each trust point is a potential failure surface. Not because trust is always wrong — you can't validate everything — but because the system has no framework for deciding <em>what</em> to validate and at what depth.</p>
+
+            <p><strong>The second is an adaptivity deficit.</strong> The system can't adjust its own behavior based on what it encounters during execution. The agent can't request more context when it suspects its inputs are incomplete. It can't assess whether a search result is actually useful for the question being asked. It can't compress context when conversations grow long. Every one of these limitations means behavior is determined entirely at design time, with no runtime self-correction.</p>
+
+            <p><strong>The third is the user-as-quality-gate problem.</strong> This one is especially pointed for Knowledge Horizon. The users <em>are</em> domain experts. Pharmaceutical researchers and legal defense teams can evaluate whether an analysis of a drug's safety profile is correct — they have the training and the context to spot errors. But that evaluation only happens if they read critically rather than trusting polished, well-formatted output. The better the agent gets at producing authoritative-sounding analysis, the more likely users are to skim rather than scrutinize. The system provides source citations and evidence trails precisely to support critical evaluation, but it can't force it. The quality gate is real, but its effectiveness depends on human discipline, and human discipline is variable.</p>
+
+            <p>These deficits map to a broader principle. <strong>Static specification handles most failure modes. The frontier is systems that reason about their own adequacy.</strong> The five specification properties are about setting up the right conditions before the LLM runs. That's necessary. But it's not enough for a system that encounters novel analytical questions, because novelty is precisely what static specifications can't anticipate. A researcher asking a question the system designers never imagined is the normal case, not the edge case.</p>
+
+            <h2>Closing</h2>
+
+            <p>The <a href="/articles/agent-failure-diagnostics.html">diagnostic framework</a> gives you a structured way to think about where agents fail. This case study shows what it looks like to build against those failure modes in practice — and where the building still falls short. The framework makes the gaps visible and prioritizable. That's its value: not perfection, but clarity about what's addressed and what isn't.</p>
+
+            <p>If there's one insight from Knowledge Horizon's architecture that generalizes beyond this specific product, it's the two-category design pattern. Most agent systems serve multiple use case types, and each type has different context requirements. Identifying those categories early — before you start writing prompts or choosing tools — and designing the context pipeline around them is one of the highest-leverage decisions you can make. It shapes everything downstream: prompt structure, tool selection, density management, consistency guarantees. Get the categories right, and the rest of the architecture has a natural structure to follow. Get them wrong, and you spend months debugging failures that are really classification problems in disguise.</p>
+
+            <p>The remaining gaps — validation deficits, adaptivity deficits, the user-as-quality-gate problem — are the roadmap. They tell you what to build next. More importantly, they tell you which problems are hard in a deep way rather than merely unfinished. The answers are your next engineering priorities.</p>
+
+        </div>
+    </article>
+
+    <footer>
+        &copy; 2026 Orchestrator Studios
+    </footer>
+
+</body>
+</html>

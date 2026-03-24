@@ -1,0 +1,39 @@
+﻿A Diagnostic Framework for Agent Failure
+A Diagnostic Framework for Agent Failure
+The goal of any well-designed agent is simple: supply the LLM with instructions, context, and tools that are sufficient for a reasonable intelligence to understand what's being asked, reason about it, and respond correctly. When an agent fails, the first question isn't "what did the LLM do wrong?" It's "where did the system break down?"
+Failures cluster into three categories.
+________________
+
+
+Category 1: Incoherent Inputs
+This is the most common and most fixable failure mode. The instructions, context, and tooling weren't wrong exactly — they just didn't form a coherent picture. They were incomplete, inconsistent, or insufficiently integrated.
+LLMs are pattern-matching engines. They will always find the most salient pattern available to them. If you give them a coherent, well-structured set of inputs, they'll find the right pattern. If you give them an incoherent set, they'll find the best available pattern — which won't be the one you wanted. The LLM isn't failing; it's doing exactly what it does. The system failed to give it something sensible to work with.
+This is why coherence across the three inputs — instructions, context, and tooling — is the fundamental design requirement. They need to tell a consistent story.
+________________
+
+
+Category 2: Missing or Degraded Context
+A specific and very common sub-case of the above, worth calling out separately because the failure mechanism is different. Here the instructions and tooling may be fine, but the LLM is reasoning from incomplete information — typically because the relevant context couldn't be loaded.
+The classic example is RAG: the document is too large to fit in the context window, retrieval pulls the wrong chunks, and the LLM reasons confidently from an incomplete picture. It's not hallucinating in the traditional sense — it's doing its best with what it was given. The gap is in what it was given.
+Context failure is insidious because the LLM usually doesn't know what it doesn't know. It fills the gap with the most plausible pattern available, which can look like a reasonable answer.
+________________
+
+
+Category 3: Tool Failure
+The LLM selected the right tool and invoked it correctly, but the tool didn't return what it was supposed to — wrong data, an error, a timeout, a malformed response. This isn't an LLM failure at all. A robust agent should be able to detect and recover from tool failures, but that recovery behavior has to be explicitly designed. Without it, the LLM will often proceed as if the tool succeeded, reasoning from garbage output.
+________________
+
+
+Category 4: Genuine LLM Failure
+Everything was set up correctly — coherent instructions, sufficient context, working tools — and the LLM still went off the rails. Wrong conclusion, wrong tool selection, non-sequitur output. This happens. It's the residual failure rate after the system does everything right.
+This is the category most people blame first. It's actually the least common and the least actionable. Better models help at the margins, but it's never zero. The right response is quality gates, not model-blaming.
+________________
+
+
+The Diagnostic Sequence
+When something goes wrong, work through this in order:
+1. Were the inputs coherent — instructions, context, and tooling consistent and complete?
+2. Was the context actually sufficient — was the right information loaded and present?
+3. Did the tools work as expected?
+4. If all three were fine — this was a genuine LLM failure. Note it, add a quality gate, move on.
+Most debugging stops at step 1 or 2. That's where most of the leverage is.

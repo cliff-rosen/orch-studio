@@ -8,7 +8,7 @@ echo "Deploying to $BUCKET..."
 
 # Upload HTML files
 aws s3 cp index.html "$BUCKET/index.html" --content-type "text/html"
-aws s3 sync articles/ "$BUCKET/articles/" --content-type "text/html"
+aws s3 sync articles/ "$BUCKET/articles/" --content-type "text/html" --exclude "botbeam-reach-continuum.html"
 
 # Upload assets
 aws s3 cp favicon.svg "$BUCKET/favicon.svg" --content-type "image/svg+xml"

@@ -1,0 +1,443 @@
+TableThat Chat System: Features and Failure Mode Coverage
+==========================================================
+
+FEATURE INVENTORY
+-----------------
+
+Each feature is mapped to which failure modes it addresses and which
+it leaves exposed.
+
+Legend:
+  [Con] = Consistency (internal)
+  [Pla] = Consistency (plausibility / external)
+  [Cor] = Correctness
+  [Com] = Completeness
+  [Suf] = Sufficiency
+  [Den] = Density
+  [Too] = Tool Failure (runtime)
+  [LLM] = Genuine LLM Failure (runtime)
+
+
+INSTRUCTIONS LAYER
+------------------
+
+1. Global Preamble (hard-coded default, DB-overrideable)
+   What it does: Defines what TableThat is, the four-phase user journey,
+   the assistant's role, style guidelines, and critical behavioral rules.
+   Acts as the foundation — everything downstream inherits from it.
+
+   Addresses:
+     [Con] Sets the baseline all other layers must be consistent with
+     [Cor] Establishes the correct framing for the entire system
+     [Den] Structured with clear sections, numbered rules — high signal
+
+   Doesn't address:
+     [Suf] Can't anticipate case-specific gaps
+     [Too] No tool validation logic
+     [LLM] No quality gate on output
+
+   Gap: The preamble is ~1,067 lines. At some point this becomes a
+   density problem itself — the model may give shallow treatment to
+   rules buried deep in a long preamble. No mechanism to measure
+   whether the model actually attends to all sections.
+
+
+2. Page-Specific Personas (code defaults + DB overrides)
+   What it does: Each page (tables_list, table_view, table_edit) gets
+   a dedicated persona that specializes the assistant's behavior.
+   Bound to the user's current page — you can't get the wrong persona
+   for where you are.
+
+   Addresses:
+     [Con] Written to be consistent with global preamble; page binding
+           prevents cross-page contradictions
+     [Cor] Instructions match the user's actual task because they're
+           derived from page state, not configured generically
+     [Com] Each persona covers the full scope of what that page needs
+
+   Doesn't address:
+     [Pla] No plausibility checking within personas
+     [Suf] Personas define the task, not the data — can't ensure the
+           context has enough for this specific case
+     [Too] [LLM] No runtime protections
+
+   Gap: Personas are static per page. If a user is doing something
+   unusual on a familiar page (e.g., using table_view for a task the
+   persona doesn't anticipate), the persona may be subtly wrong for
+   that session. No adaptive persona selection.
+
+
+3. Format Instructions (hard-coded, not configurable)
+   What it does: Specifies SUGGESTED_VALUES, SUGGESTED_ACTIONS, and
+   payload format rules. Tells the model exactly how to structure
+   certain response types.
+
+   Addresses:
+     [Con] Consistent format expectations across all interactions
+     [Cor] Reduces format-level correctness failures
+     [Den] Separated into own section, keeping core instructions clean
+
+   Doesn't address:
+     [Com] [Suf] [Too] [LLM] — format-only concern
+
+   Gap: Not configurable via admin UI. If format requirements change,
+   requires a code deploy.
+
+
+4. Help System (YAML defaults + DB overrides, searchable via tool)
+   What it does: Feature documentation the agent can search at runtime.
+   Organized by category and topic. Admin can override content.
+
+   Addresses:
+     [Suf] Fills knowledge gaps about feature behavior at runtime
+     [Com] Ensures the agent has access to product documentation
+     [Cor] Reduces incorrect guidance about how features work
+
+   Doesn't address:
+     [Pla] Help is about the product, not domain plausibility
+     [Too] [LLM] No runtime protections
+
+   Gap: Help content quality depends on maintenance. Stale or
+   incomplete help entries create a false sense of sufficiency —
+   the agent finds an answer, but it's wrong. No versioning or
+   staleness detection.
+
+
+CONTEXT LAYER
+-------------
+
+5. Page Context Builders (per-page functions)
+   What it does: Assembles live context for each page — table schema,
+   row count, sample data, selected rows, active filters, sort, user role.
+   Runs at request time with current state.
+
+   Addresses:
+     [Cor] Context is always current — live data, not stale snapshots
+     [Com] Each builder is designed to include everything needed for
+           that page's task
+     [Suf] Sample data means the agent sees actual values, not just
+           schema. Selected rows signal what the user cares about now.
+     [Den] Curated summaries, not raw dumps. "Table: Companies,
+           15 columns, 342 rows" with structured sample data.
+
+   Doesn't address:
+     [Con] Builders don't check for contradictions in the data itself
+     [Pla] No plausibility check on the data being passed through
+     [Too] [LLM] No runtime protections
+
+   Gap: Sample data is limited to first N rows. If the user's task
+   concerns rows not in the sample, the agent reasons from an
+   unrepresentative slice. Selected rows help but only when the user
+   knows to select them. No mechanism for the agent to request more
+   context if it suspects the sample is insufficient.
+
+
+6. Conversation Data Manifest
+   What it does: Carries forward payloads from prior messages —
+   proposals, tool results, structured outputs. Gives the agent
+   awareness of what's already happened in the conversation.
+
+   Addresses:
+     [Com] Multi-turn completeness — the agent knows what it proposed
+           before and what the user accepted/dismissed
+     [Con] Prevents contradicting prior actions in the same conversation
+
+   Doesn't address:
+     [Den] As conversations get long, the manifest grows. Accumulated
+           history becomes noise for the current step.
+     [Suf] [Too] [LLM]
+
+   Gap: No compression or summarization of conversation history.
+   Long conversations accumulate debris that dilutes the context.
+   The "dirty test tube" problem from the Principled Orchestration
+   framework — no sterile context mechanism.
+
+
+7. Conversation Scope Binding
+   What it does: Each conversation is bound to a single scope —
+   either "tables_list" or "table:{id}". Scope derived from context.
+   Migration supported when a table is created from the tables list.
+
+   Addresses:
+     [Den] Prevents cross-contamination from unrelated conversations
+     [Con] Agent can't confuse context from different tables
+     [Cor] Context is always about the right table
+
+   Doesn't address:
+     [Com] [Suf] [Too] [LLM]
+
+   Gap: Scope is coarse-grained (whole table or tables list). No
+   finer-grained scoping for specific tasks within a table session.
+
+
+8. Token Budget Tracking
+   What it does: Tracks peak_input_tokens per agent iteration.
+   Context window = 200K tokens, warning threshold at 140K (70%).
+   Warns frontend when context pressure is high.
+
+   Addresses:
+     [Den] Prevents context window overflow that silently truncates
+           important information
+
+   Doesn't address:
+     [Everything else] — monitoring only, no active intervention
+
+   Gap: Warning only — doesn't actively prune or prioritize context
+   when approaching the limit. No mechanism to compress or
+   selectively drop low-priority context sections.
+
+
+TOOLS LAYER
+-----------
+
+9. Tool Registry (global + page-specific registration)
+   What it does: Central registry of all tools with name, description,
+   input schema, executor, category. Tools resolved per page:
+   global + page-declared + tab-declared.
+
+   Addresses:
+     [Com] Page configs declare required tools — can't accidentally
+           omit a capability the instructions reference
+     [Cor] Tools match the page's task because they're bound together
+     [Con] Tool descriptions and schemas are centrally defined,
+           reducing mismatches between what the LLM expects and
+           what the tool does
+
+   Doesn't address:
+     [Suf] Having the right tool doesn't mean it returns enough data
+     [Too] Registry doesn't validate tool output quality
+     [LLM]
+
+   Gap: Tools are declared per page, but there's no validation that
+   the page persona actually references the tools that are provided,
+   or that every tool referenced in the persona is available. The
+   consistency between persona text and tool list is maintained by
+   convention, not enforcement.
+
+
+10. Web Search Tool
+    What it does: Allows the agent to search the web for current
+    information. Preamble rule: "web search required for facts."
+
+    Addresses:
+      [Pla] Grounds factual claims in real-world data rather than
+            plausible-sounding training patterns
+      [Suf] Fills information gaps the context doesn't cover
+      [Cor] Current information vs. potentially outdated training data
+
+    Doesn't address:
+      [Too] Search results themselves may be wrong, stale, or
+            misleading — no validation layer on search output
+      [Den] Search results add volume to context
+
+    Gap: No result quality assessment. The agent gets search results
+    and trusts them. A low-quality or SEO-gamed result is incorporated
+    the same as an authoritative source.
+
+
+11. Google Places Tool
+    What it does: Structured business data lookup via Google Places API.
+    Returns ratings, addresses, hours, reviews.
+
+    Addresses:
+      [Cor] Structured API data is more reliable than web scraping
+      [Suf] Provides specific business data the context may lack
+      [Pla] Authoritative data source — higher plausibility baseline
+
+    Doesn't address:
+      [Too] API can still return stale or incomplete data
+      [Den] Adds to context volume
+
+    Gap: Only covers business/places data. Other domains (scientific
+    literature, financial data, legal records) have no specialized
+    tool — they fall back to generic web search.
+
+
+12. Compute Tool
+    What it does: Runs calculations. Prevents the model from doing
+    math in its head (which it's bad at).
+
+    Addresses:
+      [Cor] Deterministic computation vs. LLM arithmetic errors
+      [Pla] Results are verifiably correct
+
+    Doesn't address:
+      [Most other modes] — narrow scope
+
+    Gap: Limited to calculations. Other deterministic operations
+    (data validation, format verification) are not externalized.
+
+
+RUNTIME PROTECTIONS
+-------------------
+
+13. Proposal Pattern (SCHEMA_PROPOSAL, DATA_PROPOSAL)
+    What it does: When the agent wants to modify data or schema, it
+    generates a proposal. Frontend renders changes with green highlights.
+    User accepts or dismisses. Only accepted proposals are applied.
+
+    Addresses:
+      [LLM] Primary quality gate — human reviews every destructive action
+      [Cor] User can catch wrong changes before they're applied
+      [Com] User can spot missing changes (e.g., "you forgot column X")
+
+    Doesn't address:
+      [Suf] User may not have domain expertise to evaluate the proposal
+      [Den] Proposals add to conversation history
+
+    Gap: Quality gate depends on user competence. If the user doesn't
+    understand the data well enough to evaluate the proposal, the gate
+    is cosmetic. No automated validation of proposals against business
+    rules or data constraints.
+
+
+14. Max Tool Iterations (configurable, default 5)
+    What it does: Caps the agent loop. If the agent keeps calling tools
+    without producing a final answer, it's forced to summarize.
+
+    Addresses:
+      [Too] Prevents infinite retry loops on failing tools
+      [LLM] Prevents runaway agent behavior
+
+    Doesn't address:
+      [Everything else] — safety net only
+
+    Gap: Blunt instrument. The cap is the same regardless of task
+    complexity. A simple lookup and a multi-step research task get
+    the same iteration budget.
+
+
+15. Streaming Progress and Cancellation
+    What it does: Long-running tools yield progress events. Users see
+    real-time status. Users can cancel mid-stream.
+
+    Addresses:
+      [Too] Tool stalls are visible — user can cancel and retry
+      [LLM] User can abort if output is going off the rails
+
+    Doesn't address:
+      [Everything specification-side]
+
+    Gap: Visibility only — the user has to be watching. No automated
+    detection of tool stalls or anomalous behavior.
+
+
+16. Execution Traces (AgentTrace)
+    What it does: Full trace of every agent iteration — messages,
+    responses, tool calls, token usage. Stored per message.
+    Admin endpoints for investigation.
+
+    Addresses:
+      [All modes, post-hoc] Enables debugging any failure after the fact
+      [Too] Tool call inputs/outputs are captured
+      [LLM] Full reasoning chain is preserved
+
+    Doesn't address:
+      [Prevention] — diagnostic, not preventive
+
+    Gap: Traces are for debugging after failure, not preventing it.
+    No automated analysis of traces to detect patterns (e.g.,
+    "this tool is failing 30% of the time on this type of query").
+
+
+17. Admin Configuration UI
+    What it does: Web panel for configuring system settings, page
+    personas, help content. Tabs for pages, payloads, tools, help,
+    system settings.
+
+    Addresses:
+      [Con] [Cor] [Com] Quick adjustment of instructions without
+            code deploys when problems are discovered
+      [Suf] Help content can be updated for new edge cases
+
+    Doesn't address:
+      [Too] [LLM] [Den] — configuration only
+
+    Gap: No preview or testing mode. Changes go live immediately.
+    No A/B testing capability. No rollback mechanism beyond manually
+    re-entering previous content.
+
+
+COVERAGE GAPS — WHAT'S MISSING
+------------------------------
+
+1. TOOL OUTPUT VALIDATION
+   Failure modes: [Too] soft failures, [Pla]
+   Current state: Tool results are passed directly to the LLM with
+   no validation. Schema-compliant but wrong results propagate silently.
+   Recommendation: Add a validation layer between tool execution and
+   LLM consumption. At minimum, check for empty results, error
+   messages in response bodies, and known bad patterns.
+
+2. CONTEXT COMPRESSION / STERILE CONTEXT
+   Failure modes: [Den], [Com] (long conversations)
+   Current state: Conversation history accumulates without compression.
+   Long conversations become noisy. No "dirty test tube" mitigation.
+   Recommendation: Implement compress-and-carry-forward for long
+   conversations. Summarize prior turns, preserve only what's relevant
+   to the current step.
+
+3. AGENT SELF-ASSESSMENT / UNCERTAINTY SURFACING
+   Failure modes: [Suf], [Pla]
+   Current state: The agent never asks "what am I missing?" or
+   "how confident am I?" It proceeds regardless of input quality.
+   Recommendation: Add a pre-execution or post-execution step where
+   the agent assesses: What assumptions am I making? What could be
+   missing? Is this result plausible? Surface uncertainty to the user
+   rather than producing confident output from uncertain inputs.
+
+4. PERSONA-TOOL CONSISTENCY ENFORCEMENT
+   Failure modes: [Con]
+   Current state: Consistency between persona instructions and
+   available tools is maintained by developer convention.
+   Recommendation: Automated check that every tool referenced in a
+   persona is registered, and every registered tool for a page is
+   referenced in the persona. Flag mismatches on startup or deploy.
+
+5. ADAPTIVE CONTEXT SAMPLING
+   Failure modes: [Suf], [Den]
+   Current state: Context builders include first N rows as sample data.
+   If the user's task concerns rows outside the sample, the agent
+   reasons from an unrepresentative slice.
+   Recommendation: Allow the agent to request additional context —
+   specific rows, filtered subsets, or statistical summaries — when
+   the initial sample doesn't cover what it needs. Add a "get more
+   rows" or "query table" tool.
+
+6. AUTOMATED TRACE ANALYSIS
+   Failure modes: [All, at system level]
+   Current state: Traces capture everything but analysis is manual.
+   Recommendation: Automated pattern detection across traces — tool
+   failure rates, common failure modes per page, token budget trends,
+   iteration count distributions. Surface anomalies to admin dashboard.
+
+7. SEARCH RESULT QUALITY ASSESSMENT
+   Failure modes: [Pla], [Cor] (for web search results)
+   Current state: Web search results are incorporated without quality
+   assessment. SEO-gamed or low-authority sources are treated the same
+   as authoritative ones.
+   Recommendation: Add source authority signals, prefer known-good
+   domains, or add a verification step for critical factual claims.
+
+8. ADMIN CHANGE MANAGEMENT
+   Failure modes: [Con], [Cor] (for configuration changes)
+   Current state: Admin changes go live immediately with no preview,
+   testing, or rollback.
+   Recommendation: Add configuration versioning, preview/test mode,
+   and one-click rollback. Consider A/B testing for prompt changes.
+
+9. DYNAMIC ITERATION BUDGETS
+   Failure modes: [Too], [LLM]
+   Current state: Max tool iterations is a flat cap (default 5)
+   regardless of task complexity.
+   Recommendation: Allow interaction_type or task complexity to
+   influence the iteration budget. Simple lookups get 2, research
+   tasks get 10.
+
+10. PROPOSAL VALIDATION AGAINST DATA CONSTRAINTS
+    Failure modes: [LLM], [Cor]
+    Current state: Proposals are reviewed by the user only. No
+    automated validation.
+    Recommendation: Validate proposals against column types, value
+    ranges, uniqueness constraints, and referential integrity before
+    presenting to the user. Flag violations in the proposal UI.

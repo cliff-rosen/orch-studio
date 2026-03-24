@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A Diagnostic Framework for Agent Failure — Orchestrator Studios</title>
+    <meta name="description" content="When an AI agent fails, the first question isn't what did the LLM do wrong — it's where did the system break down. A four-category diagnostic framework.">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-9RJRR593J6"></script>
+    <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-9RJRR593J6');</script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --accent: #3730a3;
+            --accent-light: #4f46e5;
+            --accent-subtle: #eef2ff;
+            --text: #1e1b4b;
+            --text-secondary: #4b5563;
+            --bg: #ffffff;
+            --bg-alt: #f8fafc;
+            --border: #e2e8f0;
+            --radius: 12px;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            color: var(--text);
+            background: var(--bg);
+            line-height: 1.7;
+            font-size: 17px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        h1, h2, h3, h4 {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            line-height: 1.2;
+        }
+
+        /* Nav */
+        nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .nav-inner {
+            max-width: 1120px;
+            margin: 0 auto;
+            padding: 0 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 64px;
+        }
+
+        .nav-logo {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 800;
+            font-size: 1.15rem;
+            color: var(--accent);
+            text-decoration: none;
+            letter-spacing: -0.02em;
+        }
+
+        .nav-back {
+            text-decoration: none;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .nav-back:hover {
+            color: var(--accent);
+        }
+
+        /* Article */
+        .article-container {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 60px 24px 80px;
+        }
+
+        .article-meta {
+            margin-bottom: 48px;
+        }
+
+        .article-title {
+            font-size: clamp(2rem, 4vw, 2.75rem);
+            font-weight: 800;
+            color: var(--text);
+            letter-spacing: -0.03em;
+            margin-bottom: 20px;
+            line-height: 1.15;
+        }
+
+        .article-author {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .article-author strong {
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        .article-date {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .article-body h2 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-top: 56px;
+            margin-bottom: 20px;
+            letter-spacing: -0.02em;
+        }
+
+        .article-body h3 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-top: 40px;
+            margin-bottom: 14px;
+            letter-spacing: -0.01em;
+        }
+
+        .article-body p {
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+            line-height: 1.8;
+        }
+
+        .article-body p strong {
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        .article-body ul, .article-body ol {
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+            padding-left: 24px;
+            line-height: 1.8;
+        }
+
+        .article-body li {
+            margin-bottom: 8px;
+        }
+
+        .article-body blockquote {
+            border-left: 3px solid var(--accent);
+            padding: 16px 24px;
+            margin: 28px 0;
+            background: var(--accent-subtle);
+            border-radius: 0 8px 8px 0;
+            color: var(--text);
+            font-style: italic;
+        }
+
+        .article-body .callout {
+            background: var(--bg-alt);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px 28px;
+            margin: 28px 0;
+        }
+
+        .article-body .callout p:last-child {
+            margin-bottom: 0;
+        }
+
+        .article-body table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 28px 0;
+            font-size: 0.9rem;
+        }
+
+        .article-body thead {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        .article-body th {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 600;
+            text-align: left;
+            padding: 12px 16px;
+            font-size: 0.82rem;
+            letter-spacing: 0.02em;
+        }
+
+        .article-body td {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-secondary);
+            vertical-align: top;
+            line-height: 1.6;
+        }
+
+        .article-body tr:last-child td {
+            border-bottom: none;
+        }
+
+        .article-body tbody tr:nth-child(even) {
+            background: var(--bg-alt);
+        }
+
+        .article-body td strong {
+            color: var(--text);
+        }
+
+        .article-body td em {
+            font-style: italic;
+        }
+
+        .section-label {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--accent);
+            display: inline-block;
+            margin-top: 8px;
+        }
+
+        .download-btn {
+            display: inline-block;
+            margin-top: 24px;
+            padding: 12px 28px;
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 600;
+            font-size: 0.9rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.15s;
+        }
+
+        .download-btn:hover {
+            background: var(--accent-light);
+            transform: translateY(-1px);
+        }
+
+        /* Footer */
+        footer {
+            border-top: 1px solid var(--border);
+            padding: 48px 24px;
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        /* Mobile */
+        @media (max-width: 768px) {
+            .article-container {
+                padding: 40px 20px 60px;
+            }
+
+            .article-body h2 {
+                margin-top: 40px;
+            }
+        }
+
+        /* Print */
+        @media print {
+            nav, .download-btn {
+                display: none !important;
+            }
+
+            body {
+                font-family: Georgia, 'Times New Roman', serif;
+                font-size: 11pt;
+                line-height: 1.6;
+                color: #000;
+            }
+
+            h1, h2, h3, h4 {
+                font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+                color: #000;
+            }
+
+            .article-container {
+                max-width: 100%;
+                padding: 0;
+                margin: 0;
+            }
+
+            .article-title {
+                font-size: 24pt;
+                margin-bottom: 12pt;
+            }
+
+            .article-body h2 {
+                font-size: 16pt;
+                margin-top: 24pt;
+                margin-bottom: 8pt;
+                page-break-after: avoid;
+            }
+
+            .article-body h3 {
+                font-size: 13pt;
+                margin-top: 16pt;
+                margin-bottom: 6pt;
+                page-break-after: avoid;
+            }
+
+            .article-body p {
+                color: #000;
+                margin-bottom: 8pt;
+                orphans: 3;
+                widows: 3;
+            }
+
+            .article-body blockquote {
+                border-left: 2px solid #000;
+                background: none;
+                padding: 8pt 16pt;
+                margin: 12pt 0;
+            }
+
+            .article-body .callout {
+                border: 1px solid #ccc;
+                background: none;
+                padding: 12pt 16pt;
+                margin: 12pt 0;
+            }
+
+            footer {
+                border-top: 1px solid #ccc;
+                padding: 16pt 0;
+                font-size: 9pt;
+            }
+
+            a {
+                color: #000;
+                text-decoration: none;
+            }
+
+            @page {
+                margin: 0.75in;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="nav-inner">
+            <a href="/" class="nav-logo">Orchestrator Studios</a>
+            <a href="/" class="nav-back">&larr; Back to Orchestrator Studios</a>
+        </div>
+    </nav>
+
+    <article class="article-container">
+        <header class="article-meta">
+            <h1 class="article-title">A Diagnostic Framework for Agent Failure</h1>
+            <p class="article-author">By <strong>Cliff Rosen</strong>, Founder &amp; CTO, Orchestrator Studios</p>
+            <p class="article-date">March 2026</p>
+            <button class="download-btn" onclick="window.print()">Download PDF</button>
+        </header>
+
+        <div class="article-body">
+
+            <p>The goal of any well-designed agent is simple: supply the LLM with instructions, context, and tools that are sufficient for a reasonable intelligence to understand what's being asked, reason about it, and respond correctly. When an agent fails, the first question isn't "what did the LLM do wrong?" It's "where did the system break down?"</p>
+
+            <p>But before we can diagnose failure, we need to be clear about what success requires.</p>
+
+            <h2>The Three Essentials</h2>
+
+            <p>Every agent call — every single interaction where an LLM is expected to do useful work — depends on three inputs:</p>
+
+            <p><strong>Instructions.</strong> What you're asking the LLM to do. The task definition, the constraints, the expected output format. Instructions tell the model what role it's playing and what a good result looks like.</p>
+
+            <p><strong>Context.</strong> The information the LLM needs to reason about. Documents, data, conversation history, prior results — whatever the model needs to have in front of it to make informed decisions. An LLM can only work with what's in its context window. Everything else might as well not exist.</p>
+
+            <p><strong>Tools.</strong> The capabilities the LLM can act through. Search functions, APIs, databases, calculation engines — the mechanisms by which the agent interacts with the world beyond generating text. Tools extend what the LLM can do from "reason and write" to "reason, write, and act."</p>
+
+            <h3>The Cogency Requirement</h3>
+
+            <p>Having all three isn't enough. They need to be <strong>cogent</strong> — and cogency is more demanding than it first appears.</p>
+
+            <p>Cogent inputs have five properties:</p>
+
+            <ul>
+                <li><strong>Coherent</strong> — the inputs are unambiguous, internally consistent (they align with each other), and externally consistent (they are plausible given world knowledge)</li>
+                <li><strong>Correct</strong> — the right instructions, the right context, the right tools for the actual goal</li>
+                <li><strong>Complete</strong> — all the pieces are present for a coherent attempt from start to finish</li>
+                <li><strong>Sufficient</strong> — there is enough information to produce the right outcome for this specific case, not just a plausible one</li>
+                <li><strong>Dense</strong> — the signal-to-noise ratio is high enough that the model can actually find what matters</li>
+            </ul>
+
+            <p>These form a progressive chain. Each property assumes the previous ones hold. Coherence comes first because if the inputs are ambiguous or contradict each other, "correct" doesn't even mean anything — correct relative to which interpretation? Which part? You have to know the inputs form a clear, unified picture before you can ask whether that picture is right. From there: Is it correct? Is it complete? Is it sufficient? Is it dense enough? Each is a finer filter.</p>
+
+            <p>When all five properties hold, you've created the conditions for success. The LLM has a clear task, the information to reason about it, and the capabilities to act on its reasoning. Most of the time, that's enough.</p>
+
+            <h3>Why This Matters More for Agents Than Humans</h3>
+
+            <p>A human analyst given the same messy inputs would notice. They'd push back: "What exactly do you want here?" "I don't have access to X." "These two requirements contradict each other." A human drives toward cogency before doing the work.</p>
+
+            <p>An LLM doesn't. It takes whatever you gave it and produces output. It doesn't have a threshold for "this doesn't make sense, I should stop." It satisfices on whatever cogency it can find, even when a human would recognize the inputs as inadequate.</p>
+
+            <p>This is worth understanding mechanistically. <strong>An LLM isn't reasoning about truth. It's finding the strongest pattern in whatever you gave it.</strong> If you gave it a cogent picture, it finds the right pattern. If you gave it a mess, it finds the best pattern available in the mess — which looks fluent, sounds confident, and is wrong. The output isn't random garbage. It's a perfectly reasonable response to the wrong inputs. That's what makes these failures so hard to spot: they look like the model made a mistake, when actually the model did exactly what it does — you just conditioned it on the wrong signal.</p>
+
+            <p>The cogency requirement exists because the LLM won't create it for itself. With a human, you can be sloppy and they'll compensate. With an agent, whatever you put in comes out the other side — transformed into fluent, confident output regardless of whether the inputs warranted that confidence.</p>
+
+            <h2>Specification Failures</h2>
+
+            <p>When the inputs aren't cogent, the agent will fail. This is garbage in, garbage out — but it's more nuanced than that phrase suggests, because the garbage comes in five distinct flavors, each with different symptoms and different detectability. The five properties of cogency give us five ways the specification can break down.</p>
+
+            <h3>Coherence Failure</h3>
+
+            <p>The first thing to check, because if the inputs don't form a clear, unified picture, nothing else matters. Coherence fails in three ways: the inputs are ambiguous, they contradict each other, or they don't hold up against world knowledge.</p>
+
+            <p><strong>Ambiguity</strong> is the most common and least noticed coherence failure. The inputs aren't contradictory — they're just unclear enough that the model has to choose an interpretation. Vague instructions that could mean two different things. Terms that are used loosely. Implicit assumptions that are obvious to the person writing the prompt but invisible to the model. The model doesn't flag the ambiguity. It picks an interpretation — usually the one that matches the strongest pattern in its training — and proceeds with full confidence. You get fluent, assured output that answered the wrong question, and nothing in the output signals that a choice was made.</p>
+
+            <p><strong>Internal consistency</strong> is about whether the inputs align with each other. The instructions contradict themselves. The context doesn't match the task. The tools don't fit what the instructions describe. Step 3 depends on something step 2 doesn't produce. These show up in recognizable ways: the output is plausible but solving the wrong problem, behavior varies wildly with small prompt tweaks, tool usage is inconsistent or irrelevant. The inputs don't tell a consistent story, so the model latched onto whatever pattern was strongest.</p>
+
+            <p>Common flavors of internal inconsistency:</p>
+
+            <ul>
+                <li><strong>Instruction–context mismatch</strong> — "Summarize X" but X is missing or irrelevant to the actual need</li>
+                <li><strong>Instruction–tool mismatch</strong> — told to fetch data but no retrieval tool available, or given tools it doesn't need</li>
+                <li><strong>Conflicting directives</strong> — "Be concise" and "be exhaustive" in the same prompt</li>
+                <li><strong>Logical gaps</strong> — steps that don't follow from each other, analysis frameworks that ask you to compare things that aren't comparable</li>
+            </ul>
+
+            <p><strong>External consistency (plausibility)</strong> is about whether the inputs align with what should be plausible given world knowledge. The data shows revenue tripling year over year in a declining market. A tool returns results that don't match known patterns. The context describes a regulatory framework that was replaced two years ago. A human domain expert would raise an eyebrow. The LLM takes it at face value.</p>
+
+            <p>External consistency failures are harder to catch because LLMs are much better at spotting internal contradictions ("these two instructions conflict") than external implausibility ("this revenue data doesn't make sense for this industry"). The model lacks the skepticism reflex that domain experience provides — it doesn't cross-check inputs against what should be plausible. It just finds the strongest pattern in whatever it was given, plausible or not.</p>
+
+            <h3>Correctness Failure</h3>
+
+            <p>Once you know the inputs are coherent — unambiguous, internally consistent, externally plausible — you can ask: are they right? The inputs might form a perfectly clear picture and still be wrong — clear and wrong.</p>
+
+            <p>The instructions might encode the wrong approach, the wrong criteria, or the wrong objective. The context might contain outdated or inaccurate information. The tools might connect to the wrong data source.</p>
+
+            <p>You spot correctness failures when the output is technically sound but answers the wrong question. The model did exactly what it was told. It was just told the wrong thing.</p>
+
+            <h3>Completeness Failure</h3>
+
+            <p>The inputs are coherent and correct as far as they go, but the specification itself has gaps — pieces of the task that aren't covered. This is distinct from sufficiency, which we'll get to. Completeness is about whether the specification is whole as a system. Does it cover the full task? Are all the necessary tools available? Do the instructions address every phase of the work?</p>
+
+            <p>Sometimes completeness failures are visible in execution. Think of furniture assembly instructions that stop before all the pieces are together. Each step made sense. The agent followed them all. But the output trails off, covers only part of what was needed, or produces something that's visibly thin in places. You can see the seams.</p>
+
+            <p>A knowledge work example: "Summarize the key findings from these three research papers and compare their methodologies." You give the agent three papers and clear instructions. But one of the papers is a response to a fourth paper that isn't included. The agent summarizes all three faithfully. The comparison looks thorough. But the methodology critique in paper two is incomprehensible without the paper it's responding to — and the output reads as shallow or confused on that section.</p>
+
+            <p>But completeness failures aren't always visible. Consider instructions that work reliably every day — same task, same specification, consistent results. Then one day the output is wrong. The instructions didn't fail. They just didn't account for a special condition that arose: an unusual clause in this particular contract, a regulatory change that shifted the criteria, an edge case in the data. The specification was always incomplete in the sense that it never covered this scenario — but you couldn't tell, because the scenario hadn't come up yet. The gap was latent until reality exposed it.</p>
+
+            <p>The distinction from sufficiency: completeness is about whether the specification covers the task. Sufficiency is about whether the information and context provided are enough to execute it correctly in this specific case. You can have a complete specification — one that covers every phase of the work — that still isn't sufficient because the context is missing a critical piece of information the specification didn't know to ask for.</p>
+
+            <h3>Sufficiency Failure</h3>
+
+            <p>Where completeness asks "does the specification cover the task?", sufficiency asks "given this specific situation, is there enough to get the right answer?" A specification can be complete — covering every phase of the work — and still not be sufficient for the case at hand.</p>
+
+            <p>This is the most dangerous specification failure because it's truly invisible. The inputs are coherent, correct, and complete. Everything presents as cogent. The agent executes the entire task cleanly. Nothing signals a gap — not in the inputs, and not in the output.</p>
+
+            <p>Consider a contract risk analysis. The instructions are clear: evaluate financial exposure, regulatory compliance, and termination clauses. The full contract is in context. The tools are appropriate. The specification is complete — it covers the whole task. The agent produces a polished, thorough risk analysis. But this contract has an unusual indemnification structure that's the actual landmine, and indemnification wasn't in the criteria. The output is well-structured and misses the most important risk in the document. The specification was complete. It just wasn't sufficient for this contract.</p>
+
+            <p>Or: three research papers, clear comparison instructions, complete execution — but the person who asked for the analysis needed it because they're evaluating whether to fund a follow-up study, and the instructions said nothing about assessing feasibility or funding implications. The output is a perfect literature comparison that doesn't address the actual decision at hand. Complete specification, insufficient for the purpose.</p>
+
+            <p>Sufficiency failures are insidious because the LLM has no way to know anything is missing. The inputs look whole. The model proceeds confidently. You only catch these if someone with domain knowledge reviews the output and asks the right question — "why didn't you look at indemnification?" — or if the output fails to serve its actual purpose downstream.</p>
+
+            <p>This is why context engineering and domain expertise in prompt design are among the highest-leverage activities in agent development. The model can only work with what it's given. Ensuring it's given <em>enough</em> requires understanding the domain well enough to know what "enough" means — and that understanding can't be delegated to the model itself.</p>
+
+            <h3>Density Failure</h3>
+
+            <p>The final specification property, and the most subtle. The inputs are coherent, correct, complete, and sufficient — the right information is actually in there. But it's buried in so much noise that the model can't find the signal.</p>
+
+            <p>This happens more than people realize. You stuff the context window with every potentially relevant document. The critical paragraph is on page 47 of a 200-page dump. The model has what it needs — technically — but the signal-to-noise ratio is so low that the model latches onto more prominent patterns instead. The answer was in the context. The model just couldn't find it.</p>
+
+            <p>Or consider instructions that are correct and complete but padded with so many caveats, edge-case handlers, and meta-instructions that the core task gets lost. The model spends its attention budget on the noise and gives shallow treatment to the actual objective.</p>
+
+            <p>Density failures are distinct from sufficiency failures. In a sufficiency failure, the information isn't there. In a density failure, it is — but it's drowned. The fix isn't adding more information. It's removing noise. Curating context so that everything present is relevant and the important things are prominent. High density means a clean context where the model's pattern-matching works in your favor, not against it.</p>
+
+            <h2>Runtime Failures</h2>
+
+            <p>Even with perfectly cogent inputs, things can go wrong at execution time. These failures live outside the specification.</p>
+
+            <h3>Tool Failure</h3>
+
+            <p>The LLM selected the right tool and invoked it correctly, but the tool didn't return what it was supposed to. Wrong data. An error. A timeout. A malformed response.</p>
+
+            <p>This isn't an LLM failure at all. It's an infrastructure failure that happens to manifest through the agent. But the consequences can be severe, because of how the LLM responds to tool failure.</p>
+
+            <p>The telltale sign: a sudden reasoning derailment immediately following a tool call. The model was tracking fine, called a tool, and then went off the rails. What happened was garbage in, coherent garbage out — the LLM incorporated the bad tool result and kept reasoning fluently from a corrupted foundation.</p>
+
+            <p>Tool failures come in three flavors: <strong>hard failures</strong> (timeouts, exceptions — at least these are visible), <strong>soft failures</strong> (the tool returns a schema-compliant response with wrong or partial data — it looks valid at the structural level but the content is wrong), and <strong>schema failures</strong> (malformed output the LLM can't parse correctly). Soft failures are the most dangerous because the response passes every structural check — the agent has no reason to question it and keeps going as if everything worked.</p>
+
+            <p>A robust agent should detect and recover from tool failures: retry with backoff, try an alternative approach, or surface the failure to the user. But that recovery behavior has to be explicitly designed. It won't happen by default.</p>
+
+            <h3>Genuine LLM Failure</h3>
+
+            <p>Everything was set up correctly — cogent inputs, working tools — and the LLM still went off the rails. Wrong conclusion. Wrong tool selection. Non-sequitur output.</p>
+
+            <p>This happens. It's the residual failure rate after the system does everything right. It's rarely truly random — it tends to show up in edge-case reasoning, long-chain dependency breakdowns, or attention misallocation on complex inputs. But it's non-deterministic and hard to reproduce reliably, which makes it the least actionable category.</p>
+
+            <p>There's a strong tendency to land here first — to assume the model is the problem. It's actually the least common category. You can't prevent it entirely. Better models help at the margins, but the failure rate is never zero. The right response isn't model-blaming or model-swapping — it's quality gates. Verify outputs at critical junctions. Catch the failures before they propagate. Accept that some percentage of individual LLM calls will produce bad output, and design the system to be resilient to that.</p>
+
+            <h2>The Diagnostic Sequence</h2>
+
+            <p>When something goes wrong with an agent, work through the specification failures first, then the runtime failures:</p>
+
+            <ol>
+                <li><strong>Are the inputs coherent?</strong> Are they unambiguous — or is the model forced to choose an interpretation? Internally — do instructions, context, and tools align with each other? Externally — are the inputs plausible given world knowledge? If the inputs are vague, contradictory, or don't hold up to scrutiny, nothing else matters.</li>
+                <li><strong>Are the inputs correct?</strong> Are the instructions, context, and tools right for the actual goal? Or is the agent executing perfectly against the wrong target?</li>
+                <li><strong>Are the inputs complete?</strong> Can the agent make a coherent attempt from start to finish? Or does execution reveal gaps — output that trails off, feels thin, or fails to cover the task?</li>
+                <li><strong>Are the inputs sufficient?</strong> Even with coherent, correct, complete inputs — is there enough information for the right outcome in this specific case?</li>
+                <li><strong>Are the inputs dense enough?</strong> Is the signal-to-noise ratio high enough for the model to find what matters? Or is the right information buried in noise?</li>
+                <li><strong>Did the tools work?</strong> Did every tool call return the expected result? Or did a failure upstream corrupt the reasoning downstream?</li>
+                <li><strong>If all six were fine</strong> — this was a genuine LLM failure. Note it, add a quality gate at that step, and move on.</li>
+            </ol>
+
+            <p>Most debugging resolves at steps 1 through 5. That's where most of the leverage is.</p>
+
+            <h2>The Design Implication</h2>
+
+            <p>This framework implies a key architectural principle: <strong>agent reliability is dominated by system design, not model capability.</strong></p>
+
+            <p>In practice, upgrading to a better model might reduce failures by a modest percentage. Fixing specification issues — coherence, correctness, completeness, sufficiency, density — routinely cuts failure rates in half or more. The gap between a well-designed agent on a good model and a poorly designed agent on a great model is enormous — and it favors the designer every time.</p>
+
+            <p>The instinct to blame the model is natural but counterproductive. The diagnostic sequence forces you to exhaust the fixable, high-leverage causes before concluding you've hit the residual. And when you do hit the residual, the answer is always the same: don't trust, verify.</p>
+
+            <h2>Appendix: Failure Mode Reference</h2>
+
+            <h3>Specification Failures</h3>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Property</th>
+                        <th>Applies To</th>
+                        <th>Description</th>
+                        <th>Example</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Coherence</strong><br>(ambiguity)</td>
+                        <td><em>Instructions / context</em></td>
+                        <td>The inputs aren't contradictory but are unclear enough that the model must choose an interpretation. It picks one silently and proceeds with full confidence.</td>
+                        <td>"Analyze the results" — which results? By what criteria? The model picks the most pattern-matching interpretation and never flags the ambiguity.</td>
+                    </tr>
+                    <tr>
+                        <td rowspan="2"><strong>Coherence</strong><br>(internal consistency)</td>
+                        <td><em>Instructions</em></td>
+                        <td>Instructions contradict each other or the logic doesn't hold step to step. Check first — if the inputs contradict, "correct" doesn't mean anything.</td>
+                        <td>"Be concise" and "be exhaustive" in the same prompt. Step 3 depends on output that step 2 doesn't produce.</td>
+                    </tr>
+                    <tr>
+                        <td><em>Across essentials</em></td>
+                        <td>Instructions, context, and tools don't align with each other.</td>
+                        <td>"Summarize X" but X isn't in the context. Told to fetch data but no retrieval tool available.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Coherence</strong><br>(external / plausibility)</td>
+                        <td><em>Context / inputs</em></td>
+                        <td>The inputs don't align with what's plausible given world knowledge. A human expert would be skeptical. The LLM takes it at face value.</td>
+                        <td>Financial data shows revenue tripling year over year in a declining market. The agent produces a glowing analysis without questioning the data.</td>
+                    </tr>
+                    <tr>
+                        <td rowspan="3"><strong>Correctness</strong></td>
+                        <td><em>Instructions</em></td>
+                        <td>Wrong task, wrong criteria, wrong objective. The agent executes perfectly against the wrong target.</td>
+                        <td>Instructions say "evaluate vendor pricing" when the actual goal is evaluating vendor reliability. Thorough pricing analysis, useless for the decision.</td>
+                    </tr>
+                    <tr>
+                        <td><em>Context</em></td>
+                        <td>Wrong data, outdated information, incorrect reference material.</td>
+                        <td>Agent analyzes last quarter's financials when this quarter's are available. Output is accurate to the wrong data.</td>
+                    </tr>
+                    <tr>
+                        <td><em>Tools</em></td>
+                        <td>Wrong tool for the job — a tool that technically works but produces unreliable results for this use case.</td>
+                        <td>Using a generic web search tool to find business reviews instead of the Google Places API. Results are noisy, unstructured, and unreliable.</td>
+                    </tr>
+                    <tr>
+                        <td rowspan="3"><strong>Completeness</strong><br><br><em>Does the specification cover the task? Distinct from sufficiency — completeness is about whether the spec is whole as a system, not whether it's enough for a specific case.</em></td>
+                        <td><em>Instructions</em></td>
+                        <td>Instructions that don't cover the full task. May be visible (output trails off) or latent (works fine until a special condition arises the spec never accounted for).</td>
+                        <td>Instructions that work reliably every day, then fail when an unusual contract clause appears that the spec never addressed. The gap was latent until reality exposed it.</td>
+                    </tr>
+                    <tr>
+                        <td><em>Context</em></td>
+                        <td>Missing documents, data, or reference material needed for a coherent attempt.</td>
+                        <td>Three research papers provided for comparison, but one is a response to a fourth paper not included. The methodology critique is incomprehensible without it.</td>
+                    </tr>
+                    <tr>
+                        <td><em>Tools</em></td>
+                        <td>A necessary capability is missing entirely. The agent can't execute a phase of the task.</td>
+                        <td>Instructions ask to retrieve and analyze current market data, but no data retrieval tool is provided. The agent improvises from its training data instead.</td>
+                    </tr>
+                    <tr>
+                        <td rowspan="3"><strong>Sufficiency</strong><br><br><em>Given this specific case, is there enough? Distinct from completeness — a complete spec can be insufficient when reality presents something the spec didn't anticipate.</em></td>
+                        <td><em>Instructions</em></td>
+                        <td>Instructions are complete but don't capture what this specific case requires.</td>
+                        <td>Literature comparison instructions are thorough, but the requester needs a funding feasibility assessment. Perfect comparison, wrong deliverable for the purpose.</td>
+                    </tr>
+                    <tr>
+                        <td><em>Context</em></td>
+                        <td>All requested context is present, but critical information for this case was never requested.</td>
+                        <td>Contract risk analysis covers financial exposure, compliance, and termination. This contract's landmine is an unusual indemnification structure — not in the criteria.</td>
+                    </tr>
+                    <tr>
+                        <td><em>Tools</em></td>
+                        <td>A tool is provided but isn't capable enough for this specific case.</td>
+                        <td>A basic search tool is available for finding reviews, but this case requires structured data from a specialized API. The tool returns results, just not the right ones.</td>
+                    </tr>
+                    <tr>
+                        <td rowspan="2"><strong>Density</strong><br><br><em>Is the signal clean enough to find? Distinct from sufficiency — the information is there, but buried in noise.</em></td>
+                        <td><em>Context</em></td>
+                        <td>The right information is present but drowned in irrelevant material. The model latches onto more prominent patterns instead.</td>
+                        <td>The critical paragraph is on page 47 of a 200-page context dump. The model has what it needs — technically — but finds hay instead of the needle.</td>
+                    </tr>
+                    <tr>
+                        <td><em>Instructions</em></td>
+                        <td>The core task is buried in caveats, edge-case handlers, and meta-instructions. The model gives shallow treatment to the actual objective.</td>
+                        <td>A two-sentence task wrapped in three pages of formatting rules, exception handling, and style guidelines. The model spends its attention budget on the noise.</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Runtime Failures</h3>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Failure Mode</th>
+                        <th>Description</th>
+                        <th>Example</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Tool Failure</strong></td>
+                        <td>A tool returned bad data, errored, or timed out. The model incorporated the corrupted result and kept reasoning fluently from a broken foundation. Comes in three flavors: <em>hard</em> (timeouts, exceptions), <em>soft</em> (schema-compliant response with wrong or partial data — looks valid structurally, wrong at the content level), and <em>schema</em> (malformed output). Soft failures are most dangerous — the response passes every structural check, so the agent has no reason to question it.</td>
+                        <td>Search tool returns partial results due to a timeout. The agent synthesizes a confident answer from incomplete data. Sudden reasoning derailment immediately after a tool call.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Genuine LLM Failure</strong></td>
+                        <td>Everything was set up correctly — cogent inputs, working tools — and the model still got it wrong. The residual. Non-deterministic, hard to reproduce. Often shows up in edge-case reasoning, long-chain dependency breakdowns, or attention misallocation. Least common, least actionable. The right response is quality gates, not model-blaming.</td>
+                        <td>The model produces a non-sequitur or logically inconsistent conclusion despite having everything it needed. The same inputs might produce a correct result on the next run.</td>
+                    </tr>
+                </tbody>
+            </table>
+
+        </div>
+    </article>
+
+    <footer>
+        &copy; 2026 Orchestrator Studios
+    </footer>
+
+</body>
+</html>

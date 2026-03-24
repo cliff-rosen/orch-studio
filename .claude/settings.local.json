@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -E \"\\\\.\\(ts|tsx|js|jsx|json\\)$\")",
+      "Bash(grep -n \"class.*AdminApi\\\\|adminApi\\\\|chatConfigApi\" frontend/src/lib/api/*.ts)",
+      "Bash(/c/code/orch-studio/tablethat-dev-todos.md:*)",
+      "Bash(./deploy.sh 2>&1)",
+      "mcp__claude_ai_BotBeam__list_devices"
+    ]
+  }
+}

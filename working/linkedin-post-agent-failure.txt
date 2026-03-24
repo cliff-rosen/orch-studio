@@ -1,0 +1,25 @@
+There are exactly five properties that determine whether an AI agent will succeed or fail — before the model even runs.
+
+Every agent call depends on instructions, context, and tools. Those inputs need to be cogent. And cogency breaks down into five testable properties, in order:
+
+Consistent — do the inputs align with each other? Do they hold up against what's plausible in the real world?
+
+Correct — are they right for the actual goal?
+
+Complete — can the agent execute the full task without hitting a gap?
+
+Sufficient — is there enough for the right answer in this specific case?
+
+Dense — is the signal clean enough for the model to find what matters?
+
+The first three are hard but catchable. Contradictions show up. Wrong targets become obvious. Gaps reveal themselves in execution.
+
+Sufficiency is the one that gets you.
+
+Your inputs are consistent, correct, and complete. The agent runs the entire task, produces polished output, and misses the thing that actually matters — because the specification didn't know to ask for it. A contract analysis that covers every criterion you listed and misses the indemnification clause that's the actual landmine. Nothing signaled a gap. The output looks great. It's useless for the decision.
+
+The model had no way to know. The inputs looked whole. You only catch this if someone who understands the domain reviews the result and asks the right question.
+
+This is why agent reliability is dominated by system design, not model capability. And why the people designing the inputs need to understand the problem at a level the model never will.
+
+Full diagnostic framework — all five properties mapped across instructions, context, and tools, plus runtime failures — on the Orchestrator Studios site. Link in comments.
