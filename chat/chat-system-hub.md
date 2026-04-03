@@ -172,27 +172,53 @@ User message
 
 ---
 
-## Part 4: Payloads — Structured Domain Entities
+## Part 4: Payloads — The LLM as a Producer of Domain Objects
 
-Payloads deserve their own discussion because they introduce something that doesn't fit neatly into instructions, context, or tools. A payload is a **structured, schema-validated domain entity** that flows through the chat system — produced by the LLM or by a tool, rendered by the frontend, tracked across turns.
+### The Multiple Roles of the LLM
 
-### What Makes Payloads Different
+The LLM plays several distinct roles in this system:
 
-Plain text is the default currency of chat. The LLM generates text, the user reads text. But many interactions involve domain objects that have structure: a proposed schema change, a set of search results, a data modification. Text can describe these objects, but it can't *be* them in a way that enables rigorous handling.
+1. **Natural language gateway** — It makes natural language a viable interface. The user says what they want in plain English; the LLM interprets.
 
-A payload bridges this gap. It's a typed, schema-validated data structure that carries a domain entity through the system — from generation (by tool or LLM) through rendering (custom UI) to tracking (manifests and persistence).
+2. **Reasoning and planning** — It evaluates what to do, what tools to call, how to interpret results, how to respond.
 
-### Why They Matter
+3. **Tool caller** — As part of reasoning and planning, it invokes external capabilities: search, database access, computation, help retrieval.
 
-**Rigorous domain entities.** A `schema_proposal` payload isn't a description of a schema change — it's the schema change itself, in a validated JSON structure with defined operations (`add`, `modify`, `remove`, `reorder`), typed columns, and explicit constraints. The frontend can render it precisely. The backend can validate it against data constraints. The system doesn't have to parse natural language to understand what's being proposed.
+4. **World knowledge bank** — It has broad training knowledge, though the system explicitly discourages relying on this in favor of grounded retrieval via tools.
 
-**Custom UX rendering and handlers.** Because each payload type is registered with a name and schema, the frontend maintains a handler registry that maps type names to React components. A `schema_proposal` renders as a live table preview with a Create Table button. A `data_proposal` renders as inline diffs in the table — green-tinted additions, amber-highlighted edits with hover tooltips, red strikethrough deletions — with per-row checkboxes and Accept/Dismiss buttons. Search results render as interactive cards. The rendering is specific to the domain object, not generic text formatting.
+5. **Built-in tool** — The LLM itself can do substantive work: designing a table schema, composing a data modification, drafting a structured query. This is original cognitive output — not routing, not summarizing tool results, but generating domain objects from its own capability.
 
-**The proposal pattern.** Payloads enable the most important architectural decision in the system: the LLM never has direct write access to user data. When a conversation leads to a data change, the LLM expresses its intent as a proposal payload — a structured description of what it wants to change. The frontend renders the proposal as a visual diff. The user accepts or dismisses. On accept, the frontend calls the data API directly — the LLM is completely out of the loop at execution time. This gate is structural, not advisory. There is no code path where the LLM's output is applied without human review.
+Roles 1–4 are well-understood and well-served by the standard model of instructions, context, and tools. Role 5 is what makes payloads necessary.
 
-**Manifests for density management.** Each payload type can define a `summarize` function that produces a brief summary (e.g., `"Schema proposal: 2 additions, 1 modification"`). These summaries form the conversation data manifest — a lightweight index of all structured outputs from prior turns. The LLM sees what happened (proposals made, accepted, dismissed) without the full payload data consuming context. Full data is available on demand.
+### Why Not Just Use a Tool?
 
-### Two Sources of Payloads
+When the LLM needs to search the web, it calls `research_web`. When it needs to look up help documentation, it calls `get_help`. So why doesn't it call a `generate_schema_proposal` tool when it needs to propose a schema change?
+
+Because the work is **inseparable from the conversational reasoning**. The schema proposal isn't a separate task you can farm out — it emerges from the conversation itself. The LLM's understanding of what the user wants, what columns make sense, how to structure the table — that understanding is built up across the conversation and lives in the current context window. If you routed this through a tool, you'd have to re-supply all of that context to the tool's own LLM call. You'd be paying the cost of a second invocation to duplicate work the first LLM is already positioned to do.
+
+This gives us a principled distinction about when to use tools vs. when to let the LLM work directly:
+
+- **Use a tool** when the work requires capabilities the LLM doesn't have (search, database access, computation) or when the workflow should be enforced externally (research steps, row iteration).
+- **Let the LLM work directly** when the work is conversational reasoning that's inseparable from the current context.
+
+The problem is that "let the LLM work directly" normally means you get unstructured text. The LLM designs a great schema change... and expresses it in a paragraph, or a bullet list, or an inconsistent hybrid. The frontend can't parse it. You can't validate it. You can't render it as an interactive diff.
+
+### What Payloads Do
+
+Payloads solve this by **capturing the LLM's own work as typed, validated domain objects** — subjecting them to the same rigor as tool outputs.
+
+A payload type definition constrains the LLM's output for domain objects to a defined schema. A `schema_proposal` has a `mode` (create/update), an array of `operations` (each typed — add, modify, remove, reorder), each with defined fields. The LLM still does the cognitive work — *which* columns, *what* types, *why* this change — but the structure is fixed.
+
+This is the bounding principle applied on a new axis. Tools narrow degrees of freedom on the **action** side — what the LLM can do. Payloads narrow degrees of freedom on the **output** side — how the LLM expresses domain objects. Together they bound the agent on both sides:
+
+- **Tools** = constrained actions
+- **Payloads** = constrained outputs
+
+And everything downstream — validation, custom rendering, manifests, the proposal pattern — is only possible *because* the output is rigorous. You can't build a human gate on unstructured text. You can't build a manifest summarizer on free-form descriptions. You can't build a per-type component registry on "whatever the LLM felt like producing."
+
+### Two Sources, One System
+
+Once you see payloads as typed domain objects the system can handle rigorously, it's natural that they can come from either source. Tools also produce domain objects — search results, enrichment data. The source doesn't matter. What matters is that the object conforms to a defined schema.
 
 **Tool payloads** (`source="tool"`) — A tool returns structured data alongside its text result:
 
@@ -205,7 +231,7 @@ return ToolResult(
 
 The text goes to the LLM for reasoning. The payload goes to the frontend for rich rendering. They're decoupled — the LLM gets what it needs to think, the UI gets what it needs to display.
 
-**LLM payloads** (`source="llm"`) — The LLM outputs a marker in its text that gets parsed:
+**LLM payloads** (`source="llm"`) — The LLM outputs a marker in its text that the backend parses:
 
 ```
 LLM output: "Here's my proposed schema change:
@@ -217,7 +243,15 @@ SCHEMA_PROPOSAL: {"mode": "update", "operations": [...]}"
 → Sends to frontend as structured payload
 ```
 
-Each LLM payload type defines: a `parse_marker` (the text trigger), a `parser` (extraction function), and `llm_instructions` (explicit instructions to the LLM for when and how to produce this payload, included in the system prompt when the payload type is active for the current page/tab).
+Each LLM payload type defines: a `parse_marker` (the text trigger), a `parser` (extraction function), and `llm_instructions` (explicit instructions for when and how to produce this payload, included in the system prompt when the payload type is active for the current page/tab).
+
+### What Rigorous Domain Objects Enable
+
+**Custom UX rendering and handlers.** Because each payload type is registered with a name and schema, the frontend maintains a handler registry that maps type names to React components. A `schema_proposal` renders as a live table preview with a Create Table button. A `data_proposal` renders as inline diffs in the table — green-tinted additions, amber-highlighted edits with hover tooltips, red strikethrough deletions — with per-row checkboxes and Accept/Dismiss buttons. Search results render as interactive cards. The rendering is specific to the domain object, not generic text formatting.
+
+**The proposal pattern.** The LLM never has direct write access to user data. When a conversation leads to a data change, the LLM expresses its intent as a proposal payload. The frontend renders the proposal as a visual diff. The user accepts or dismisses. On accept, the frontend calls the data API directly — the LLM is completely out of the loop at execution time. This gate is structural, not advisory. There is no code path where the LLM's output is applied without human review. This is only possible because the proposal is a rigorous domain object the system can validate, render, and act on — not text it has to interpret.
+
+**Manifests for density management.** Each payload type can define a `summarize` function that produces a brief summary (e.g., `"Schema proposal: 2 additions, 1 modification"`). These summaries form the conversation data manifest — a lightweight index of all structured outputs from prior turns. The LLM sees what happened (proposals made, accepted, dismissed) without the full payload data consuming context. Full data is available on demand.
 
 ### Payload Registration
 
