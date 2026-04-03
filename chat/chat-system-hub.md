@@ -46,9 +46,11 @@ The chat system described in this document is designed around three principles, 
 
 ### Bound Before Delegating
 
-When the LLM runs, its degrees of freedom should already be appropriate. The system narrows the agent's mandate to what's relevant for the current page, tab, and user role *before* the LLM sees a single token.
+When the LLM runs, its degrees of freedom should already be appropriate. This system applies that principle at three levels, from broadest to narrowest:
 
-This happens through a resolution model. The system knows where the user is (`PageLocation`) and assembles exactly the right set of instructions, context, and tools for that location:
+**1. Constrain the reasoning strategy.** An LLM has two paths for any factual question: look it up via a tool, or answer from training knowledge. The training data path is faster, more confident, and wrong more often — the LLM has no way to distinguish what it "knows" accurately from what it'll hallucinate. The global preamble explicitly closes this degree of freedom: "you are not a data source," "use the help tool for product questions," "use retrieval tools for factual claims." This forces the LLM through grounded, verifiable channels. The LLM's world knowledge doesn't disappear — it still informs how the LLM interprets results, formulates queries, and reasons about context — but it's not treated as a source of truth.
+
+**2. Constrain which tools and payloads are available.** The system knows where the user is (`PageLocation`) and assembles exactly the right capabilities for that location:
 
 ```
 Available tools    = global tools + page tools + tab tools → filtered by role
@@ -59,7 +61,11 @@ Context            = page context builder output + conversation manifest
 
 A user on the `table_view` page with the `data` tab active gets a different capability set and different context than one on the `schema` tab — automatically. The LLM doesn't choose what tools it has or what context it sees. The system decides, based on where the user is and who they are.
 
-This addresses **coherence** (instructions, context, and tools are aligned by construction — the system can't assemble a persona that references tools it didn't provide) and **correctness** (the right instructions and tools for the actual task, derived from the user's real state rather than guessed).
+**3. Constrain how tools execute.** Even after the LLM selects a tool, the tool itself enforces workflow structure. This is the subject of the next section.
+
+Each level narrows the degrees of freedom further. The preamble says *use tools, not training knowledge*. The resolution model says *these specific tools, on this page, for this role*. The tool design says *this specific workflow, with these enforced steps*. By the time the LLM is actually doing work, the space of possible actions has been narrowed from "anything an LLM can do" to "exactly what's appropriate for this user, on this page, through verified channels."
+
+This addresses **coherence** (instructions, context, and tools are aligned by construction — the system can't assemble a persona that references tools it didn't provide), **correctness** (the right instructions and tools for the actual task, derived from the user's real state rather than guessed), and **external consistency** (factual claims flow through grounded retrieval rather than unverifiable training knowledge).
 
 ### Encode Expertise and Enforce Workflows in Tools
 
