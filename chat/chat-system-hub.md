@@ -1,139 +1,109 @@
 # The Chat System: Embedded LLM Orchestration for Applications
 
-A complete reference for building context-aware, tool-using chat systems embedded in production applications. This document covers the motivating principles, the architectural pattern, and the concrete implementation details — including a walkthrough of every configuration surface.
+A complete reference for building context-aware, tool-using chat systems embedded in production applications.
 
 ---
 
-## Part 1: Why This Pattern Exists
+## Part 1: The Three Essentials
 
-### The Opportunity
+Every agent call — every interaction where an LLM is expected to do useful work — depends on three inputs:
 
-All knowledge work reduces to sequences of atomic cognitive operations: search, extraction, summarization, classification, analysis, comparison, synthesis. LLMs can now execute these operations — and, critically, they can participate in planning which operations to execute. This is what makes agentic systems possible.
+**Instructions.** What you're asking the LLM to do. The task definition, constraints, expected output format. Instructions tell the model what role it's playing and what a good result looks like.
 
-But LLMs have three structural shortcomings that don't go away with better models:
+**Context.** The information the LLM needs to reason about. Documents, data, conversation history, prior results — whatever the model needs to have in front of it to make informed decisions. An LLM can only work with what's in its context window. Everything else might as well not exist.
 
-**The Memento Effect.** No persistent memory. Finite context window. The model doesn't know what it doesn't know — and when it's planning, that means it confidently skips steps it didn't realize were necessary. Those errors are invisible.
+**Tools.** The capabilities the LLM can act through. Search functions, APIs, databases, calculation engines — the mechanisms by which the agent interacts with the world beyond generating text.
 
-**Satisficing.** Always in fast-thinking mode. Complex tasks get shallow treatment. Critical sub-decisions happen in passing rather than getting dedicated attention. You see this in the "do better" phenomenon — ask the model to improve its own output and it often does, significantly. The capability was there; nothing triggered it.
+### The Cogency Requirement
 
-**No Ontological Grounding.** The model generates plausible text, not verified claims. "I've completed steps 1-3" is generated text about progress, not tracked progress. Plans are text about plans. Verification is what verification sounds like.
+Having all three isn't enough. They need to be **cogent** — and cogency is more demanding than it first appears.
 
-### The Remedy: Principled Orchestration
+Cogent inputs have five properties, forming a progressive chain where each assumes the previous ones hold:
 
-Six principles guide system design that accounts for these shortcomings:
+1. **Coherent** — the inputs are unambiguous, internally consistent (they align with each other), and externally consistent (they are plausible given world knowledge). If the inputs are ambiguous or contradict each other, "correct" doesn't even mean anything.
 
-1. **Decompose into Explicit Steps** — Don't let critical decisions happen in passing. Force each decision point into a dedicated step with focused context. *(Addresses satisficing.)*
+2. **Correct** — the right instructions, the right context, the right tools for the actual goal. The inputs might form a perfectly clear picture and still be wrong — clear and wrong.
 
-2. **Curate Sterile Context** — Each step gets exactly what it needs. Not accumulated history, not everything that might be relevant — precisely what this operation requires. *(Addresses the Memento Effect.)*
+3. **Complete** — all the pieces are present for a coherent attempt from start to finish. Does the specification cover the full task? Are all necessary tools available? Do the instructions address every phase?
 
-3. **Externalize State and Control Flow** — Loops, counters, progress tracking, and conditional logic live outside the LLM. The system tracks reality; the LLM reasons about language. *(Addresses lack of grounding.)*
+4. **Sufficient** — there is enough information to produce the right outcome for *this specific case*, not just a plausible one. A complete specification can still be insufficient when reality presents something it didn't anticipate.
 
-4. **Bound Before Delegating** — When you enter an agentic loop, the degrees of freedom should already be appropriate. That's defined by the instructions and tools you provide. Too broad a mandate is a design failure, not an agent failure. *(Contains all three problems.)*
+5. **Dense** — the signal-to-noise ratio is high enough that the model can actually find what matters. The right information can be present and still fail to influence the output if it's buried in noise.
 
-5. **Encode Expertise in Tool Abstraction** — Higher-level tools encode "the right way to do this." Every decision point for an agent is a potential failure point. Three well-designed macro-capabilities beat ten micro-steps. *(Captures expertise.)*
+### Why This Matters More for Agents Than Humans
 
-6. **Quality Gates at Critical Junctions** — Verify outputs before proceeding. Don't trust the model's self-assessment. If step 3 fails, fix it before step 4. *(Catches failures before they propagate.)*
+A human analyst given messy inputs would push back: "What exactly do you want here?" "These two requirements contradict each other." An LLM doesn't. It takes whatever you gave it and produces output. It doesn't have a threshold for "this doesn't make sense, I should stop."
 
-### How the Chat Pattern Applies These Principles
+An LLM isn't reasoning about truth. It's finding the strongest pattern in whatever you gave it. If you gave it a cogent picture, it finds the right pattern. If you gave it a mess, it finds the best pattern available in the mess — which looks fluent, sounds confident, and is wrong. The output isn't random garbage. It's a perfectly reasonable response to the wrong inputs.
 
-The chat system described in this document is a direct application of these principles to a specific problem: embedding an LLM assistant inside a multi-page application where the assistant must both help users navigate features and reason over their data.
-
-| Principle | How It Manifests |
-|---|---|
-| Decompose | Two explicit modes (navigation vs. analytical) with different instruction paths |
-| Sterile Context | Context builders produce fresh, page-specific context per request — never cached, never stale |
-| Externalize State | Agent loop, iteration limits, scope binding, conversation persistence — all in code |
-| Bound Before Delegating | Tool and payload resolution narrows the agent's capabilities to exactly what's appropriate for the current page/tab |
-| Encode Expertise | The help tool, proposal pattern, and structured payloads encode domain expertise |
-| Quality Gates | The proposal pattern is a structural human gate — the LLM cannot execute data changes |
+The cogency requirement exists because the LLM won't create it for itself. With a human, you can be sloppy and they'll compensate. With an agent, whatever you put in comes out the other side — transformed into fluent, confident output regardless of whether the inputs warranted that confidence.
 
 ---
 
-## Part 2: The Two Modes of Chat
+## Part 2: Principles That Shape the System
 
-The system serves two fundamentally different use cases through a single interface:
+The chat system described in this document is designed around three principles, each directly motivated by the cogency requirements.
 
-### Navigation Mode
+### Bound Before Delegating
 
-The LLM is a help copilot. It guides the user through the app's features. It must never improvise or speculate about how things work. It looks up answers via the help tool and defers to that content as source of truth.
+When the LLM runs, its degrees of freedom should already be appropriate. The system narrows the agent's mandate to what's relevant for the current page, tab, and user role *before* the LLM sees a single token.
 
-The help tool is load-bearing infrastructure, not a nice-to-have. Without it, the LLM confidently describes features that don't exist.
+This happens through a resolution model. The system knows where the user is (`PageLocation`) and assembles exactly the right set of instructions, context, and tools for that location:
 
-**Expected flow:** User asks "how do I..." → Assistant calls `get_help` → Retrieves documentation → Explains to user.
+```
+Available tools    = global tools + page tools + tab tools → filtered by role
+Available payloads = global payloads + page payloads + tab payloads
+Instructions       = global preamble + page persona + format rules
+Context            = page context builder output + conversation manifest
+```
 
-### Analytical Mode
+A user on the `table_view` page with the `data` tab active gets a different capability set and different context than one on the `schema` tab — automatically. The LLM doesn't choose what tools it has or what context it sees. The system decides, based on where the user is and who they are.
 
-The LLM is a functional extension of the app. It reasons over the user's actual data, generates proposals, and uses tools to do original work.
+This addresses **coherence** (instructions, context, and tools are aligned by construction — the system can't assemble a persona that references tools it didn't provide) and **correctness** (the right instructions and tools for the actual task, derived from the user's real state rather than guessed).
 
-**Expected flow:** User asks about their data → Assistant selects appropriate tool → Calls with correct inputs → Interprets results.
+### Encode Expertise and Enforce Workflows in Tools
 
-The global preamble explicitly frames both roles. This distinction is critical for troubleshooting — navigation failures and analytical failures have completely different root causes.
+Tools aren't API wrappers. They're where you move workflow logic out of the LLM and into deterministic code. The LLM decides *what* to do; the tool enforces *how* it gets done.
+
+Every decision point for an agent is a potential failure point. Instead of giving the LLM raw capabilities and hoping it manages a coherent process, you build tools that encapsulate the correct workflow — including iteration, strategy enforcement, and multi-step sequencing.
+
+**Research tools.** Instead of giving the LLM `search_web` and `fetch_webpage` and hoping it manages a coherent research process, a `research_web` tool encapsulates the full workflow. Internally, it runs its own agent loop with enforced structure: the first step *must* be a search (forced via `tool_choice`), middle steps allow free exploration, and when steps are exhausted the tool *forces* a structured answer submission. The LLM inside the tool does the cognitive work — evaluating results, deciding what to fetch — but the workflow skeleton is deterministic. Thoroughness levels (exploratory vs. comprehensive) control step budgets and token allocations, enforced in code.
+
+**Enrich column.** Two layers of externalization. First, the tool iterates across a fixed row set using `asyncio.gather` with semaphore-based concurrency — the LLM doesn't track which rows it has processed or manage parallelism. Second, once a strategy is specified (lookup, research, computation, Google Places), the strategy is enforced through a class hierarchy with a shared `RowStrategy` base. Each strategy defines its own `execute_one()` method with its own step limits and validation. The LLM can't drift mid-execution or switch strategies partway through.
+
+**The help system.** The `get_help` tool is another example of this principle. Product knowledge is organized into a structured, searchable repository with role-filtered access. The LLM doesn't answer product questions from training data. It calls a tool that retrieves vetted documentation. The entire "navigation mode" of the chat — answering "how do I..." questions — is implemented as a tool with an enforced workflow: scan TOC, identify topic, retrieve content, explain.
+
+This addresses **coherence** (the workflow is internally consistent by construction, not by LLM compliance), **correctness** (the right process is baked in, not hoped for), and **completeness** (the tool covers all phases of the workflow, including edge cases the LLM might skip).
+
+### Curate Context for Density and Freshness
+
+Each request gets exactly the context it needs — assembled fresh, never cached, with explicit density management.
+
+**Context builders** run at request time and transform current application state into structured context for the LLM. On the `table_view` page, the context builder produces: table name, column schema, row count, sample rows, selected rows, active filters, sort state, user role. The context is always live — pulled from current state, never stale.
+
+Design principle: **If the user sees it on screen and it's dynamic, it should be in the context.** Without this, the LLM can't diagnose obvious issues ("why so few results?" when the answer is a narrow date filter).
+
+**The payload manifest** solves a specific density problem: prior structured outputs (proposals, search results, enrichment results) are valuable for multi-turn consistency but expensive in tokens. The manifest provides a lightweight index — brief summaries of what was generated in prior turns — that's always present. The LLM can retrieve full payload data on demand. This keeps prior work accessible without flooding the context window.
+
+**The help TOC** applies the same pattern for product knowledge. A category-organized table of contents with summaries is always in the system prompt. Full help content loads only when the LLM calls the help tool for a specific topic.
+
+This addresses **density** (the context window contains signal, not noise), **sufficiency** (the information is accessible when needed, even if not loaded by default), and **coherence** (fresh context means the LLM reasons from current state, not stale data).
 
 ---
 
-## Part 3: Core Architecture
+## Part 3: How It Works — Instructions, Context, Tools
 
-### The Layered System
+### Instructions
 
-When a user sends a message, the system assembles a complete prompt from layered configuration:
+Instructions are assembled in layers, each with its own override mechanism:
 
-```
-1. GLOBAL PREAMBLE (System tab)
-   DB override → code default
-   Identity, tone, universal rules, two-mode framing
+**Global preamble** (System tab) — The foundation. Identity, tone, uncertainty handling, critical behavioral rules. This is the single most important configuration surface. It sets what the app is, the assistant's role, style rules, and classification guidance (e.g., when to use the help tool vs. data tools).
 
-2. PAGE PERSONA (Pages tab)
-   DB override → PageConfig.persona → fallback
-   Page-specific behavior, task framing, constraints
+**Page persona** (Pages tab) — Per-page specialization. What users do on this page, what capabilities are available, task-specific constraints. Each page gets a distinct persona because each page represents a different task domain.
 
-3. CURRENT CONTEXT (from context builders)
-   Generated live at request time
-   User role, data state, UI state, selections, filters
+**Format rules** — Hard-coded output conventions. How to structure suggested values, suggested actions, and payload markers. Not configurable because consistency is more important than flexibility here.
 
-4. CONVERSATION DATA MANIFEST
-   Summaries of prior proposals (accepted/dismissed)
-   Multi-turn consistency
-
-5. CAPABILITIES (Tools + Payloads tabs)
-   Resolved from registries based on page/tab/role
-   Tool definitions + payload format instructions
-
-6. HELP CONTENT (Help tab)
-   Narrative + TOC, role-filtered, DB overrides
-   When/why to use the help tool
-
-7. FORMAT RULES
-   Hard-coded
-   SUGGESTED_VALUES, SUGGESTED_ACTIONS formats
-```
-
-### The Resolution Model
-
-Everything resolves through a single pattern: **global + page + tab + subtab**.
-
-The system knows where the user is via `PageLocation`:
-
-```
-PageLocation
-  current_page:   "table_view"
-  active_tab:     "data"
-  active_subtab:  null
-```
-
-Tools, payloads, and instructions all resolve the same way:
-
-```
-Available = (all where is_global=True)
-          + (page-wide declarations)
-          + (tab-specific declarations)
-          + (subtab-specific declarations)
-```
-
-This means a user on `table_view` with the `data` tab active gets a different capability set than one on the `schema` tab — without needing separate page configs.
-
-### The Override Hierarchy
-
-Everything has a code default. The database provides an override point via `ChatConfig`:
+**The override hierarchy:** Everything has a code default. The database provides an override point via `ChatConfig`:
 
 ```
 ChatConfig
@@ -143,98 +113,30 @@ ChatConfig
   updated_by:  audit trail
 ```
 
-Resolution order: **DB override → code default → global fallback.** Admins can customize without code deploys.
+Resolution order: **DB override → code default → global fallback.** Admins can customize preambles and personas without code deploys. When a latent gap surfaces — a scenario the original instructions didn't cover — an administrator can patch behavior in minutes.
 
----
+### Context
 
-## Part 4: The Five Configuration Tabs
+Context comes from three sources, each addressing a different need:
 
-The admin UI exposes five tabs that correspond to the system's configuration surfaces. Each controls a different aspect of how the assistant behaves.
-
-### 4.1 System Tab
-
-**What it controls:** The foundation of all chat behavior — universal rules that apply everywhere.
-
-**Key fields:**
-
-| Field | Purpose | Default |
-|---|---|---|
-| Global Preamble | Identity, tone, uncertainty handling, query classification, critical rules | Hard-coded in code |
-| Max Tool Iterations | Cap on tool calls per request (prevents runaway loops) | 5–10 |
-| Guest Turn Limit | API rate limiting for unauthenticated users | 8 |
-
-**The global preamble is the single most important configuration surface.** It sets:
-- What the app is and what the assistant's role is
-- The two-mode framing (navigation + analytical)
-- Style rules (concise, no flattery, no boasting)
-- Uncertainty handling (admit when unsure, don't hallucinate)
-- Ambiguity handling (when to interpret vs. ask for clarification)
-- Query classification hints (when to use help vs. data tools)
-- Critical rules ("you are not a data source", "use the help tool for product questions")
-
-**Common style/behavior fixes belong here:**
-
-| Symptom | Preamble Fix |
-|---|---|
-| Too verbose | "Be concise. One paragraph unless more detail is requested." |
-| Too complimentary | "Don't praise the user or say things like 'Great question!'" |
-| Overconfident | "When uncertain, say so. Don't present guesses as facts." |
-| Hallucination | "Only state facts you've verified via tools or help content." |
-| Asks too many questions | "Make reasonable interpretations rather than asking for clarification." |
-
----
-
-### 4.2 Pages Tab
-
-**What it controls:** Per-page behavior — what the assistant knows about each page and what capabilities are available there.
-
-Each page registers a `PageConfig`:
+**Page context builders** provide live application state. Each page registers a function that transforms the current UI state into a structured markdown string. Context is always fresh — built at request time, never cached.
 
 ```
-PageConfig
-  context_builder:  function(context_dict) → LLM context string
-  persona:          page-specific system prompt section
-  tools:            [tool_name, ...]     — page-wide
-  payloads:         [payload_name, ...]  — page-wide
-  client_actions:   [ClientAction, ...]
-  tabs:             {tab_name: TabConfig}
+table_view context builder produces:
+  - Table name, column schema (IDs, names, types)
+  - Row count, sample rows (first N, structured)
+  - Currently selected rows
+  - Active filters, sort, pagination
+  - User role
 ```
 
-Each `TabConfig` can further specialize:
+**The conversation data manifest** provides multi-turn awareness. It carries forward summaries of structured outputs from prior messages — what proposals were made, what was accepted or dismissed. This gives the LLM awareness of prior actions without loading full payload data into every turn.
 
-```
-TabConfig
-  tools:    [tool_name, ...]
-  payloads: [payload_name, ...]
-  subtabs:  {subtab_name: SubTabConfig}
-```
+**The help TOC** provides lightweight product knowledge. A category-organized index with summaries is always present. Full content is retrieved on demand via the help tool.
 
-**Context builders** are the mechanism for giving the LLM live awareness of application state. They run at request time and produce a markdown string describing what the user sees:
+### Tools
 
-- Table name, column schema, row count
-- Sample rows (structured)
-- Currently selected rows
-- Active filters, sort, pagination
-- User role
-- Form field values, modal state
-
-**Design principle: If the user sees it on screen and it's dynamic, it should be in the context.** Without this, the LLM can't diagnose obvious issues ("why so few results?" when the answer is a narrow date filter).
-
-**Page personas** specialize the assistant for each page. They define:
-- What users do on this page
-- What tools/capabilities are available
-- Page-specific interpretation rules
-- Task-specific constraints
-
-Personas are DB-overrideable — admins can adjust page behavior without code deploys.
-
----
-
-### 4.3 Tools Tab
-
-**What it controls:** The actions the assistant can perform.
-
-Each tool is a `ToolConfig`:
+Tools are registered centrally and resolved per request:
 
 ```
 ToolConfig
@@ -248,251 +150,181 @@ ToolConfig
   required_role:  role-gated access
 ```
 
-**Resolution:** `get_tools_for_page(location, user_role)` returns:
-
-```
-global tools + page tools + tab tools + subtab tools
-  → filtered by user_role
-    → converted to Anthropic API tool format
-```
+**Resolution:** `get_tools_for_page(location, user_role)` returns global tools + page tools + tab tools + subtab tools, filtered by role, converted to Anthropic API format.
 
 **Global vs. page-specific:**
 - `is_global=True` (default): Available everywhere. Example: `get_help`, `search_web`.
-- `is_global=False`: Only where explicitly added. Example: `compare_reports` (only on reports page).
+- `is_global=False`: Only where explicitly added to a page or tab config. Example: `enrich_column` (only on `table_view`).
+
+**Streaming tools** can yield progress updates for long-running operations. An async generator yields `ToolProgress` events (stage, message, progress percentage) before returning a final `ToolResult`. The frontend renders these as real-time progress indicators.
 
 **Tool execution flow:**
 
 ```
 User message
   → LLM decides to call a tool
-    → Agent loop executes the tool's executor
+    → Agent loop executes the tool's async executor
+      → Tool yields ToolProgress events (streamed to frontend)
       → Tool returns ToolResult(text=..., payload=...)
-        → LLM sees the text, formulates response
+        → LLM sees the text result, formulates response
           → Frontend renders any payload as rich UI
 ```
 
-**Streaming tools** can yield progress updates for long-running operations:
-
-```python
-async def execute_research(params, db, user_id, context):
-    yield ToolProgress(stage="searching", message="Searching...", progress=0.2)
-    results = await search(...)
-    yield ToolProgress(stage="processing", message="Processing...", progress=0.8)
-    return ToolResult(text="Found results", payload={...})
-```
-
-**The admin UI shows tools as view-only** — tool definitions require code changes because they include executable functions. But seeing what tools exist (and their descriptions) is essential for troubleshooting: if the assistant isn't doing something, the first question is whether the tool is available on that page.
-
 ---
 
-### 4.4 Payloads Tab
+## Part 4: Payloads — Structured Domain Entities
 
-**What it controls:** Structured data types that the assistant can produce — the mechanism for rich, interactive outputs.
+Payloads deserve their own discussion because they introduce something that doesn't fit neatly into instructions, context, or tools. A payload is a **structured, schema-validated domain entity** that flows through the chat system — produced by the LLM or by a tool, rendered by the frontend, tracked across turns.
 
-Payloads serve two critical functions:
-1. **Rich rendering** — Tool results and LLM outputs that display as interactive cards, tables, and diffs rather than plain text
-2. **Human-gated data updates** — The proposal pattern, where the LLM expresses intent as structured data that the user must accept before anything executes
+### What Makes Payloads Different
 
-Each payload is a `PayloadType`:
+Plain text is the default currency of chat. The LLM generates text, the user reads text. But many interactions involve domain objects that have structure: a proposed schema change, a set of search results, a data modification. Text can describe these objects, but it can't *be* them in a way that enables rigorous handling.
 
-```
-PayloadType
-  name:             identifier
-  description:      human description
-  schema:           JSON Schema for validation
-  source:           'tool' | 'llm'
-  is_global:        available on all pages?
-  parse_marker:     text marker for extraction (LLM payloads)
-  parser:           extract structured JSON from LLM output
-  llm_instructions: when/how to produce this payload
-  summarize:        create brief summary for conversation manifest
-```
+A payload bridges this gap. It's a typed, schema-validated data structure that carries a domain entity through the system — from generation (by tool or LLM) through rendering (custom UI) to tracking (manifests and persistence).
 
-**Two sources of payloads:**
+### Why They Matter
+
+**Rigorous domain entities.** A `schema_proposal` payload isn't a description of a schema change — it's the schema change itself, in a validated JSON structure with defined operations (`add`, `modify`, `remove`, `reorder`), typed columns, and explicit constraints. The frontend can render it precisely. The backend can validate it against data constraints. The system doesn't have to parse natural language to understand what's being proposed.
+
+**Custom UX rendering and handlers.** Because each payload type is registered with a name and schema, the frontend maintains a handler registry that maps type names to React components. A `schema_proposal` renders as a live table preview with a Create Table button. A `data_proposal` renders as inline diffs in the table — green-tinted additions, amber-highlighted edits with hover tooltips, red strikethrough deletions — with per-row checkboxes and Accept/Dismiss buttons. Search results render as interactive cards. The rendering is specific to the domain object, not generic text formatting.
+
+**The proposal pattern.** Payloads enable the most important architectural decision in the system: the LLM never has direct write access to user data. When a conversation leads to a data change, the LLM expresses its intent as a proposal payload — a structured description of what it wants to change. The frontend renders the proposal as a visual diff. The user accepts or dismisses. On accept, the frontend calls the data API directly — the LLM is completely out of the loop at execution time. This gate is structural, not advisory. There is no code path where the LLM's output is applied without human review.
+
+**Manifests for density management.** Each payload type can define a `summarize` function that produces a brief summary (e.g., `"Schema proposal: 2 additions, 1 modification"`). These summaries form the conversation data manifest — a lightweight index of all structured outputs from prior turns. The LLM sees what happened (proposals made, accepted, dismissed) without the full payload data consuming context. Full data is available on demand.
+
+### Two Sources of Payloads
 
 **Tool payloads** (`source="tool"`) — A tool returns structured data alongside its text result:
+
 ```python
 return ToolResult(
     text="Found 15 articles matching your query...",
-    payload={"type": "pubmed_search_results", "data": {...}}
+    payload={"type": "search_results", "data": {"articles": [...]}}
 )
 ```
 
+The text goes to the LLM for reasoning. The payload goes to the frontend for rich rendering. They're decoupled — the LLM gets what it needs to think, the UI gets what it needs to display.
+
 **LLM payloads** (`source="llm"`) — The LLM outputs a marker in its text that gets parsed:
+
 ```
 LLM output: "Here's my proposed schema change:
 SCHEMA_PROPOSAL: {"mode": "update", "operations": [...]}"
 
 → Backend finds SCHEMA_PROPOSAL: marker
-→ Extracts and parses JSON
+→ Extracts JSON, parses via registered parser
 → Validates against payload schema
 → Sends to frontend as structured payload
 ```
 
-**The Proposal Pattern**
+Each LLM payload type defines: a `parse_marker` (the text trigger), a `parser` (extraction function), and `llm_instructions` (explicit instructions to the LLM for when and how to produce this payload, included in the system prompt when the payload type is active for the current page/tab).
 
-This is the most important architectural decision in the payload system. The LLM is never given direct write access to user data. When a conversation leads to a data change, the LLM must express its intent as a proposal:
+### Payload Registration
+
+All payload types are defined in a single registry — the single source of truth:
 
 ```
-LLM generates proposal (structured JSON)
-  → Backend parses and validates
-    → Frontend renders as interactive diff
-      → User reviews: Accept or Dismiss
-        → On Accept: frontend calls data API directly
-          → Data API enforces its own validation
+PayloadType
+  name:             identifier (e.g., "schema_proposal")
+  description:      human description
+  schema:           JSON Schema for validation
+  source:           'tool' | 'llm'
+  is_global:        available on all pages?
+  parse_marker:     text marker for extraction (LLM payloads)
+  parser:           extraction function
+  llm_instructions: when/how to produce this payload
+  summarize:        brief summary for manifest
 ```
 
-The LLM is completely out of the loop at execution time. This is not advisory — it's structural. There is no code path where the LLM's output is applied without human review.
-
-**Key payload types in TableThat:**
-
-| Payload | Source | Global? | Purpose |
-|---|---|---|---|
-| `schema_proposal` | LLM | No | Add/modify/remove/reorder columns, create tables |
-| `data_proposal` | LLM | No | Add/update/delete rows |
-
-**Resolution follows the same pattern as tools:** `global payloads + page payloads + tab payloads`.
-
-**The admin UI shows payloads as view-only.** Like tools, payload definitions require code because they include parsers and schemas. But visibility is important for understanding what structured outputs the assistant can produce.
+Payloads resolve the same way tools do: `global payloads + page payloads + tab payloads`. Definitions are pure — they describe what a payload is, not where it's used. Pages declare which payloads they use by name.
 
 ---
 
-### 4.5 Help Tab
+## Part 5: The Config Tabs (Reference)
 
-**What it controls:** The documentation that makes navigation mode trustworthy.
+The admin UI exposes five tabs corresponding to the system's configuration surfaces. Now that the architecture is clear, here's what each controls practically.
 
-The help system is structured, role-filtered, and admin-overrideable:
+### System
 
-```
-HelpSection
-  category:  'general' | 'tables' | 'data' | 'chat' | ...
-  topic:     specific topic identifier
-  title:     display title
-  summary:   brief description (sent in TOC to LLM)
-  roles:     ['member', 'org_admin', 'platform_admin']
-  content:   full markdown
-  order:     display order
-```
+The global foundation. Key fields:
 
-**Data flow:**
-1. YAML files define defaults (organized by category)
-2. `HelpContentOverride` table stores admin customizations per topic
-3. Help narrative and TOC preamble are configurable via `ChatConfig`
-4. At runtime: `get_help_toc_for_role(role)` returns a filtered section list
-
-**What the LLM sees:**
-- A narrative explaining when and why to use the help tool
-- A table-of-contents organized by category with summaries
-- The ability to search/retrieve full content at runtime via the help tool
-
-**The preamble explicitly instructs:** use the help tool for product questions, don't answer from training data.
-
-**When navigation questions fail, this is usually what needs updating.** Common failures:
-
-| Symptom | Cause | Fix |
+| Field | Purpose | Default |
 |---|---|---|
-| Answers from memory instead of calling help | Preamble doesn't emphasize help tool | Add to preamble: "always use get_help for product questions" |
-| Calls help but can't find answer | Topic not in help content | Add topic to appropriate category |
-| Finds help but explains it wrong | Content is ambiguous | Make help content more explicit |
-| Says "I don't know" when help exists | Bad title/summary | Improve discoverability |
+| Global Preamble | Identity, tone, uncertainty handling, critical rules | Code default |
+| Max Tool Iterations | Cap on tool calls per request | 5–10 |
+| Guest Turn Limit | Rate limiting for unauthenticated users | 8 |
 
----
+Common behavior fixes applied here:
 
-## Part 5: Runtime Protections
-
-Beyond configuration, the system includes several runtime safeguards:
-
-**Proposal Pattern** — Human reviews every destructive action before execution. The LLM never touches the write path.
-
-**Max Tool Iterations** — Configurable cap (default 5–10) prevents runaway agent loops. If the LLM keeps calling tools without converging, it's forced to respond.
-
-**Streaming + Cancellation** — The user sees real-time progress (status messages, tool starts, progress bars) and can abort at any time.
-
-**Execution Traces (AgentTrace)** — Full diagnostic trace per message: what was sent to the model, what it responded, every tool call with inputs/outputs, token counts, timing. Three diagnostic views:
-- **Messages** — Step-by-step execution (what happened)
-- **Config** — What was available (tools, prompt, model)
-- **Metrics** — Performance (iterations, tokens, timing, outcome)
-
-**Token Budget Tracking** — Monitors context window usage. Warns when approaching limits.
-
-**Conversation Scope Binding** — Each conversation is bound to a single scope (e.g., `"tables_list"` or `"table:42"`), preventing cross-contamination between unrelated contexts.
-
----
-
-## Part 6: Diagnosing Failures
-
-When something goes wrong, the diagnostic sequence mirrors the agent failure framework:
-
-### Step 1: Classify the Question
-
-Was this a **navigation** question (help/how-to) or an **analytical** question (data/tools)? The failure trees are completely different.
-
-### Step 2: Walk the Failure Tree
-
-**Navigation:**
-```
-Did assistant call get_help?
-  NO  → Preamble doesn't classify well → Fix preamble
-  YES → Did help return useful content?
-          NO  → Missing help content → Fix help tab
-          YES → Did assistant explain correctly?
-                  NO  → Ambiguous content → Clarify help or persona
-                  YES → Success
-```
-
-**Analytical:**
-```
-Did assistant call a tool?
-  NO  → Doesn't know tools exist → Fix page persona
-  YES → Right tool?
-          NO  → Tool selection unclear → Fix persona or tool descriptions
-          YES → Right inputs?
-                  NO  → Misunderstood intent → Fix preamble/persona
-                  YES → Tool return expected data?
-                          NO  → Tool bug → Check diagnostics, fix code
-                          YES → Interpreted correctly?
-                                  NO  → Fix persona or domain instructions
-                                  YES → Success
-```
-
-### Step 3: Identify the Fix Layer
-
-| Problem | Fix Layer |
+| Symptom | Fix |
 |---|---|
-| Wrong question classification | System → Global Preamble |
-| Wrong tool selection | Pages → Page Persona |
-| Missing help content | Help → Add topic |
-| Wrong interpretation | Pages → Persona or domain instructions |
-| Tool bug | Code (tools) |
-| Style/behavior issue | System → Global Preamble |
+| Too verbose | "Be concise. One paragraph unless more detail is requested." |
+| Too complimentary | "Don't praise the user or say things like 'Great question!'" |
+| Overconfident | "When uncertain, say so. Don't present guesses as facts." |
+| Hallucination | "Only state facts you've verified via tools or help content." |
 
-### The Deeper Diagnostic Framework
+### Pages
 
-Most agent failures cluster into four categories, and you should work through them in order:
+Per-page behavior. Each page registers a `PageConfig` with: context builder, persona, page-wide tools and payloads, tab configs, client actions. Personas are DB-overrideable.
 
-1. **Incoherent Inputs** — Instructions, context, and tools don't tell a consistent story. Most common, most fixable.
-2. **Missing/Degraded Context** — The right information wasn't loaded. The LLM reasons confidently from an incomplete picture.
-3. **Tool Failure** — The tool didn't return what it should have. Wrong data, timeout, malformed response.
-4. **Genuine LLM Failure** — Everything was set up correctly and the model still went off the rails. Least common, least actionable.
+The context builder is the critical piece — it's what gives the LLM live awareness of application state for that page.
 
-Most debugging stops at category 1 or 2. That's where most of the leverage is.
+### Tools
+
+View-only in admin. Shows all registered tools with names, descriptions, input schemas, categories, and global/page-specific scope. Essential for troubleshooting: if the assistant can't do something, check here first.
+
+### Payloads
+
+View-only in admin. Shows all registered payload types with names, schemas, sources, scope, and (for LLM payloads) parse markers and instructions. Understanding what structured outputs the assistant can produce.
+
+### Help
+
+Editable documentation organized by category and topic. Role-filtered. Admin can override defaults per topic. The help tool retrieves from this system at runtime.
+
+When "how do I..." questions fail, this is usually what needs updating.
 
 ---
 
-## Part 7: What Makes This Extractable
+## Part 6: Runtime Protections and Diagnostics
 
-The pattern separates into independently configurable concerns:
+### Runtime Protections
 
-| Concern | Mechanism | Config Surface |
-|---|---|---|
-| What the LLM knows about the app | Help system + sync pipeline | Help tab |
-| What the LLM can do | Tool registry + per-scope resolution | Tools tab |
-| What the LLM sees | Context builders + conversation manifest | Pages tab |
-| How the LLM responds | Payload types + format rules | Payloads tab |
-| Who controls it | ChatConfig + admin UI + override hierarchy | System tab |
-| Where the user is | PageLocation + PageConfig composition | Pages tab |
+**Proposal pattern** — Human reviews every data mutation before execution. Structural, not advisory.
 
-Each is independently configurable per page, per tab, per subtab, and per user role. The `ChatConfig` table provides a single, uniform mechanism for runtime customization across all of them.
+**Max tool iterations** — Configurable cap prevents runaway agent loops.
+
+**Streaming + cancellation** — Real-time progress via SSE (status messages, tool starts, progress updates). User can abort at any time.
+
+**Execution traces (AgentTrace)** — Full diagnostic record per message: system prompt, each iteration's input/output, every tool call with inputs/outputs/timing, token counts. Three views: Messages (what happened), Config (what was available), Metrics (performance).
+
+**Token budget tracking** — Monitors context window usage, warns at threshold.
+
+**Conversation scope binding** — Each conversation bound to a single scope (e.g., `"table:42"`), preventing cross-contamination.
+
+### Diagnosing Failures
+
+When something goes wrong, work through the cogency requirements in order:
+
+1. **Are the inputs coherent?** Unambiguous? Do instructions, context, and tools align with each other? Plausible given world knowledge?
+2. **Are the inputs correct?** Right instructions, context, and tools for the actual goal?
+3. **Are the inputs complete?** Can the agent make a coherent attempt from start to finish?
+4. **Are the inputs sufficient?** Enough information for the right outcome in this specific case?
+5. **Are the inputs dense enough?** Signal-to-noise ratio high enough for the model to find what matters?
+6. **Did the tools work?** Did every tool call return expected results? Soft failures (well-formed but wrong data) are the most dangerous.
+7. **If all six were fine** — genuine LLM failure. Note it, add a quality gate, move on.
+
+Most debugging resolves at steps 1–5. That's where most of the leverage is.
+
+**Practical diagnostic entry points:**
+
+| Problem | First place to look |
+|---|---|
+| Wrong question classification | System → Global Preamble (coherence) |
+| Wrong tool selection | Pages → Persona or tool descriptions (correctness) |
+| Missing help content | Help tab (completeness) |
+| Shallow or wrong analysis | Context builder output (sufficiency/density) |
+| Tool returned bad data | Execution trace → tool call details (tool failure) |
+| Style/behavior issue | System → Global Preamble |
 
 ---
 
@@ -533,7 +365,7 @@ Definitions are pure — they describe *what* something is, not *where* it's use
 | Page Config Framework | `services/chat_page_config/registry.py` | PageConfig, TabConfig, PageLocation, resolution functions |
 | Page Configs | `services/chat_page_config/<page>.py` | Per-page context builders, personas, tool/payload declarations |
 | Tool Registry | `tools/registry.py` | ToolConfig, registration, page-aware resolution |
-| Tool Implementations | `tools/builtin/*.py` | Individual tool executors |
+| Tool Implementations | `tools/builtin/*.py` | Individual tool executors (research, enrich, search, etc.) |
 | Payload Registry | `schemas/payloads.py` | PayloadType, registration, parsers, schemas |
 | Streaming Service | `services/chat_stream_service.py` | System prompt assembly, SSE streaming |
 | Agent Loop | `agents/agent_loop.py` | Tool execution, iteration control, trace collection |
