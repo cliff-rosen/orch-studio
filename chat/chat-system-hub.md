@@ -63,7 +63,7 @@ This addresses **coherence** (instructions, context, and tools are aligned by co
 
 ### Encode Expertise and Enforce Workflows in Tools
 
-Tools aren't API wrappers. They're where you move workflow logic out of the LLM and into deterministic code. The LLM decides *what* to do; the tool enforces *how* it gets done.
+Tools aren't just API wrappers. They can be that, but they can also be where you move workflow logic out of the LLM and into deterministic code. The LLM decides *what* to do; the tool enforces *how* it gets done.
 
 Every decision point for an agent is a potential failure point. Instead of giving the LLM raw capabilities and hoping it manages a coherent process, you build tools that encapsulate the correct workflow — including iteration, strategy enforcement, and multi-step sequencing.
 
