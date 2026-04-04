@@ -4,7 +4,7 @@ A complete reference for building context-aware, tool-using chat systems embedde
 
 ---
 
-## Part 1: The Three Essentials
+## Part 1: The Three Essentials and a Cross-Cutting Pattern
 
 Every agent call — every interaction where an LLM is expected to do useful work — depends on three inputs:
 
@@ -30,7 +30,15 @@ Cogent inputs have five properties, forming a progressive chain where each assum
 
 5. **Dense** — the signal-to-noise ratio is high enough that the model can actually find what matters. The right information can be present and still fail to influence the output if it's buried in noise.
 
-### Why This Matters More for Agents Than Humans
+### Schemas: A Pattern That Cuts Across the Essentials
+
+Most of what shapes an agent's behavior falls cleanly into one of the three essentials. But some patterns cut across them. The most important in this system is the **domain schema** — a formal structure that defines what a domain object looks like (its fields, types, constraints, valid values).
+
+A schema is simultaneously instruction and context. As instruction, it tells the LLM: "when you produce this kind of object, this is the shape." As context, it teaches the LLM what a domain entity *is* — the schema for a `schema_proposal` with operations like add/modify/remove/reorder, each with typed fields, tells the LLM what a schema change looks like in this domain. A schema is also an extraordinarily dense artifact — it encodes a large amount of domain knowledge in a compact, formal structure. Maximum information per token.
+
+This pattern — domain schemas that function as both instruction and compressed domain knowledge — is the foundation of the **payload system** described in Part 4. The three essentials describe what the LLM needs as inputs. Schemas address what happens when the LLM (or a tool) needs to produce structured domain objects as output — and they do it by threading back into instructions and context rather than sitting outside them.
+
+### Why Cogency Matters More for Agents Than Humans
 
 A human analyst given messy inputs would push back: "What exactly do you want here?" "These two requirements contradict each other." An LLM doesn't. It takes whatever you gave it and produces output. It doesn't have a threshold for "this doesn't make sense, I should stop."
 
@@ -180,6 +188,8 @@ User message
 
 ## Part 4: Payloads — The LLM as a Producer of Domain Objects
 
+Part 1 introduced domain schemas as a pattern that cuts across the three essentials — simultaneously instruction and compressed domain knowledge. This section unpacks the full mechanism: why the LLM needs to produce structured domain objects in the first place, why payloads are the right solution, and what they enable.
+
 ### The Multiple Roles of the LLM
 
 The LLM plays several distinct roles in this system:
@@ -213,12 +223,12 @@ The problem is that "let the LLM work directly" normally means you get unstructu
 
 Payloads solve this by **capturing the LLM's own work as typed, validated domain objects** — subjecting them to the same rigor as tool outputs.
 
-A payload type definition constrains the LLM's output for domain objects to a defined schema. A `schema_proposal` has a `mode` (create/update), an array of `operations` (each typed — add, modify, remove, reorder), each with defined fields. The LLM still does the cognitive work — *which* columns, *what* types, *why* this change — but the structure is fixed.
+The core of a payload is its **schema** — the cross-cutting pattern introduced in Part 1. The schema for a `schema_proposal` defines a `mode` (create/update), an array of `operations` (each typed — add, modify, remove, reorder), each with defined fields. This schema simultaneously acts as instruction (telling the LLM the exact shape its output must take) and as compressed domain knowledge (teaching the LLM what a schema change *is* in this system — what operations exist, what fields they require, what values are valid). It's an extraordinarily dense way to convey both "what to produce" and "what this domain object means."
 
-This is the bounding principle applied on a new axis. Tools narrow degrees of freedom on the **action** side — what the LLM can do. Payloads narrow degrees of freedom on the **output** side — how the LLM expresses domain objects. Together they bound the agent on both sides:
+The LLM still does the cognitive work — *which* columns, *what* types, *why* this change — but the structure is fixed. This is the bounding principle applied on a new axis. Tools narrow degrees of freedom on the **action** side — what the LLM can do. Payload schemas narrow degrees of freedom on the **output** side — how the LLM expresses domain objects. Together they bound the agent on both sides:
 
 - **Tools** = constrained actions
-- **Payloads** = constrained outputs
+- **Payload schemas** = constrained outputs
 
 And everything downstream — validation, custom rendering, manifests, the proposal pattern — is only possible *because* the output is rigorous. You can't build a human gate on unstructured text. You can't build a manifest summarizer on free-form descriptions. You can't build a per-type component registry on "whatever the LLM felt like producing."
 
