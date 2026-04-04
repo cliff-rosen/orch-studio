@@ -210,12 +210,18 @@ Roles 1–4 are well-understood and well-served by the standard model of instruc
 
 When the LLM needs to search the web, it calls `research_web`. When it needs to look up help documentation, it calls `get_help`. So why doesn't it call a `generate_schema_proposal` tool when it needs to propose a schema change?
 
-Because the work is **inseparable from the conversational reasoning**. The schema proposal isn't a separate task you can farm out — it emerges from the conversation itself. The LLM's understanding of what the user wants, what columns make sense, how to structure the table — that understanding is built up across the conversation and lives in the current context window. If you routed this through a tool, you'd have to re-supply all of that context to the tool's own LLM call. You'd be paying the cost of a second invocation to duplicate work the first LLM is already positioned to do.
+Two reasons.
+
+**First, the work is inseparable from the conversational reasoning.** The schema proposal isn't a separate task you can farm out — it emerges from the conversation itself. The LLM's understanding of what the user wants, what columns make sense, how to structure the table — that understanding is built up across the conversation and lives in the current context window. If you routed this through a tool, you'd have to re-supply all of that context to the tool's own LLM call. You'd be paying the cost of a second invocation to duplicate work the first LLM is already positioned to do.
+
+**Second, schema design is a different kind of knowledge than factual data.** Part 2 established that the system explicitly discourages the LLM from using its training knowledge as a source of factual claims — that's what tools are for. But schema design draws on structural, ontological knowledge: knowing that a table of restaurants should have columns for name, cuisine, price range, and rating. This kind of knowledge is more evergreen than data, more generalizable, and it's exactly the kind of pattern-recognition LLMs excel at. The "don't use training knowledge" constraint applies to claims about the world that could be wrong or stale. It doesn't apply to structural reasoning about how to organize information — where LLMs are genuinely strong.*
 
 This gives us a principled distinction about when to use tools vs. when to let the LLM work directly:
 
-- **Use a tool** when the work requires capabilities the LLM doesn't have (search, database access, computation) or when the workflow should be enforced externally (research steps, row iteration).
-- **Let the LLM work directly** when the work is conversational reasoning that's inseparable from the current context.
+- **Use a tool** when the work requires capabilities the LLM doesn't have (search, database access, computation), when the workflow should be enforced externally (research steps, row iteration), or when domain-specific schema knowledge is required that the LLM's general training doesn't cover.
+- **Let the LLM work directly** when the work is conversational reasoning that's inseparable from the current context, and when the knowledge required is structural/ontological rather than factual.
+
+*\* There are cases where schema generation should go through a tool — specifically when domain verticalization requires schemas grounded in specialized knowledge rather than the LLM's general training. The system is being enhanced to support this, routing schema generation through domain-specific tools when the context calls for it.*
 
 The problem is that "let the LLM work directly" normally means you get unstructured text. The LLM designs a great schema change... and expresses it in a paragraph, or a bullet list, or an inconsistent hybrid. The frontend can't parse it. You can't validate it. You can't render it as an interactive diff.
 
