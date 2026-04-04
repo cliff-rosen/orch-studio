@@ -30,13 +30,15 @@ Cogent inputs have five properties, forming a progressive chain where each assum
 
 5. **Dense** — the signal-to-noise ratio is high enough that the model can actually find what matters. The right information can be present and still fail to influence the output if it's buried in noise.
 
-### Schemas: A Pattern That Cuts Across the Essentials
+### Payload Type Definitions: A Pattern That Cuts Across the Essentials
 
-Most of what shapes an agent's behavior falls cleanly into one of the three essentials. But some patterns cut across them. The most important in this system is the **domain schema** — a formal structure that defines what a domain object looks like (its fields, types, constraints, valid values).
+Most of what shapes an agent's behavior falls cleanly into one of the three essentials. But some patterns cut across them. The most important in this system is the **payload type definition** — a formal structure that prescribes what a domain object looks like: its fields, types, constraints, valid values.
 
-A schema is simultaneously instruction and context. As instruction, it tells the LLM: "when you produce this kind of object, this is the shape." As context, it teaches the LLM what a domain entity *is* — the schema for a `schema_proposal` with operations like add/modify/remove/reorder, each with typed fields, tells the LLM what a schema change looks like in this domain. A schema is also an extraordinarily dense artifact — it encodes a large amount of domain knowledge in a compact, formal structure. Maximum information per token.
+A payload type definition is simultaneously instruction and context. As instruction, it tells the LLM: "when you produce this kind of object, this is the shape." As context, it teaches the LLM what a domain entity *is* — the definition for a `data_proposal` with operations like add/update/delete, each with typed fields, tells the LLM what a data modification looks like in this system. A payload type definition is also an extraordinarily dense artifact — it encodes a large amount of domain knowledge about how the system models its entities in a compact, formal structure. Maximum information per token.
 
-This pattern — domain schemas that function as both instruction and compressed domain knowledge — is the foundation of the **payload system** described in Part 4. The three essentials describe what the LLM needs as inputs. Schemas address what happens when the LLM (or a tool) needs to produce structured domain objects as output — and they do it by threading back into instructions and context rather than sitting outside them.
+This pattern — prescribed type definitions that function as both instruction and compressed domain knowledge — is the foundation of the **payload system** described in Part 4. The three essentials describe what the LLM needs as inputs. Payload type definitions address what happens when the LLM (or a tool) needs to produce structured domain objects as output — and they do it by threading back into instructions and context rather than sitting outside them.
+
+(A note on terminology: the word "schema" appears in two senses in this system. A payload type definition *has* a schema — the prescribed structure that constrains the shape of the output. But some payloads *contain* schemas as their content — for example, when the LLM proposes a table structure, the payload's content is itself a schema. The first sense is a constraint flowing *to* the LLM. The second is knowledge flowing *from* the LLM. Part 4 explores this distinction.)
 
 ### Why Cogency Matters More for Agents Than Humans
 
@@ -188,7 +190,7 @@ User message
 
 ## Part 4: Payloads — The LLM as a Producer of Domain Objects
 
-Part 1 introduced domain schemas as a pattern that cuts across the three essentials — simultaneously instruction and compressed domain knowledge. This section unpacks the full mechanism: why the LLM needs to produce structured domain objects in the first place, why payloads are the right solution, and what they enable.
+Part 1 introduced payload type definitions as a pattern that cuts across the three essentials — the prescribed structure that constrains output shape and teaches the LLM what domain entities look like. This section unpacks the full mechanism: why the LLM needs to produce structured domain objects in the first place, why payloads are the right solution, and what they enable.
 
 ### The Multiple Roles of the LLM
 
@@ -202,41 +204,47 @@ The LLM plays several distinct roles in this system:
 
 4. **World knowledge bank** — It has broad training knowledge, though the system explicitly discourages relying on this in favor of grounded retrieval via tools.
 
-5. **Built-in tool** — The LLM itself can do substantive work: designing a table schema, composing a data modification, drafting a structured query. This is original cognitive output — not routing, not summarizing tool results, but generating domain objects from its own capability.
+5. **Built-in tool** — The LLM itself can do substantive work: designing a table structure, composing a data modification, drafting a structured query. This is original cognitive output — not routing, not summarizing tool results, but generating domain objects from its own capability.
 
 Roles 1–4 are well-understood and well-served by the standard model of instructions, context, and tools. Role 5 is what makes payloads necessary.
 
 ### Why Not Just Use a Tool?
 
-When the LLM needs to search the web, it calls `research_web`. When it needs to look up help documentation, it calls `get_help`. So why doesn't it call a `generate_schema_proposal` tool when it needs to propose a schema change?
+When the LLM needs to search the web, it calls `research_web`. When it needs to look up help documentation, it calls `get_help`. So why doesn't it call a `generate_proposal` tool when it needs to propose a table structure or a data modification?
 
 Two reasons.
 
-**First, the work is inseparable from the conversational reasoning.** The schema proposal isn't a separate task you can farm out — it emerges from the conversation itself. The LLM's understanding of what the user wants, what columns make sense, how to structure the table — that understanding is built up across the conversation and lives in the current context window. If you routed this through a tool, you'd have to re-supply all of that context to the tool's own LLM call. You'd be paying the cost of a second invocation to duplicate work the first LLM is already positioned to do.
+**First, the work is inseparable from the conversational reasoning.** A proposal isn't a separate task you can farm out — it emerges from the conversation itself. The LLM's understanding of what the user wants, what columns make sense, how to structure the table — that understanding is built up across the conversation and lives in the current context window. If you routed this through a tool, you'd have to re-supply all of that context to the tool's own LLM call. You'd be paying the cost of a second invocation to duplicate work the first LLM is already positioned to do.
 
-**Second, schema design is a different kind of knowledge than factual data.** Part 2 established that the system explicitly discourages the LLM from using its training knowledge as a source of factual claims — that's what tools are for. But schema design draws on structural, ontological knowledge: knowing that a table of restaurants should have columns for name, cuisine, price range, and rating. This kind of knowledge is more evergreen than data, more generalizable, and it's exactly the kind of pattern-recognition LLMs excel at. The "don't use training knowledge" constraint applies to claims about the world that could be wrong or stale. It doesn't apply to structural reasoning about how to organize information — where LLMs are genuinely strong.*
+**Second, the kind of knowledge involved is different from factual data.** Part 2 established that the system explicitly discourages the LLM from using its training knowledge as a source of factual claims — that's what tools are for. But consider what the LLM is actually doing when it proposes a table structure for tracking restaurants: it's drawing on structural, ontological knowledge — knowing that restaurants have names, cuisines, price ranges, ratings. Or when it composes a data modification: it's reasoning about how the user's request maps to specific row operations given the current table state. This kind of knowledge is more evergreen than factual data, more generalizable, and it's exactly the kind of pattern-recognition LLMs excel at. The "don't use training knowledge" constraint applies to claims about the world that could be wrong or stale. It doesn't apply to structural reasoning about how to organize information, or to reasoning about operations on data the LLM already has in context.*
 
 This gives us a principled distinction about when to use tools vs. when to let the LLM work directly:
 
-- **Use a tool** when the work requires capabilities the LLM doesn't have (search, database access, computation), when the workflow should be enforced externally (research steps, row iteration), or when domain-specific schema knowledge is required that the LLM's general training doesn't cover.
+- **Use a tool** when the work requires capabilities the LLM doesn't have (search, database access, computation), when the workflow should be enforced externally (research steps, row iteration), or when domain-specific knowledge is required that the LLM's general training doesn't cover.
 - **Let the LLM work directly** when the work is conversational reasoning that's inseparable from the current context, and when the knowledge required is structural/ontological rather than factual.
 
-*\* There are cases where schema generation should go through a tool — specifically when domain verticalization requires schemas grounded in specialized knowledge rather than the LLM's general training. The system is being enhanced to support this, routing schema generation through domain-specific tools when the context calls for it.*
+*\* There are cases where even structural content generation should go through a tool — specifically when domain verticalization requires outputs grounded in specialized knowledge rather than the LLM's general training. The system is being enhanced to support this, routing generation through domain-specific tools when the context calls for it.*
 
-The problem is that "let the LLM work directly" normally means you get unstructured text. The LLM designs a great schema change... and expresses it in a paragraph, or a bullet list, or an inconsistent hybrid. The frontend can't parse it. You can't validate it. You can't render it as an interactive diff.
+The problem is that "let the LLM work directly" normally means you get unstructured text. The LLM designs a great table structure... and expresses it in a paragraph, or a bullet list, or an inconsistent hybrid. The frontend can't parse it. You can't validate it. You can't render it as an interactive preview.
 
-### What Payloads Do
+### What Payloads Do: Container and Content
 
 Payloads solve this by **capturing the LLM's own work as typed, validated domain objects** — subjecting them to the same rigor as tool outputs.
 
-The core of a payload is its **schema** — the cross-cutting pattern introduced in Part 1. The schema for a `schema_proposal` defines a `mode` (create/update), an array of `operations` (each typed — add, modify, remove, reorder), each with defined fields. This schema simultaneously acts as instruction (telling the LLM the exact shape its output must take) and as compressed domain knowledge (teaching the LLM what a schema change *is* in this system — what operations exist, what fields they require, what values are valid). It's an extraordinarily dense way to convey both "what to produce" and "what this domain object means."
+There are two layers to understand, and they work in opposite directions:
 
-The LLM still does the cognitive work — *which* columns, *what* types, *why* this change — but the structure is fixed. This is the bounding principle applied on a new axis. Tools narrow degrees of freedom on the **action** side — what the LLM can do. Payload schemas narrow degrees of freedom on the **output** side — how the LLM expresses domain objects. Together they bound the agent on both sides:
+**The payload type definition (the container)** is the cross-cutting pattern introduced in Part 1. It's prescribed by the developer and flows *to* the LLM as constraint and knowledge. The definition for a `schema_proposal` specifies that it must have a `mode` (create/update), an array of `operations` (each typed — add, modify, remove, reorder), each with required fields. This definition simultaneously acts as instruction (telling the LLM the exact shape its output must take) and as compressed domain knowledge (teaching the LLM what a schema change *is* in this system — what operations exist, what fields they require, what values are valid). It's an extraordinarily dense way to convey both "what to produce" and "what this kind of domain object means."
+
+**The payload content (what the LLM fills in)** is knowledge and reasoning flowing *from* the LLM. When the LLM proposes a table with columns for name, cuisine, and price range — that content is the LLM's own work product, drawing on its structural knowledge and the conversational context. The container constrains the shape; the LLM supplies the substance.
+
+In some cases, this creates a schema-of-a-schema situation: the payload type definition prescribes the structure of a `schema_proposal`, and the LLM's content within that structure is itself a proposed table schema. The container and the content are both "schemas" in different senses — one is a design-time constraint, the other is the LLM's runtime output.
+
+This is the bounding principle applied on a new axis. Tools narrow degrees of freedom on the **action** side — what the LLM can do. Payload type definitions narrow degrees of freedom on the **output** side — the shape of the domain objects the LLM produces. Together they bound the agent on both sides:
 
 - **Tools** = constrained actions
-- **Payload schemas** = constrained outputs
+- **Payload type definitions** = constrained output shape
 
-And everything downstream — validation, custom rendering, manifests, the proposal pattern — is only possible *because* the output is rigorous. You can't build a human gate on unstructured text. You can't build a manifest summarizer on free-form descriptions. You can't build a per-type component registry on "whatever the LLM felt like producing."
+And everything downstream — validation, custom rendering, manifests, the proposal pattern — is only possible *because* the output conforms to a prescribed structure. You can't build a human gate on unstructured text. You can't build a manifest summarizer on free-form descriptions. You can't build a per-type component registry on "whatever the LLM felt like producing."
 
 ### Two Sources, One System
 
