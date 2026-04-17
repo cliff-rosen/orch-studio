@@ -8,7 +8,10 @@
       "mcp__claude_ai_BotBeam__list_devices",
       "Bash(xargs grep:*)",
       "Bash(find /c/code/orch-studio -type f \\\\\\(-name *.ts -o -name *.tsx -o -name *.js -o -name *.jsx -o -name *.py \\\\\\))",
-      "Bash(grep -r \"register_page\" backend/services/chat_page_config/*.py)"
+      "Bash(grep -r \"register_page\" backend/services/chat_page_config/*.py)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)"
     ]
   }
 }
