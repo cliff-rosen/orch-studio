@@ -11,7 +11,8 @@
       "Bash(grep -r \"register_page\" backend/services/chat_page_config/*.py)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "WebFetch(domain:claude.ai)"
     ]
   }
 }
