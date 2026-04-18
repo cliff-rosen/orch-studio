@@ -14,6 +14,33 @@ This shapes everything else:
 - We're trying to detect and resolve contradictions across sources, not smooth them over.
 - The end state is a synthesis that stands on its own; the raw sources become provenance, not the primary artifact.
 
+## Phases
+
+The work happens in three sequential phases. Current phase is tracked at the top of this document when relevant.
+
+### Phase 1 — Generate the synthesis (with light user guidance)
+Claude reads each raw source, classifies against the existing synthesis (supports / adds / conflicts), integrates distilled substance into the appropriate files, preserves raw sources verbatim, flags uncertainty with confidence markers. The user provides light guidance — ordering of sources, occasional redirects, structural approvals — but does not do the distillation themselves.
+
+**Output of Phase 1**: A full but unreviewed synthesis organized across hub + detail files, with confidence markers where uncertainty remains.
+
+### Phase 2 — Prepare a custom UX for human review
+Claude produces a review artifact (currently `review.html`) that presents the synthesis in a format optimized for *top-down human digestion*. This is a one-off UX, not long-lived infrastructure — it exists to let the user scan, navigate, and get directional alignment without reading through multiple markdown files in sequence.
+
+The review artifact surfaces:
+- Confidence markers prominently, so the user can spot what needs input
+- Cross-references that navigate, not just reference
+- Structural hierarchy (thesis → layers → concepts → rubrics → detail → cases)
+- Open questions and parked questions separately from settled substance
+
+**Output of Phase 2**: A reviewable UX + user feedback on (a) what to retire from tentative, (b) which in-flight concepts to resolve and how, (c) which open questions matter and which can be closed, (d) any larger framework-level course corrections.
+
+### Phase 3 — Finalize structure and content
+With directional alignment from Phase 2, Claude does the canonicalization pass: removes confidence markers where the user confirmed, resolves in-flight concepts per the user's direction, consolidates or restructures as needed, and writes a "canonical summary" section (or file) that can be excerpted or adapted for external writing.
+
+The review artifact from Phase 2 may be regenerated or discarded after Phase 3 — it was scaffolding for alignment, not the final artifact.
+
+**Output of Phase 3**: A canonical framework, ready to be the basis for external writing (Adam memos, essays, product positioning, market pitches, etc.).
+
 ## Inputs
 
 Raw material arrives in various forms:
@@ -62,8 +89,11 @@ When a marker gets removed, note it in the source log ("confirmed by conv-N").
 
 Structure decisions aren't locked in. Explicit reassessment points:
 
-- **After conv-3** — check whether the single-file synthesis is still scannable. If it's crossed a readability threshold, split into a hub + detail files (candidate splits: `concepts.md`, `engagement-root-cause.md`, `case-orchestrator-studios.md`).
-- **After all seven convs are processed** — full pass to canonicalize. Remove remaining tentative markers where sources converged. Resolve in-flight concepts. Write a "canonical summary" section that can be excerpted or adapted for external writing.
+- **After conv-3 (Phase 1)** — check whether the single-file synthesis is still scannable. ✓ Resolved: split into hub + detail files (`ccc-model.md`, `role-shift.md`, `case-orchestrator-studios.md`).
+- **After all seven convs are processed (Phase 1 → Phase 2)** — produce review UX rather than immediately canonicalizing. Let the user do directional alignment before locking decisions. ✓ Resolved: `review.html` generated.
+- **Phase 2.5 — mid-review source batch** (2026-04-17). While the user was reviewing the UX, additional sources (10 files from Google Drive) arrived. Integrated into the synthesis without waiting for full Phase 2 completion because (a) the drive batch was mostly polished artifacts of already-processed conversations (confirmation, not contradiction), and (b) two files — `next-after-orchestration.md` and `cognitive-leverage-framework.md` — added substance that the user flagged separately as mathematically foundational (the optimization statement, six leverage primitives). The optimization math was subsequently corrected (single-threshold form, `R∞_i` dropped from maximand, dollar budget made explicit, equalized-marginal-returns stated as the interior optimum) after user review of the initial formulation.
+- **Phase 2.5+ — top-down restructure** (2026-04-18). User observation that the content had accumulated across levels without being organized top-down. Cleanup pass: (a) hub (`synthesis.md`) rewritten as a canon + pointers structure; (b) `positioning.md` split out to hold rhetorical/external-pitch material separately from the framework canon; (c) `ccc-model.md` rescoped to decomposition of `x_i` only (the canon itself moved to the hub); (d) detail files tightened and made canon-derivative; (e) pre-canon content retired (Direction 1/2 framing, "Orchestrator of orchestras" candidate term, quality-threshold-as-founding-gate as a separate section); (f) evolution notes moved to `sources/archive/`; (g) mechanical sweep for remaining CCC/T two-threshold and R∞ references.
+- **Canonicalization (Phase 3)** — if still needed after 2.5+. User judgment on remaining open questions.
 - **Whenever substantial contradictions emerge** — pause the ingestion loop, raise with user, don't try to decide unilaterally.
 
 ## What goes in synthesis vs. what doesn't

@@ -1,0 +1,1255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cognitive Leverage — Canonical Framework</title>
+<style>
+  :root {
+    --bg: #fafaf8;
+    --surface: #ffffff;
+    --text: #1a1a1a;
+    --text-dim: #5a5a5a;
+    --text-dimmer: #888;
+    --border: #e3e3df;
+    --border-strong: #c8c8c4;
+    --sidebar-bg: #f1f1ed;
+    --accent: #14507a;
+    --accent-hover: #0d3a5a;
+    --tentative-bg: #fdf0e3;
+    --tentative-fg: #9a4a12;
+    --tentative-border: #e8b98a;
+    --inflight-bg: #e8f1fb;
+    --inflight-fg: #1f5a9a;
+    --inflight-border: #8fb8dd;
+    --code-bg: #f0f0ec;
+    --callout-bg: #f7f5ee;
+    --callout-border: #d4cdb5;
+    --table-header: #efefea;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #17171a;
+      --surface: #1d1d21;
+      --text: #e8e8e4;
+      --text-dim: #a8a8a4;
+      --text-dimmer: #6d6d6a;
+      --border: #2e2e32;
+      --border-strong: #42424a;
+      --sidebar-bg: #1a1a1d;
+      --accent: #6ab4ee;
+      --accent-hover: #9cc9f2;
+      --tentative-bg: #3a2612;
+      --tentative-fg: #f5b77a;
+      --tentative-border: #6a4418;
+      --inflight-bg: #152843;
+      --inflight-fg: #8fc0ee;
+      --inflight-border: #2e5687;
+      --code-bg: #242428;
+      --callout-bg: #201e18;
+      --callout-border: #3a3526;
+      --table-header: #242428;
+    }
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  .layout {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    max-width: 1440px;
+    margin: 0 auto;
+  }
+  aside.sidebar {
+    background: var(--sidebar-bg);
+    border-right: 1px solid var(--border);
+    padding: 1.5rem 1.2rem;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    font-size: 0.9rem;
+  }
+  .sidebar h2 {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-dim);
+    margin: 1.4rem 0 0.4rem;
+    font-weight: 700;
+  }
+  .sidebar h2:first-child { margin-top: 0; }
+  .sidebar ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .sidebar li { margin: 0.1rem 0; }
+  .sidebar a {
+    color: var(--text);
+    text-decoration: none;
+    display: block;
+    padding: 0.25rem 0.55rem;
+    border-radius: 4px;
+    border-left: 3px solid transparent;
+    transition: background 0.1s, border-color 0.1s;
+  }
+  .sidebar a:hover {
+    background: var(--surface);
+    color: var(--accent-hover);
+  }
+  .sidebar a.active {
+    background: var(--surface);
+    border-left-color: var(--accent);
+    color: var(--accent);
+    font-weight: 500;
+  }
+  main {
+    padding: 2.5rem 3rem 6rem;
+    max-width: 860px;
+  }
+  h1 {
+    font-size: 2rem;
+    margin: 0 0 0.3rem;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+  }
+  h2 {
+    font-size: 1.5rem;
+    margin: 2.8rem 0 0.8rem;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0.4rem;
+    letter-spacing: -0.005em;
+  }
+  h3 {
+    font-size: 1.1rem;
+    margin: 1.8rem 0 0.5rem;
+    color: var(--text);
+  }
+  h4 {
+    font-size: 0.98rem;
+    margin: 1.2rem 0 0.4rem;
+    color: var(--text);
+    font-weight: 600;
+  }
+  p { margin: 0.6rem 0 1rem; }
+  ul, ol { margin: 0.5rem 0 1rem; padding-left: 1.5rem; }
+  li { margin: 0.3rem 0; }
+  li > p { margin: 0.3rem 0; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { color: var(--accent-hover); text-decoration: underline; }
+  code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.88em;
+    background: var(--code-bg);
+    padding: 0.1em 0.35em;
+    border-radius: 3px;
+  }
+  pre {
+    background: var(--code-bg);
+    padding: 0.8rem 1rem;
+    border-radius: 6px;
+    overflow-x: auto;
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+  pre code { background: transparent; padding: 0; }
+  blockquote {
+    border-left: 3px solid var(--border-strong);
+    margin: 1rem 0;
+    padding: 0.3rem 0 0.3rem 1rem;
+    color: var(--text-dim);
+    font-style: italic;
+  }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 1rem 0;
+    font-size: 0.92rem;
+  }
+  th, td {
+    border: 1px solid var(--border);
+    padding: 0.5rem 0.7rem;
+    text-align: left;
+    vertical-align: top;
+  }
+  th {
+    background: var(--table-header);
+    font-weight: 600;
+  }
+  .tablewrap { overflow-x: auto; }
+  strong, b { font-weight: 600; color: var(--text); }
+  .pill {
+    display: inline-block;
+    font-size: 0.68rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 0.1rem 0.5rem;
+    border-radius: 10px;
+    vertical-align: middle;
+    line-height: 1.5;
+  }
+  .pill-tentative {
+    background: var(--tentative-bg);
+    color: var(--tentative-fg);
+    border: 1px solid var(--tentative-border);
+  }
+  .pill-inflight {
+    background: var(--inflight-bg);
+    color: var(--inflight-fg);
+    border: 1px solid var(--inflight-border);
+  }
+  .callout {
+    background: var(--callout-bg);
+    border-left: 3px solid var(--callout-border);
+    padding: 0.9rem 1.1rem;
+    margin: 1.2rem 0;
+    border-radius: 0 4px 4px 0;
+  }
+  .callout p:first-child { margin-top: 0; }
+  .callout p:last-child { margin-bottom: 0; }
+  .meta-row {
+    color: var(--text-dim);
+    font-size: 0.9rem;
+    margin: 0.3rem 0 1.4rem;
+  }
+  .canon-statement {
+    font-size: 1.15rem;
+    line-height: 1.6;
+    padding: 1.2rem 1.4rem;
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    border-radius: 6px;
+    margin: 1rem 0;
+  }
+  details {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin: 1rem 0;
+  }
+  details[open] { border-color: var(--border-strong); }
+  details > summary {
+    padding: 0.9rem 1.2rem;
+    cursor: pointer;
+    font-weight: 600;
+    user-select: none;
+    list-style: none;
+    position: relative;
+    padding-left: 2.4rem;
+  }
+  details > summary::-webkit-details-marker { display: none; }
+  details > summary::before {
+    content: "▸";
+    position: absolute;
+    left: 1rem;
+    color: var(--text-dim);
+    transition: transform 0.15s;
+    display: inline-block;
+  }
+  details[open] > summary::before {
+    transform: rotate(90deg);
+  }
+  details > summary:hover { color: var(--accent); }
+  .details-body {
+    padding: 0 1.2rem 1rem;
+    border-top: 1px solid var(--border);
+    margin-top: 0.2rem;
+    padding-top: 0.8rem;
+  }
+  .file-ref {
+    display: inline-block;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.82rem;
+    color: var(--text-dim);
+    background: var(--code-bg);
+    padding: 0.15em 0.5em;
+    border-radius: 3px;
+    margin-left: 0.4rem;
+    font-weight: 400;
+  }
+  footer {
+    margin-top: 4rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+    color: var(--text-dim);
+    font-size: 0.88rem;
+  }
+  @media (max-width: 1000px) {
+    .layout { grid-template-columns: 1fr; }
+    aside.sidebar {
+      position: static;
+      height: auto;
+      border-right: none;
+      border-bottom: 1px solid var(--border);
+    }
+    main { padding: 2rem 1.5rem 4rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+<aside class="sidebar">
+  <h2>The canon</h2>
+  <ul>
+    <li><a href="#about">About this review</a></li>
+    <li><a href="#canon">The canon</a></li>
+    <li><a href="#primitives-keys">Primitives</a></li>
+    <li><a href="#units">Units of analysis</a></li>
+    <li><a href="#stack">Framework stack</a></li>
+    <li><a href="#drivers">The two drivers</a></li>
+  </ul>
+
+  <h2>Detail modules</h2>
+  <ul>
+    <li><a href="#ccc">`x_i` decomposition</a></li>
+    <li><a href="#primitives">Leverage primitives</a></li>
+    <li><a href="#audit">Allocation audit</a></li>
+    <li><a href="#role">Role shift</a></li>
+    <li><a href="#universe">Universe model</a></li>
+  </ul>
+
+  <h2>Cases</h2>
+  <ul>
+    <li><a href="#case-studio">Orchestrator Studios</a></li>
+    <li><a href="#case-ceo">CEO baseline</a></li>
+  </ul>
+
+  <h2>Positioning &amp; meta</h2>
+  <ul>
+    <li><a href="#positioning">Positioning</a></li>
+    <li><a href="#terminology">Terminology</a></li>
+    <li><a href="#open">Open questions</a></li>
+    <li><a href="#provenance">Provenance</a></li>
+  </ul>
+</aside>
+
+<main>
+
+<section id="about">
+  <h1>Cognitive Leverage — Canonical Framework</h1>
+  <p class="meta-row">Top-down review of the framework. Canon first, primitives second, detail modules as drill-downs.</p>
+
+  <p>This artifact exists so the framework can be read at any level of resolution. Stop after <strong>The canon</strong> = you know what cognitive leverage is and why it matters. Stop after <strong>Framework stack + The two drivers</strong> = you can reason about the math. Continue into the detail modules for mechanisms, diagnostics, infrastructure. Continue into cases for concrete applications.</p>
+
+  <p>The canon is the spine; everything else is a derivation, decomposition, mechanism, diagnostic, infrastructure choice, case, or positioning artifact pointing back to it.</p>
+</section>
+
+<!-- ============================================================ -->
+<!-- THE CANON -->
+<!-- ============================================================ -->
+
+<section id="canon">
+  <h2>The canon</h2>
+
+  <h3>In one sentence</h3>
+  <div class="canon-statement">
+    Cognitive leverage is the practice of recognizing that AI has reshaped the return curves on every cognitive-allocation decision an operator makes, and optimizing the portfolio against the new shape under the constraint of fixed cognitive capacity.
+  </div>
+
+  <h3>In two sentences, with the primitives</h3>
+  <div class="canon-statement">
+    An operator with fixed cognitive capacity <code>C</code> and dollar budget <code>B</code> allocates <code>x_i</code> and <code>d_i</code> per unit time to each active project, maximizing <code>Σ R_i(x_i)</code> subject to <code>Σ x_i ≤ C</code>, <code>Σ d_i ≤ B</code>, and the threshold <code>x_i ≥ t_i</code> (below which project <code>i</code> is a non-starter). Two economic shifts — delegation becoming cheap AND capable (A) and labor becoming configurable (B) — have dramatically lowered <code>t_i</code> on many projects, expanding the feasible portfolio from 2-3 projects to 10-100+, and the edge is recognizing this and rebuilding the portfolio around the new shape.
+  </div>
+
+  <h3>The formal statement</h3>
+  <pre><code>Maximize   Σ_i R_i(x_i)              across active projects
+
+Subject to  Σ_i x_i  ≤  C             (cognitive budget)
+            Σ_i d_i  ≤  B             (dollar budget)
+            x_i  ≥  t_i               (threshold: project must be viable)</code></pre>
+
+  <p>At the <strong>interior optimum</strong>, marginal returns are equalized across active projects:</p>
+  <pre><code>∂R_i/∂x_i  =  λ    for all active projects i</code></pre>
+  <p><code>λ</code> is the common marginal return at optimum — the opportunity cost of an incremental unit of operator attention. Projects where <code>∂R_i/∂x_i</code> exceeds <code>λ</code> should get more capacity; projects below <code>λ</code> should get less (or be cut if they can't stay above <code>t_i</code>).</p>
+
+  <h3>Why the canon matters now</h3>
+
+  <p>Pre-AI, <code>t_i</code> on most projects was a large fraction of <code>C</code>. The portfolio capped at 2-3 projects by per-project threshold alone. Binary disqualification ("can't afford this one") was the binding filter. The optimization was trivial — it reduced to "pick one, maybe two."</p>
+
+  <p>Driver A collapsed <code>t_i</code> by 5-10× or more on many projects. The binding constraint shifted from per-project <code>t_i &gt; available capacity</code> to portfolio-level <code>Σ t_i ≤ C</code>. Feasible portfolios at N=10 or N=100 opened up, and — because the return curve is relatively flat in the productive zone just above threshold — running more projects at smaller per-project allocations can produce more total return than running fewer at larger allocations. The math was always there; the <em>decision space</em> wasn't, because there was no low-end feasible region to operate in.</p>
+
+  <div class="callout">
+    <strong>The canon used to be trivially true and not decision-relevant. Now it's the actual working tool.</strong>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- PRIMITIVES -->
+<!-- ============================================================ -->
+
+<section id="primitives-keys">
+  <h2>Primitives</h2>
+
+  <h3>Operator resources</h3>
+  <ul>
+    <li><strong><code>C</code></strong> — fixed cognitive capacity per unit time. Units of directed judgment, not hours. Can't be expanded; bounded by the operator's life.</li>
+    <li><strong><code>B</code></strong> — dollar budget per unit time. Often non-binding under AI economics but present.</li>
+  </ul>
+
+  <h3>Per-project</h3>
+  <ul>
+    <li><strong><code>x_i</code></strong> — cognitive allocation to project <code>i</code> per unit time.</li>
+    <li><strong><code>d_i</code></strong> — dollar allocation to project <code>i</code> per unit time.</li>
+    <li><strong><code>t_i</code></strong> — threshold. Minimum-viable cognitive allocation. Below it, the project is a non-starter (no meaningful return). Above it, return grows subject to diminishing returns. Driver A lowers <code>t_i</code>.</li>
+    <li><strong><code>R_i(x_i)</code></strong> — return curve. For projects with an autonomous component, <code>R_i(0) &gt; 0</code> (the automated part produces return without current attention).</li>
+  </ul>
+
+  <h3>The two dimensions of the operator's decision</h3>
+  <ul>
+    <li><strong>Reach</strong> — what the operator has committed to pursue (which candidates are in the active portfolio).</li>
+    <li><strong>How</strong> — for each active project, what work it takes and who does it (the composition of <code>x_i</code> + <code>d_i</code> across tasks).</li>
+  </ul>
+</section>
+
+<!-- ============================================================ -->
+<!-- UNITS OF ANALYSIS -->
+<!-- ============================================================ -->
+
+<section id="units">
+  <h2>Units of analysis &mdash; what counts as a "project"</h2>
+  <p class="meta-row">The canon uses "project" and "portfolio" as abstract placeholders. The Orchestrator Studios case makes it look like "projects = products," but that's one instance. The general definition is more abstract.</p>
+
+  <h3>Definitions</h3>
+  <p><strong>A project</strong> is any distinct commitment that:</p>
+  <ul>
+    <li>Consumes operator cognitive capacity (<code>x_i &gt; 0</code>) per unit time to stay productive</li>
+    <li>Has a threshold <code>t_i</code> below which it's a non-starter</li>
+    <li>Produces some return toward a goal the operator cares about</li>
+    <li>Can be accounted for separately from other commitments</li>
+  </ul>
+  <p>Not tied to PM-style deliverables, time bounds, or formal plans. Just the generic unit of cognitive commitment.</p>
+
+  <p><strong>A portfolio</strong> is the operator's current set of active projects — the whole collection that collectively spends <code>C</code>.</p>
+
+  <h3>Concrete instances</h3>
+  <div class="tablewrap">
+  <table>
+    <thead><tr><th>Operator type</th><th>What "project" typically means</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Studio (Orchestrator Studios)</strong></td><td>Apps / products in the pipeline</td></tr>
+      <tr><td><strong>Single-product team</strong></td><td>Focus areas, features, marketing campaigns within one product</td></tr>
+      <tr><td><strong>CEO of small company</strong></td><td>Operating functions — sales, hiring, fundraising, product direction, board relations</td></tr>
+      <tr><td><strong>Investment partner</strong></td><td>Active portfolio companies / deals being worked</td></tr>
+      <tr><td><strong>Knowledge worker / researcher</strong></td><td>Active investigations, writing projects, deliverables</td></tr>
+      <tr><td><strong>Solo founder</strong></td><td>Mix of product, biz dev, customer development, recruiting currently active</td></tr>
+      <tr><td><strong>Executive</strong></td><td>Initiatives sponsored / direct reports / strategic bets personally driving</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>The common thread across all rows: each is a <strong>discrete claim on finite operator attention with its own threshold</strong>. The framework doesn't care what the commitments are named — it cares that they have the four properties above.</p>
+
+  <h3>The framework is fractal</h3>
+  <p>The canon applies at any level of analysis:</p>
+  <ul>
+    <li><strong>Mandate level</strong> — the operator's top-level portfolio. For OS this is apps; for a CEO, operating functions. Most strategic decisions live here.</li>
+    <li><strong>Within-project level</strong> — a single top-level project's internal portfolio. Within "sales," the active customer deals; within an app, the focus areas or features.</li>
+    <li><strong>Sub-project level</strong> — within a single deal, individual touchpoints or threads.</li>
+  </ul>
+  <p>Same math at every level. What varies is what <code>C</code> and <code>t_i</code> mean:</p>
+  <ul>
+    <li>At the mandate level, <code>C</code> is the operator's full cognitive capacity.</li>
+    <li>At a within-project level, <code>C</code> is whatever capacity the operator has already committed to that project — the budget drops down from the level above.</li>
+  </ul>
+  <div class="callout">
+    <strong>Stay at one level within a given analysis.</strong> Mixing levels creates confusion — treating one project's sub-initiative as a peer to another project's top-level commitment.
+  </div>
+
+  <h3>Choosing the right level</h3>
+  <p>Most strategic work happens at the <strong>mandate level</strong> — where cutting or adding a top-level project is a material move, and where the two drivers' effect on feasibility is most visible. The "we could run 10 or 100, not just 2" insight is a mandate-level observation.</p>
+  <p>Lower levels are useful for <em>tactical</em> allocation within a top-level project — "given that this product is in the portfolio, how should we split attention across its focus areas?" Same math, smaller stakes, different denominator for <code>C</code>.</p>
+</section>
+
+<!-- ============================================================ -->
+<!-- FRAMEWORK STACK -->
+<!-- ============================================================ -->
+
+<section id="stack">
+  <h2>The framework stack</h2>
+
+  <p>Three layers. The confusion to avoid: teams who've solved orchestration assume fleet management is the frontier. It isn't. Cognitive leverage is the layer <em>above</em> fleet management, not next to it.</p>
+
+  <ol>
+    <li><strong>Orchestration</strong> — getting one agent to do work reliably. Table stakes now.</li>
+    <li><strong>Fleet management</strong> — getting many agents to do work reliably in parallel. Operational. <strong>Scales the machine.</strong> Optimizes throughput within an inherited cognitive allocation.</li>
+    <li><strong>Cognitive leverage</strong> — the layer above. <strong>Scales the operator.</strong> Treats the allocation itself as the decision variable.</li>
+  </ol>
+
+  <div class="callout">
+    <strong>Diagnostic:</strong> "How do I keep all these agents running?" is fleet management. "Given that I can keep them running, what's the highest-value thing to point them at, and how do I stay ahead of the judgment calls their outputs surface?" is cognitive leverage.
+  </div>
+
+  <p>Deeper cuts of this distinction (supply vs. demand; human as manager vs. component; optimizing vs. culling; opportunity cost visibility; snapshot vs. portfolio-over-time) live in <a href="#positioning">positioning</a>.</p>
+</section>
+
+<!-- ============================================================ -->
+<!-- TWO DRIVERS -->
+<!-- ============================================================ -->
+
+<section id="drivers">
+  <h2>The two drivers — what actually changed</h2>
+
+  <p>Confirmed across the source conversations. These, and only these, are what shifted. Everything else in the framework is a derivation, decomposition, mechanism, diagnostic, infrastructure choice, or application.</p>
+
+  <ul>
+    <li><strong>Driver A — Delegation is now cheap AND capable at once.</strong> Agents cost orders of magnitude less than human labor <em>and</em> are genuinely good (sometimes better than the operator) at a meaningful range of work. This combination didn't exist before. Mathematically: <strong><code>t_i</code> drops substantially for any project whose execution is delegable.</strong></li>
+    <li><strong>Driver B — Labor is configurable rather than pre-committed.</strong> You start from the work and size labor to it, instantly, with no carrying cost. Decisions become continuous and reversible rather than structural bets. Mathematically: <strong>the portfolio composition can be adjusted per-period</strong> without hiring-cycle lag.</li>
+  </ul>
+</section>
+
+<!-- ============================================================ -->
+<!-- DETAIL MODULES -->
+<!-- ============================================================ -->
+
+<section id="ccc">
+  <h2>What <code>x_i</code> is actually made of<span class="file-ref">ccc-model.md</span></h2>
+  <p class="meta-row">Decomposition of the per-project cognitive cost. The canon treats <code>x_i</code> as a scalar; this zooms in on what it's composed of.</p>
+
+  <details open>
+    <summary>The four components</summary>
+    <div class="details-body">
+      <pre><code>x_i  =  CCC_outbound + CCC_intake + CCC_horizon + CCC_irreducible</code></pre>
+      <ul>
+        <li><strong><code>CCC_outbound</code></strong> — Specification cost. Directing the agent, scoping work, setting quality gates. <strong>Engineerable</strong> via better specs, bounded DOFs, encoded expertise.</li>
+        <li><strong><code>CCC_intake</code></strong> — Digestion cost. Absorption + pattern recognition + model updating + next-step formation. <strong>Largely irreducible.</strong> Scales with <em>epistemic density</em>, not output volume. <strong>The binding constraint on delegation velocity.</strong> Sharper name: <em>assimilation</em>.</li>
+        <li><strong><code>CCC_horizon</code></strong> — Horizon scanning. Sensing what's coming, folding new reality back. Varies with environmental volatility. <strong>Cannot be delegated.</strong></li>
+        <li><strong><code>CCC_irreducible</code></strong> — Structural human cost. Relationships, novel judgment, leadership. No tooling reduces this.</li>
+      </ul>
+      <p>Shorthand split: <code>CCC_reducible</code> (outbound + some intake) vs. <code>CCC_irreducible</code>. The leverage play is collapsing the reducible portion toward zero.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>Engagement-point anatomy (five types)</summary>
+    <div class="details-body">
+      <p><code>x_i</code> is paid one engagement at a time. Five types, each with distinct cost profile and engineering response.</p>
+      <div class="tablewrap">
+      <table>
+        <thead><tr><th>Type</th><th>What's happening</th><th>Engineering response</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Ambiguity resolution</strong></td><td>Fork the system can't resolve. Values/context live only in your head.</td><td>Better upfront specification. Points to spec debt.</td></tr>
+          <tr><td><strong>Novel judgment</strong></td><td>A new category, not a known fork.</td><td><em>Irreducibly expensive.</em> Partially reducible via scenario planning.</td></tr>
+          <tr><td><strong>Quality gate failure</strong></td><td>Output wrong. Diagnosing and redirecting. Scales with volume.</td><td>Better gates <em>in the pipeline</em>. Highly engineerable.</td></tr>
+          <tr><td><strong>Horizon drift</strong></td><td>Territory changed; agent's model stale.</td><td>State externalization, regular trajectory checks.</td></tr>
+          <tr><td><strong>Affirmation</strong></td><td>System capable but won't proceed without your signal. Trust issue, not judgment.</td><td><em>Pure friction, most wasteful.</em> Trust calibration, pre-approved envelopes.</td></tr>
+        </tbody>
+      </table>
+      </div>
+    </div>
+  </details>
+
+  <details>
+    <summary>Assimilation &mdash; the non-reactive cost</summary>
+    <div class="details-body">
+      <p>Separate from the five reactive engagement types: <strong>assimilation</strong> is the ongoing tax of staying current with agents' work. Sharper name for <code>CCC_intake</code>.</p>
+      <p>Skippable in the short term. The agent keeps running; output keeps coming; but the operator is making decisions on a stale internal model. Nothing breaks immediately — the gap widens silently.</p>
+      <p>Three things collapsed together:</p>
+      <ol>
+        <li><strong>Comprehension</strong> — processing what was produced</li>
+        <li><strong>Triage</strong> — filtering load-bearing from noise (a hard learned skill)</li>
+        <li><strong>Model updating</strong> — integrating what matters</li>
+      </ol>
+    </div>
+  </details>
+
+  <details>
+    <summary>Two forms of cognitive debt</summary>
+    <div class="details-body">
+      <h4>Assimilation debt</h4>
+      <p>Accumulates when assimilation is deferred. Comes due eventually — under pressure, with interest.</p>
+      <h4>Horizon debt</h4>
+      <p>When the agent runs past the operator's understanding. Loss of <strong>informed leadership</strong>.</p>
+      <div class="callout">
+        <strong>Unique failure mode</strong> (no technical-debt equivalent): past a certain amount, the operator doesn't know what questions to ask to close the gap. "You don't know what you don't know." Operator becomes dependent on agent to explain what the agent has been doing.
+      </div>
+      <p>Horizon debt also <strong>constrains what the agent can do next</strong> — operator can't give good direction until the gap is closed.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>The design rubric for architectural investment</summary>
+    <div class="details-body">
+      <div class="callout">
+        <strong>Does this reduce <code>CCC_reducible</code> without increasing <code>CCC_horizon</code> or <code>CCC_irreducible</code>?</strong>
+      </div>
+      <p>Common failure modes:</p>
+      <ul>
+        <li><strong>Dashboards that expand intake.</strong> Reduce outbound (spec better) but increase intake (more to digest). Net can be negative.</li>
+        <li><strong>Context-curation systems that expand horizon work.</strong> Cheaper delegation later but ongoing horizon-maintenance now.</li>
+        <li><strong>Quality gates that shift affirmation load.</strong> Reduce drift but add affirmation engagement points (wasteful category).</li>
+      </ul>
+      <p>Apply the rubric <em>before</em> committing to the investment.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>Root cause &mdash; why engagement is required at all</summary>
+    <div class="details-body">
+      <p>Why <code>x_i &gt; 0</code> is unavoidable for Regime-3 projects traces to one fact:</p>
+      <div class="canon-statement" style="font-size:1rem">The agent does not know what it does not know.</div>
+      <p>It executes within a model of the world that is necessarily incomplete. It cannot detect when reality has drifted. It doesn't know which things it doesn't know are load-bearing. So it proceeds confidently into territory it isn't equipped for.</p>
+
+      <h4>Three architectural realities</h4>
+      <ol>
+        <li><strong>The Memento Effect</strong> — No persistent world model. Context reconstructed each session. Delta grows silently.</li>
+        <li><strong>No ontological grounding</strong> — Agent works from text approximations of a world it has never directly perceived.</li>
+        <li><strong>Satisficing</strong> — Agent doesn't modulate reasoning depth by stakes.</li>
+      </ol>
+
+      <h4>What the operator is actually doing during engagement</h4>
+      <p>Not primarily reviewing output, answering questions, or making escalated decisions. Primarily: <strong>patrolling the boundary of the agent's awareness</strong> — watching for the moments when reality has outpaced the model, when a load-bearing assumption has quietly become false, when a fork has appeared that the agent doesn't even know is a fork.</p>
+      <p>Continuous not because the system is always failing, but because <strong>you can never know when it's about to fail.</strong></p>
+
+      <h4>The horizon problem</h4>
+      <p>Neither operator nor agent has complete knowledge of the future. Engagement isn't "make sure the agent doesn't drift from the known path" — it's <strong>continuously scan the horizon together, assemble emerging reality into a coherent picture, and update the path before the agent walks off the edge of what's been mapped</strong>.</p>
+      <div class="tablewrap">
+      <table>
+        <thead><tr><th>Operator holds</th><th>Agent holds</th></tr></thead>
+        <tbody>
+          <tr><td>Intuitions not yet articulated</td><td>Explicit state that's been externalized</td></tr>
+          <tr><td>Weak signals from the environment</td><td>Deep context on the bounded task</td></tr>
+          <tr><td>Strategic pattern recognition</td><td>Execution capability within the known horizon</td></tr>
+          <tr><td>The felt sense that something is off</td><td>No access to that feeling</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <p>The most autonomous a project can ever become is bounded <strong>not by tooling or spec quality</strong> but by how far the known horizon extends.</p>
+    </div>
+  </details>
+</section>
+
+<section id="primitives">
+  <h2>Leverage primitives<span class="file-ref">leverage-primitives.md</span></h2>
+  <p class="meta-row">Six mechanisms through which cognitive capacity gets amplified. Each either <strong>lowers <code>t_i</code></strong> or <strong>reshapes <code>R_i(x_i)</code></strong>.</p>
+
+  <details open>
+    <summary>1. Delegation depth</summary>
+    <div class="details-body">
+      <p><strong>How many layers of decision-making can credibly be pushed down.</strong></p>
+      <p><em>Canonical effect</em>: <strong>lowers <code>t_i</code></strong>. Each additional layer delegated reduces the operator's per-project cognitive floor. The N-math table in the Orchestrator Studios case operationalizes this primitive. Tightly coupled to Driver A.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>2. Parallel judgment capacity (= reach)</summary>
+    <div class="details-body">
+      <p><strong>How many problems cognition can usefully spread across simultaneously before amplification stops mattering.</strong></p>
+      <p><em>Canonical effect</em>: <strong>increases feasible <code>n</code></strong> (number of active projects). The primitive-level framing of what the canon calls <em>reach</em>. Constrained by the threshold: adding parallel commitments only produces return if each stays above its <code>t_i</code>.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>3. Context compression</summary>
+    <div class="details-body">
+      <p><strong>The operator holds the <em>shape</em> of a problem while the orchestrated system holds the <em>mass</em>.</strong></p>
+      <p><em>Canonical effect</em>: <strong>lowers <code>t_i</code></strong> on every project that touches the shared state. Without context compression, the operator carries full detail of every workstream and <code>x_i</code> grows until reach collapses. Tightly tied to the universe schema.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>4. Hypothesis velocity</summary>
+    <div class="details-body">
+      <p><strong>How fast a structured exploration can be spun up and yield something judgeable.</strong></p>
+      <p><em>Canonical effect</em>: <strong>lowers <code>t_i</code></strong> for exploratory projects. Driver B makes this work: agents spin up instantly, so the cost of <em>starting</em> a hypothesis drops to near-zero. Different from parallel judgment capacity — velocity operates on each individual exploration.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>5. Judgment surface area</summary>
+    <div class="details-body">
+      <p><strong>The proportion of the operator's day spent <em>evaluating</em> outputs vs. <em>producing</em> them.</strong></p>
+      <p><em>Canonical effect</em>: <strong>raises <code>∂R_i/∂x_i</code></strong> — operator attention spent where it has highest marginal return (evaluation) rather than where it has lowest (production the machine could do). Nearly definitional of operational cognitive leverage. High leverage flips the ratio.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>6. Compounding artifacts</summary>
+    <div class="details-body">
+      <p><strong>Outputs that become inputs. Living documents that accrue rather than reset.</strong></p>
+      <p><em>Canonical effect</em>: <strong>lowers <code>t_i</code> over time</strong>. Yesterday's thinking becomes tomorrow's context. Antidote to the Memento Effect. Lowers <code>t_i</code> for every active project that relies on the shared knowledge base — and lowers <code>t_new</code> for new projects starting fresh.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>How the primitives interact</summary>
+    <div class="details-body">
+      <p>Improving one primitive often depends on improving another:</p>
+      <div class="tablewrap">
+      <table>
+        <thead><tr><th>If you want to improve...</th><th>It helps to also improve...</th></tr></thead>
+        <tbody>
+          <tr><td>Delegation depth</td><td>Context compression; compounding artifacts</td></tr>
+          <tr><td>Parallel judgment capacity</td><td>Context compression; judgment surface area</td></tr>
+          <tr><td>Context compression</td><td>Compounding artifacts; universe schema</td></tr>
+          <tr><td>Hypothesis velocity</td><td>Delegation depth; compounding artifacts</td></tr>
+          <tr><td>Judgment surface area</td><td>All of the above</td></tr>
+          <tr><td>Compounding artifacts</td><td>Horizon maintenance discipline</td></tr>
+        </tbody>
+      </table>
+      </div>
+    </div>
+  </details>
+</section>
+
+<section id="audit">
+  <h2>Cognitive allocation audit<span class="file-ref">cognitive-allocation-audit.md</span></h2>
+  <p class="meta-row">Diagnostic rubric. Surfaces where the market for the operator's attention is mispriced. The operational expression of running the canonical optimization by hand.</p>
+
+  <details open>
+    <summary>Central question and distinction from productivity review</summary>
+    <div class="details-body">
+      <div class="callout">
+        <strong>Where is the market for my attention mispriced?</strong>
+      </div>
+      <p>A productivity review asks "am I getting enough done?" The audit asks: <em>given a fixed budget of cognitive capital, is it flowing to the highest-return destinations — and where isn't it?</em> A productivity review tolerates bloat if throughput is high. The audit does not.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>Tier 1 &mdash; Constraint violations (fix first)</summary>
+    <div class="details-body">
+      <p>Directly violate the optimization's constraints. Portfolio math can't be solved correctly until resolved.</p>
+
+      <h4>1. Starved positions</h4>
+      <p>Projects below their threshold <code>t_i</code>. Minimum-viable allocation isn't being paid — project is a non-starter.</p>
+      <p><strong>Arbitrage</strong>: push above <code>t_i</code> if marginal return justifies keeping, or cull entirely.</p>
+
+      <h4>2. Hidden load</h4>
+      <p>Background cost on items not formally in the portfolio. Consumes <code>C</code> without appearing on any scorecard.</p>
+      <p><strong>Arbitrage</strong>: make visible. Once surfaced, triaged on same scorecard.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>Tier 2 &mdash; Structural inefficiencies (reduce over time)</summary>
+    <div class="details-body">
+      <p>Don't violate constraints; make each project cost more than it needs to. Correcting shifts <code>L</code> toward 1.</p>
+
+      <h4>3. Underlevered positions</h4>
+      <p>High-return projects still requiring excessive cognitive injection because no architectural investment has been made.</p>
+      <p><strong>Arbitrage</strong>: invest in tooling/specs/pipeline to reduce <code>CCC_outbound</code> or <code>CCC_intake</code>. Apply the design rubric.</p>
+
+      <h4>4. Mistyped engagement</h4>
+      <p>Affirmation masquerading as judgment. Real cognitive capital on trust/authorization friction.</p>
+      <p><strong>Arbitrage</strong>: recognize type, engineer out.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>Tier 3 &mdash; Cull decisions (discrete)</summary>
+    <div class="details-body">
+      <h4>5. Zombie positions</h4>
+      <p>Projects where <code>R_i(x_i)</code> doesn't justify <code>x_i</code> anymore — persisting only because culling requires an active decision.</p>
+      <p><strong>Arbitrage</strong>: set <code>x_i = 0</code>. Free the capacity.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>Why the tiers matter</summary>
+    <div class="details-body">
+      <div class="callout">
+        Tier-1 fixes are <strong>maximum return per unit cognitive capacity</strong> because they resolve constraint violations that distort the whole portfolio. Tier-2 fixes compound; each is smaller. Tier-3 are point-in-time portfolio edits.
+        <p style="margin-top:0.6rem;margin-bottom:0">An audit finding only Tier-2/3 items diagnoses a portfolio that's broadly working. An audit finding Tier-1 items diagnoses a portfolio that's <em>mathematically misallocated</em>.</p>
+      </div>
+    </div>
+  </details>
+</section>
+
+<section id="role">
+  <h2>Role shift<span class="file-ref">role-shift.md</span></h2>
+
+  <div class="callout">
+    <strong>The operator's job upgrades from <em>doing and managing</em> to <em>maintaining the universe model and directing the system's posture within it</em>.</strong>
+  </div>
+
+  <details open>
+    <summary>What drops away, remains, and is new</summary>
+    <div class="details-body">
+      <h4>Drops away</h4>
+      <p>Old operational surface dominated by a human maintenance layer: HR, recruiting, onboarding, training, comp/incentives, culture/morale, org design, management-of-managers, personality/politics overhead. <em>None of that was the work</em> — it was the cost of using humans as production infrastructure.</p>
+
+      <h4>Remains</h4>
+      <p>The parts of management that were always about clear thinking rather than human coordination: decomposition, direction, judgment, quality. More fundamentally: <strong>universe model maintainer</strong> — holding the coherent picture no individual agent can hold.</p>
+
+      <h4>What's new</h4>
+      <p><strong>System design and configuration</strong> — more architectural than traditional management ever required.</p>
+
+      <p><em>Pithy framing</em>: the game went from half logistics + half thinking to <strong>almost entirely thinking</strong>.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>Skills organized by leverage primitive</summary>
+    <div class="details-body">
+      <div class="tablewrap">
+      <table>
+        <thead><tr><th>Primitive</th><th>Operator skill that moves it</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Delegation depth</strong></td><td>Decomposition; specification; recognizing when tasks have moved from "operator must do" to "agent can do."</td></tr>
+          <tr><td><strong>Parallel judgment capacity</strong></td><td>Portfolio awareness; knowing which projects deserve threshold-level vs. productive-zone investment; culling without sentiment.</td></tr>
+          <tr><td><strong>Context compression</strong></td><td>Maintaining the universe model at the right altitude; staying at intent/structure level.</td></tr>
+          <tr><td><strong>Hypothesis velocity</strong></td><td>Agent-instantiation discipline; not over-scoping exploratory tests.</td></tr>
+          <tr><td><strong>Judgment surface area</strong></td><td>Quality calibration at altitude; resisting the pull to produce when you should be judging.</td></tr>
+          <tr><td><strong>Compounding artifacts</strong></td><td>State externalization; living-document practices; horizon-debt management.</td></tr>
+        </tbody>
+      </table>
+      </div>
+    </div>
+  </details>
+</section>
+
+<section id="universe">
+  <h2>Universe model &mdash; infrastructure<span class="file-ref">universe-model.md</span></h2>
+  <p class="meta-row">What has to get built for the canonical optimization to run in practice — state-tracking infrastructure that makes <code>R_i</code> and <code>x_i</code> estimable.</p>
+
+  <details open>
+    <summary>Premise and portfolio vs. universe</summary>
+    <div class="details-body">
+      <p><strong>Cognitive leverage is gated by how systematized and AI-legible the operator's universe is.</strong></p>
+      <p>The <em>portfolio</em> of agents and commitments is one instrument within a larger model. The <em>universe</em> includes goals, opportunities, threats, resources, relationships, environmental state, <em>and</em> the agent fleet as actors within it.</p>
+      <div class="callout">
+        The universe is the primary unit of context for <strong>the operator</strong>, not for any individual agent. Agents receive a <em>projection</em> of the schema — the slice relevant to their goals. <strong>You don't build up to universe context from agent contexts; you project down from it.</strong>
+      </div>
+    </div>
+  </details>
+
+  <details>
+    <summary>Universe boundaries &mdash; functional and dynamic</summary>
+    <div class="details-body">
+      <ul>
+        <li><strong>Functional, not categorical.</strong> Drawn by relevance-to-goals. CEO's spouse may be in the universe if they're materially load-bearing.</li>
+        <li><strong>Drawn by the operator.</strong> Defining the boundary is itself a high-leverage judgment: too narrow → optimizing blind; too broad → no traction.</li>
+        <li><strong>Dynamic.</strong> Expand as operator takes on new goals; contract when they lose access.</li>
+      </ul>
+    </div>
+  </details>
+
+  <details>
+    <summary>Two top-level services</summary>
+    <div class="details-body">
+      <div class="tablewrap">
+      <table>
+        <thead><tr><th>Service</th><th>What it answers</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Situational awareness</strong></td><td>What's happening across my full universe right now?</td></tr>
+          <tr><td><strong>Optimal action</strong></td><td>What is the best deployment of my scarce cognitive capital right now?</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <p>Two different product shapes: situational awareness is a <em>dashboard</em> problem; decision support is a <em>recommendation</em> problem. Most tools do the first; almost nothing does the second.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>The universe schema (9 sections) <span class="pill pill-inflight">provisional</span></summary>
+    <div class="details-body">
+      <ol>
+        <li><strong>Ontology</strong> — entities, domains, relationships. The nouns.</li>
+        <li><strong>Goals</strong> — intended outcomes. Hierarchical.</li>
+        <li><strong>State</strong> — current condition. Drifts continuously.</li>
+        <li><strong>Gap</strong> — derived tension between state and goals. The live work queue.</li>
+        <li><strong>Signals</strong> — epistemic access layer. Coverage, lag, reliability, blind spots.</li>
+        <li><strong>Resource Registry</strong> — complete inventory of accessible substrate.</li>
+        <li><strong>Agent &amp; Fleet Registry</strong> — specialized subsection. Each agent includes <strong>output queue</strong> (pending intake), <strong>CCC and L estimates</strong>.</li>
+        <li><strong>Constraints</strong> — inviolable boundaries.</li>
+        <li><strong>Events</strong> — dynamic change layer.</li>
+      </ol>
+      <p><strong>Opportunities and threats</strong> are also first-class elements — currently absorbed into Ontology/Signals/Gap, but load-bearing enough to call out.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>Resources &mdash; four categories + physical parity + registry vs. coverage</summary>
+    <div class="details-body">
+      <h4>Four categories</h4>
+      <ul>
+        <li><strong>Readable</strong> — feeds the signal layer</li>
+        <li><strong>Writable / Actionable</strong> — can change state</li>
+        <li><strong>Consumable</strong> — can be drawn down</li>
+        <li><strong>Relational</strong> — people and orgs. Bidirectional, relationship-dependent.</li>
+      </ul>
+
+      <h4>Physical resources are first-class</h4>
+      <p>Registry must be <strong>universe-complete, not digitally-complete</strong>. A physical resource with no tool coverage is meaningful info — tells operator it requires direct involvement.</p>
+
+      <h4>Registry vs. coverage</h4>
+      <ul>
+        <li><strong>Registry</strong> describes what <em>exists</em>.</li>
+        <li><strong>Coverage</strong> describes what the system can currently <em>reach</em>.</li>
+      </ul>
+    </div>
+  </details>
+
+  <details>
+    <summary>Tools, resources, agents &mdash; the hierarchy</summary>
+    <div class="details-body">
+      <ul>
+        <li><strong>Universe</strong> holds resources.</li>
+        <li><strong>Operator</strong> decides access.</li>
+        <li><strong>Tools</strong> implement access for agents.</li>
+        <li><strong>Agents</strong> deploy tools toward goals.</li>
+      </ul>
+    </div>
+  </details>
+
+  <details>
+    <summary>Five Critical Success Factors</summary>
+    <div class="details-body">
+      <ol>
+        <li><strong>Unified, current model of the universe.</strong> Failure: stale/fragmented → downstream breaks.</li>
+        <li><strong>Goal and context persistence.</strong> Failure: see activity but not meaning.</li>
+        <li><strong>Signal extraction from agent output.</strong> Failure: operator drowns in intake.</li>
+        <li><strong>Cognitive cost model.</strong> Failure: can't make tradeoffs.</li>
+        <li><strong>Friction-free capture.</strong> Failure: model drift.</li>
+      </ol>
+    </div>
+  </details>
+
+  <details>
+    <summary>The foundational hard problem &mdash; ontology</summary>
+    <div class="details-body">
+      <p>How do you represent a universe that includes goals, threats, opportunities, relationships, resources, and agents in a single coherent model — that agents can engage with, that stays current, and that can be reasoned against? Knowledge-representation problem. Hardest unsolved piece. Everything else is tractable engineering on top.</p>
+    </div>
+  </details>
+</section>
+
+<!-- ============================================================ -->
+<!-- CASES -->
+<!-- ============================================================ -->
+
+<section id="case-studio">
+  <h2>Case &mdash; Orchestrator Studios<span class="file-ref">case-orchestrator-studios.md</span></h2>
+
+  <details open>
+    <summary>The case</summary>
+    <div class="details-body">
+      <p><strong>Founding commitment.</strong> Adam and Cliff started with two fixed inputs:</p>
+      <ul>
+        <li>Combined cognitive capacity <code>C</code> — bounded, known, not expandable</li>
+        <li>Dollar budget <code>B</code> ≈ $1,000/month</li>
+        <li>Purpose: apply core competency to a market corner they understood</li>
+      </ul>
+      <p><strong>Pre-AI counterfactual</strong>: at human labor rates, $1k/month buys essentially no cognitive offload. <code>t_i</code> for any serious product is close to all of <code>C</code>. N=1 wasn't a choice; it was the only feasible answer — the threshold constraint disqualified everything else.</p>
+      <p><strong>What actually happened</strong>: <code>B</code> spent on agents buys dramatically different offload. <code>t_i</code> drops enough that <code>C</code> comfortably covers two products above threshold. N=2 is <em>the first, unspoken cognitive-leverage move</em> — operators re-ran the optimization with new <code>t_i</code>s without writing it down.</p>
+      <p><strong>Current state</strong>: two products (KH, TableThat) above their thresholds. The math that got them to N=2 hasn't yet been applied rigorously to N=3, N=10, N=100 — which is what the canon is built to answer.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>Numerical anchor (from the original teaser memo)</summary>
+    <div class="details-body">
+      <p>Baseline: one product, all operator effort, 50% success probability. As N grows 5,000×, success rate per product falls only ~17×. If success fell as <code>1/N</code> the last column would be flat; the fact that it climbs is the leverage.</p>
+      <div class="tablewrap">
+      <table>
+        <thead><tr>
+          <th>Agent share</th>
+          <th>Human effort per product</th>
+          <th>Human leverage</th>
+          <th>N</th>
+          <th>Success rate per product</th>
+          <th>Total expected successes</th>
+        </tr></thead>
+        <tbody>
+          <tr><td>~50% (today)</td><td>100% on 1 product</td><td>1×</td><td>1</td><td>0.50</td><td>0.50</td></tr>
+          <tr><td>75%</td><td>50% per product</td><td>2×</td><td>2</td><td>0.45</td><td>0.90</td></tr>
+          <tr><td>90%</td><td>20% per product</td><td>5×</td><td>5</td><td>0.38</td><td>1.90</td></tr>
+          <tr><td>95%</td><td>10% per product</td><td>10×</td><td>10</td><td>0.30</td><td>3.00</td></tr>
+          <tr><td>99%</td><td>2% per product</td><td>50×</td><td>50</td><td>0.18</td><td>9.00</td></tr>
+          <tr><td>99.9%</td><td>0.2% per product</td><td>500×</td><td>500</td><td>0.08</td><td>40.00</td></tr>
+          <tr><td>99.99%</td><td>0.02% per product</td><td>5,000×</td><td>5,000</td><td>0.03</td><td>150.00</td></tr>
+          <tr><td>→ 100%</td><td>→ 0</td><td>→ ∞</td><td>→ ∞</td><td>→ small but &gt; 0</td><td>→ ∞</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <p>Each row is a feasible portfolio when <code>t_i ≤ C/N</code>. "Success rate" is <code>R_i(x_i)</code> at <code>x_i = C/N</code>. Total is <code>N · R_i(C/N)</code> under equal-split. The total keeps climbing because <code>R_i</code> is relatively flat in the productive zone — halving <code>x_i</code> doesn't halve <code>R_i</code>. Holds as long as <code>x_i ≥ t_i</code>; once <code>N &gt; C/t_i</code>, the threshold constraint cuts further growth.</p>
+    </div>
+  </details>
+</section>
+
+<section id="case-ceo">
+  <h2>Case &mdash; CEO baseline (pre-agent)<span class="file-ref">case-ceo-baseline.md</span></h2>
+
+  <details>
+    <summary>Purpose and universe boundary</summary>
+    <div class="details-body">
+      <p>Worked example of what a CEO operating well does pre-agent. Stress-tests the universe schema. Defines the pre-agent optimal against which agent-augmented systems get compared.</p>
+      <p><strong>Universe boundary is functional, not organizational.</strong> CEO's spouse may be in the universe if they're materially relevant to outcomes.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>Seven ongoing operating functions, mapped to CCC components</summary>
+    <div class="details-body">
+      <div class="tablewrap">
+      <table>
+        <thead><tr><th>Function</th><th>CCC component</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Reading the universe</strong></td><td><code>CCC_intake</code> at universe scope</td></tr>
+          <tr><td><strong>Detecting gaps</strong></td><td><code>CCC_intake</code> + pattern recognition</td></tr>
+          <tr><td><strong>Prioritizing</strong></td><td>Part of <code>CCC_horizon</code></td></tr>
+          <tr><td><strong>Configuring resources</strong></td><td><code>CCC_outbound</code></td></tr>
+          <tr><td><strong>Maintaining relationships</strong></td><td><code>CCC_irreducible</code> (relational)</td></tr>
+          <tr><td><strong>Irreducible judgment calls</strong></td><td><code>CCC_irreducible</code> (novel judgment)</td></tr>
+          <tr><td><strong>Horizon scanning</strong></td><td><code>CCC_horizon</code></td></tr>
+        </tbody>
+      </table>
+      </div>
+
+      <h4>Core tensions</h4>
+      <ul>
+        <li>Breadth vs. depth; reactive vs. proactive; operating vs. designing; present vs. future</li>
+      </ul>
+      <p><strong>Gravitational pull</strong>: most CEOs get pulled toward reactive / operational / present work. Strategic / proactive / future work quietly starves.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>The cognitive portfolio problem (pre-agent)</summary>
+    <div class="details-body">
+      <ul>
+        <li><code>C</code> roughly fixed; doesn't scale with the company</li>
+        <li>Universe complexity grows as company grows</li>
+        <li>Demand mix largely outside CEO's control</li>
+        <li>Highest-value uses crowded out by most urgent</li>
+      </ul>
+      <p>CEO without agents: too many legitimate claims on <code>C</code>, no systematic prioritization, strong gravitational pull toward reactive work. <strong>This is the problem the agent system solves.</strong></p>
+    </div>
+  </details>
+</section>
+
+<!-- ============================================================ -->
+<!-- POSITIONING -->
+<!-- ============================================================ -->
+
+<section id="positioning">
+  <h2>Positioning<span class="file-ref">positioning.md</span></h2>
+  <p class="meta-row">How the canon gets communicated depending on audience. Kept separate from the framework itself so the canon doesn't get bent by rhetorical choices.</p>
+
+  <details>
+    <summary>Fleet management vs. cognitive leverage &mdash; five cuts</summary>
+    <div class="details-body">
+      <p>Each is a different angle on the same distinction:</p>
+      <ol>
+        <li><strong>Supply vs. demand.</strong> Fleet mgmt optimizes supply. Cog lev is demand-side.</li>
+        <li><strong>Human as manager vs. component.</strong> Fleet mgmt: human is manager <em>of</em> the system. Cog lev: human is a component <em>in</em> the system.</li>
+        <li><strong>Optimizing vs. culling.</strong> Fleet mgmt assumes fleet should exist. Cog lev includes culling as core function.</li>
+        <li><strong>Opportunity cost visibility.</strong> Fleet mgmt sees agent-vs-agent. Cog lev also sees agent-vs-non-agent.</li>
+        <li><strong>Snapshot vs. portfolio-over-time.</strong> Fleet mgmt describes a state. Cog lev is portfolio optimization over time.</li>
+      </ol>
+      <div class="callout">
+        <strong>Punch line</strong>: you can have perfect fleet management and still be in a mathematically misallocated portfolio. Fleet management's scorecard ("are the agents running?") doesn't see it.
+      </div>
+    </div>
+  </details>
+
+  <details>
+    <summary>Execution leverage vs. cognitive leverage &mdash; by operator intent</summary>
+    <div class="details-body">
+      <ul>
+        <li><strong>Execution leverage</strong> — using agents as faster execution of a pre-committed plan.</li>
+        <li><strong>Cognitive leverage</strong> — using agents to <em>change</em> what's planned.</li>
+      </ul>
+      <p>Most people using agents today are in the first mode. Framework is about operating in the second.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>Two use cases &mdash; internal memo vs. external pitch</summary>
+    <div class="details-body">
+      <div class="tablewrap">
+      <table>
+        <thead><tr><th>Use case</th><th>Audience</th><th>What to foreground</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>Internal memo</strong></td>
+            <td>Partner / co-operator</td>
+            <td>Math for specific commitments. N-math table. Delegation map. Reinvestment stance.</td>
+          </tr>
+          <tr>
+            <td><strong>External pitch</strong></td>
+            <td>Collaborators, investors, market</td>
+            <td>Gold rush framing. Clone thought experiment. Enablement whitespace. "2026 = orchestration, 2027 = cognitive leverage."</td>
+          </tr>
+        </tbody>
+      </table>
+      </div>
+    </div>
+  </details>
+
+  <details>
+    <summary>Rhetorical hooks</summary>
+    <div class="details-body">
+      <h4>The clone thought experiment</h4>
+      <p>Shortest path to the core insight:</p>
+      <blockquote>
+        Think back to any point in your career when you had good people working for you. Imagine that on some ordinary Tuesday morning you could have cloned any of them — instantly, for free, as many times as you wanted. Would you have done it? Obviously yes. How many? Until managing them became the bottleneck. That ceiling was always you; you just never got close enough to feel it. The clones are available now.
+      </blockquote>
+
+      <h4>Gold rush framing</h4>
+      <blockquote>
+        The infrastructure doesn't exist yet. The best practices haven't been written. The picks and shovels haven't been built.
+      </blockquote>
+
+      <h4>Timing line</h4>
+      <blockquote>
+        2026 was the year of orchestration. 2027 is the year of cognitive leverage.
+      </blockquote>
+
+      <h4>Faster typewriter vs. cognitive instrument</h4>
+      <blockquote>
+        Someone using a well-orchestrated system as a faster typewriter vs. someone using it as a cognitive instrument. The difference isn't the orchestration; it's what the human is doing at the top of the stack.
+      </blockquote>
+    </div>
+  </details>
+
+  <details>
+    <summary>Rhetorical principles</summary>
+    <div class="details-body">
+      <ul>
+        <li><strong>Don't overclaim novelty.</strong> Delegation, comparative advantage, quality-for-volume — all old. What's new is the two drivers.</li>
+        <li><strong>Ground abstractions in the founding commitment</strong>, not economic theory.</li>
+        <li><strong>"Then and now" walkthrough structure</strong> for case material.</li>
+        <li><strong>Partner pieces open conversations</strong>, don't close them.</li>
+        <li><strong>Credit the small move before the big move.</strong></li>
+        <li><strong>Don't land on "develop the skill"</strong> for market pitches. Category creation &gt; individual prescription.</li>
+        <li><strong>Vocabulary UX principle</strong>: precise terms stay internal; UX speaks in sensations (drift / neglect / momentum).</li>
+      </ul>
+    </div>
+  </details>
+</section>
+
+<!-- ============================================================ -->
+<!-- META -->
+<!-- ============================================================ -->
+
+<section id="terminology">
+  <h2>Terminology</h2>
+  <p class="meta-row">Canonical vocabulary. Retired terms removed.</p>
+
+  <h3>Primitives</h3>
+  <ul>
+    <li><strong>Operator</strong> — the human whose cognitive capacity is the binding constraint.</li>
+    <li><strong><code>C</code></strong> — total cognitive capacity per unit time. Fixed. <em>Footnote</em>: has texture (deep focus / oversight / relational aren't fungible) — refinement on the scalar canonical form.</li>
+    <li><strong><code>B</code></strong> — dollar budget per unit time.</li>
+    <li><strong><code>t_i</code></strong> — threshold. Minimum-viable cognitive allocation.</li>
+    <li><strong><code>R_i(x_i)</code></strong> — return curve.</li>
+    <li><strong>Reach</strong> / <strong>How</strong> — the two dimensions of the operator's decision.</li>
+    <li><strong>CCC</strong> — Cognitive Carrying Cost. Historical name for <code>x_i</code>; decomposes into outbound / intake / horizon / irreducible.</li>
+    <li><strong>L</strong> — leverage parameter. 0 = pure reverse annuity; 1 = pure fire-and-forget. Architecturally shiftable.</li>
+    <li><strong><code>λ</code></strong> — common marginal return at optimum.</li>
+  </ul>
+
+  <h3>The shift</h3>
+  <ul>
+    <li><strong>Driver A</strong> — delegation cheap AND capable at once.</li>
+    <li><strong>Driver B</strong> — labor configurable rather than pre-committed.</li>
+    <li><strong>Cognitive-for-dollars exchange rate</strong> — collapsed.</li>
+    <li><strong>Cognitive leverage</strong> — the practice of operating in the regime where <code>Σ t_i ≤ C</code> is the binding constraint rather than per-project <code>t_i</code>.</li>
+  </ul>
+
+  <h3>Rubrics and mechanisms</h3>
+  <ul>
+    <li><strong>Leverage primitive</strong> — lever that amplifies output per cognitive unit. Six canonical.</li>
+    <li><strong>Cognitive allocation audit</strong> — diagnostic rubric.</li>
+    <li><strong>Arbitrage (of attention)</strong> — correctable mispricing. Five types across three tiers.</li>
+    <li><strong>Design rubric</strong> — "Does this reduce <code>CCC_reducible</code> without increasing <code>CCC_intake</code> or <code>CCC_horizon</code>?"</li>
+  </ul>
+
+  <h3>Per-project anatomy</h3>
+  <ul>
+    <li><strong>Engagement point</strong> — unit of CCC consumption. Five types.</li>
+    <li><strong>Assimilation</strong> — sharper name for <code>CCC_intake</code>.</li>
+    <li><strong>Assimilation debt</strong>; <strong>Horizon debt</strong>; <strong>CCC creep</strong>.</li>
+    <li><strong>Memento Effect</strong> — substrate fact explaining why <code>CCC_horizon &gt; 0</code>.</li>
+  </ul>
+
+  <h3>Universe model</h3>
+  <ul>
+    <li><strong>Universe</strong> — operator's full environment.</li>
+    <li><strong>Universe schema</strong> <span class="pill pill-inflight">provisional</span> — nine-section first-pass structure.</li>
+    <li><strong>Universe model maintainer</strong> — operator's irreducible role.</li>
+    <li><strong>Resource</strong> (vs. tool vs. agent) — what exists to be read / written / consumed / related-to.</li>
+    <li><strong>Gap</strong> — schema element: derived tension between state and goals.</li>
+  </ul>
+</section>
+
+<section id="open">
+  <h2>Open questions</h2>
+
+  <ul>
+    <li><strong>Agent projection mechanism</strong> — how a slice of the universe schema gets scoped and delivered to an individual agent.</li>
+    <li><strong>Dynamic universe</strong> — how the schema stays current as state drifts.</li>
+    <li><strong>Operator's instrument panel</strong> — what the universe-level view looks like in practice.</li>
+    <li><strong>Universe schema: commit to nine sections or keep exploratory?</strong> Each section needs operational detail before the schema is usable by agents.</li>
+    <li><strong>"Relational" resources as their own top-level slot?</strong> Still unresolved.</li>
+    <li><strong>Complete the CEO baseline → agent-augmented mapping.</strong></li>
+    <li><strong>Signatures of low leverage</strong> — three starter markers from conv-7 (operator producing rather than evaluating; context held in the human not the artifact; judgment spent on execution decisions). Extend into a usable diagnostic rubric, or drop.</li>
+    <li><strong>Unify the two cognitive-leverage definitions</strong> — strategic ("practice of using an orchestrated fleet to amplify human judgment") + operational ("ratio of output to cognitive capital") — into one sharper one-liner.</li>
+    <li><strong>Derivation exercise</strong> — verify every claim traces to the canon, to a substrate fact, or to a design choice.</li>
+  </ul>
+</section>
+
+<section id="provenance">
+  <h2>Provenance</h2>
+  <p>Distilled from seven source conversations plus one memo, extended by a Google Drive batch of ten additional artifacts. Full source log and sources map in <code>sources/</code>.</p>
+  <ul>
+    <li><strong>Phase 1</strong> — Source-by-source distillation.</li>
+    <li><strong>Phase 2</strong> — Review UX produced.</li>
+    <li><strong>Phase 2.5</strong> — Drive batch integrated; optimization math corrected to single-threshold form.</li>
+    <li><strong>Phase 2.5+</strong> — Top-down restructure. Canon moved to hub. <code>positioning.md</code> split out. Detail files tightened and made canon-derivative. Pre-canon content retired.</li>
+  </ul>
+  <p>Process principles: <code>process.md</code>. Archived artifacts: <code>sources/archive/</code>.</p>
+</section>
+
+<footer>
+  <p>Generated from the cognitive-leverage synthesis files. Structure: <code>synthesis.md</code> (hub) → <code>ccc-model.md</code> / <code>leverage-primitives.md</code> / <code>cognitive-allocation-audit.md</code> / <code>role-shift.md</code> / <code>universe-model.md</code> (detail modules) → <code>case-orchestrator-studios.md</code> / <code>case-ceo-baseline.md</code> (cases) → <code>positioning.md</code> (external framing) + <code>process.md</code> (meta).</p>
+</footer>
+
+</main>
+</div>
+
+<script>
+// Sidebar highlighting — highlight the section currently in view
+(function () {
+  const links = Array.from(document.querySelectorAll('.sidebar a[href^="#"]'));
+  const linksByHash = new Map(links.map(a => [a.getAttribute('href'), a]));
+  const sections = Array.from(document.querySelectorAll('main section[id]'));
+
+  if (!('IntersectionObserver' in window) || sections.length === 0) return;
+
+  let current = null;
+  const setCurrent = (id) => {
+    if (current === id) return;
+    current = id;
+    links.forEach(a => a.classList.remove('active'));
+    const a = linksByHash.get('#' + id);
+    if (a) a.classList.add('active');
+  };
+
+  const obs = new IntersectionObserver((entries) => {
+    const visible = entries
+      .filter(e => e.isIntersecting)
+      .map(e => ({ id: e.target.id, top: e.boundingClientRect.top }))
+      .sort((a, b) => a.top - b.top);
+    if (visible.length > 0) {
+      setCurrent(visible[0].id);
+    }
+  }, { rootMargin: '-40% 0px -55% 0px', threshold: 0 });
+
+  sections.forEach(s => obs.observe(s));
+})();
+</script>
+
+</body>
+</html>
