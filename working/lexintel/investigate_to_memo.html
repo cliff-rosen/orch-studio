@@ -1,0 +1,1924 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Investigate → Memo: How It Works</title>
+<style>
+  :root {
+    --brand: #9d6bff;
+    --brand-light: #241840;
+    --brand-dark: #b794ff;
+    --ink: #e8e8ea;
+    --ink-muted: #8b8b94;
+    --line: #2d2d3a;
+    --line-soft: #1e1e28;
+    --bg: #0d0d12;
+    --bg-card: #161620;
+    --success: #4ade80;
+    --success-bg: #0d2016;
+    --warn: #fb923c;
+    --warn-bg: #25180c;
+    --info: #60a5fa;
+    --info-bg: #0c1d3d;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    color: var(--ink);
+    background: var(--bg);
+    line-height: 1.55;
+    font-size: 15px;
+  }
+  header.page {
+    background: linear-gradient(135deg, #5B24A6 0%, #3F1878 100%);
+    color: white;
+    padding: 28px 40px;
+    border-bottom: 1px solid var(--line);
+  }
+  header.page h1 {
+    margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.01em;
+  }
+  header.page p {
+    margin: 4px 0 0; font-size: 14px; opacity: 0.85;
+  }
+  .layout {
+    display: grid;
+    grid-template-columns: 230px 1fr 320px;
+    min-height: calc(100vh - 88px);
+  }
+  nav.sidebar {
+    background: var(--bg-card);
+    border-right: 1px solid var(--line);
+    padding: 24px 0;
+    position: sticky;
+    top: 0;
+    max-height: 100vh;
+    overflow-y: auto;
+  }
+  nav.sidebar ol {
+    list-style: none;
+    margin: 0; padding: 0;
+    counter-reset: section;
+  }
+  nav.sidebar li {
+    counter-increment: section;
+  }
+  nav.sidebar a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 24px;
+    color: var(--ink-muted);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+    border-left: 3px solid transparent;
+    transition: all 0.15s;
+  }
+  nav.sidebar a::before {
+    content: counter(section);
+    display: inline-flex;
+    align-items: center; justify-content: center;
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: var(--line-soft);
+    color: var(--ink-muted);
+    font-size: 11px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  nav.sidebar a:hover {
+    color: var(--ink);
+    background: var(--line-soft);
+  }
+  nav.sidebar a.active {
+    color: var(--brand);
+    background: var(--brand-light);
+    border-left-color: var(--brand);
+  }
+  nav.sidebar a.active::before {
+    background: var(--brand);
+    color: white;
+  }
+  main {
+    padding: 40px 44px 80px;
+    min-width: 0;
+    max-width: 900px;
+  }
+  section.panel {
+    display: none;
+    animation: fadeIn 0.25s ease-out;
+  }
+  section.panel.active {
+    display: block;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  h2 { font-size: 24px; font-weight: 600; margin: 0 0 6px; letter-spacing: -0.01em; }
+  .eyebrow { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--brand); margin-bottom: 4px; }
+  .lead { font-size: 16px; color: var(--ink-muted); margin: 0 0 28px; }
+  h3 { font-size: 16px; font-weight: 600; margin: 28px 0 10px; }
+  h4 { font-size: 13px; font-weight: 600; margin: 20px 0 6px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-muted); }
+  p { margin: 0 0 14px; }
+
+  /* Cards */
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin-bottom: 16px;
+  }
+  .callout {
+    background: var(--brand-light);
+    border: 1px solid #3a2a6b;
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin: 20px 0;
+    font-size: 14px;
+    color: var(--brand-dark);
+  }
+  .callout strong { color: var(--brand); }
+  .callout.warn { background: var(--warn-bg); border-color: #4a2e12; color: var(--warn); }
+  .callout.info { background: var(--info-bg); border-color: #1e3a6f; color: var(--info); }
+  .callout.success { background: var(--success-bg); border-color: #1a4d32; color: var(--success); }
+
+  /* Flow diagram */
+  .flow {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0;
+    margin: 24px 0;
+  }
+  .flow-node {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 14px 10px;
+    text-align: center;
+    font-size: 12px;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .flow-node:hover {
+    border-color: var(--brand);
+    transform: translateY(-2px);
+  }
+  .flow-node .icon {
+    font-size: 22px;
+    margin-bottom: 6px;
+    display: block;
+  }
+  .flow-node .label {
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 2px;
+  }
+  .flow-node .sub {
+    font-size: 11px;
+    color: var(--ink-muted);
+  }
+  .flow-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--brand);
+    font-size: 18px;
+    font-weight: 600;
+  }
+
+  /* Tabs */
+  .tabs {
+    display: flex;
+    gap: 2px;
+    border-bottom: 1px solid var(--line);
+    margin: 16px 0 0;
+    flex-wrap: wrap;
+  }
+  .tab {
+    background: transparent;
+    border: none;
+    padding: 10px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink-muted);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    font-family: inherit;
+    transition: all 0.15s;
+  }
+  .tab:hover { color: var(--ink); }
+  .tab.active {
+    color: var(--brand);
+    border-bottom-color: var(--brand);
+  }
+  .tab-content {
+    display: none;
+    padding: 20px 0;
+  }
+  .tab-content.active { display: block; }
+
+  /* Field tables */
+  table.fields {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0;
+    font-size: 13px;
+  }
+  table.fields th {
+    text-align: left;
+    padding: 8px 10px;
+    background: var(--line-soft);
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--ink-muted);
+    border-bottom: 1px solid var(--line);
+  }
+  table.fields td {
+    padding: 10px;
+    border-bottom: 1px solid var(--line-soft);
+    vertical-align: top;
+  }
+  table.fields td:first-child {
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--brand-dark);
+    white-space: nowrap;
+  }
+  .origin-pill {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .origin-user { background: var(--success-bg); color: var(--success); }
+  .origin-ai { background: var(--brand-light); color: var(--brand-dark); }
+  .origin-hardcoded { background: var(--line-soft); color: var(--ink-muted); }
+  .origin-external { background: var(--warn-bg); color: var(--warn); }
+
+  /* Stage list */
+  .stage {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    margin-bottom: 8px;
+    overflow: hidden;
+    transition: all 0.15s;
+  }
+  .stage summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-size: 14px;
+  }
+  .stage summary::-webkit-details-marker { display: none; }
+  .stage summary::after {
+    content: "›";
+    margin-left: auto;
+    color: var(--ink-muted);
+    font-size: 20px;
+    transition: transform 0.2s;
+  }
+  .stage[open] summary::after { transform: rotate(90deg); }
+  .stage .num {
+    display: inline-flex;
+    align-items: center; justify-content: center;
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: var(--line-soft);
+    color: var(--ink-muted);
+    font-size: 12px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .stage.opus .num { background: var(--brand); color: white; }
+  .stage.highlight { border-color: var(--brand); }
+  .stage.highlight .num { background: var(--brand); color: white; }
+  .stage .stage-name { font-weight: 600; }
+  .stage .stage-sub { color: var(--ink-muted); font-size: 13px; font-weight: 400; margin-left: 6px; }
+  .stage .detail {
+    padding: 0 18px 16px 60px;
+    font-size: 13px;
+    color: var(--ink-muted);
+    line-height: 1.6;
+  }
+  .stage .badge {
+    display: inline-block;
+    padding: 1px 8px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: 600;
+    margin-left: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .badge-opus { background: var(--brand); color: white; }
+  .badge-sonnet { background: var(--line-soft); color: var(--ink-muted); }
+  .badge-last { background: #2a1f0c; color: #fbbf24; }
+
+  /* Key-fact grid */
+  .facts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    margin: 16px 0;
+  }
+  .fact {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--brand);
+    border-radius: 6px;
+    padding: 12px 14px;
+  }
+  .fact .fact-num {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--brand);
+    line-height: 1.1;
+  }
+  .fact .fact-label {
+    font-size: 12px;
+    color: var(--ink-muted);
+    margin-top: 4px;
+  }
+
+  /* Sidebar-like mini tables */
+  table.compact {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 10px 0;
+    font-size: 13px;
+  }
+  table.compact td {
+    padding: 6px 10px;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  table.compact td:first-child {
+    color: var(--ink-muted);
+    width: 40%;
+  }
+
+  code {
+    background: var(--line-soft);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 12px;
+    color: var(--brand-dark);
+  }
+  .arrow-right {
+    color: var(--brand);
+    font-weight: 600;
+  }
+
+  /* Legend */
+  .legend {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    font-size: 12px;
+    color: var(--ink-muted);
+    margin: 10px 0 18px;
+  }
+  .legend-item { display: inline-flex; align-items: center; gap: 5px; }
+
+  /* Prompt viewer */
+  details.prompt-viewer {
+    margin: 20px 0;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--bg-card);
+    overflow: hidden;
+  }
+  details.prompt-viewer summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 12px 18px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--brand);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--brand-light);
+    transition: background 0.15s;
+  }
+  details.prompt-viewer summary:hover { background: #2e1f52; }
+  details.prompt-viewer summary::-webkit-details-marker { display: none; }
+  details.prompt-viewer summary::before {
+    content: "▸";
+    font-size: 11px;
+    transition: transform 0.2s;
+  }
+  details.prompt-viewer[open] summary::before { transform: rotate(90deg); }
+  .prompt-body {
+    padding: 18px 20px;
+    border-top: 1px solid var(--line);
+  }
+  .prompt-body h5 {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-muted);
+    margin: 16px 0 8px;
+    font-weight: 600;
+  }
+  .prompt-body h5:first-child { margin-top: 0; }
+  .prompt-meta {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+  }
+  .prompt-tag {
+    display: inline-block;
+    background: var(--line-soft);
+    color: var(--ink-muted);
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    border: 1px solid var(--line);
+  }
+  pre.prompt-text {
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 12px 14px;
+    margin: 0;
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 12px;
+    color: var(--ink);
+    overflow-x: auto;
+    white-space: pre-wrap;
+    line-height: 1.55;
+  }
+  .injected {
+    color: var(--brand);
+    font-weight: 600;
+    background: rgba(157, 107, 255, 0.15);
+    padding: 1px 5px;
+    border-radius: 3px;
+  }
+  .prompt-note {
+    margin: 14px 0 0;
+    font-size: 12px;
+    color: var(--ink-muted);
+    line-height: 1.6;
+  }
+
+  /* Prompt explorer (multi-prompt tabs) */
+  .prompt-explorer {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--bg-card);
+    overflow: hidden;
+    margin: 20px 0;
+  }
+  .prompt-explorer-tabs {
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+    background: var(--line-soft);
+    border-bottom: 1px solid var(--line);
+  }
+  .ptab {
+    background: transparent;
+    border: none;
+    padding: 10px 14px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--ink-muted);
+    cursor: pointer;
+    white-space: nowrap;
+    border-bottom: 2px solid transparent;
+    font-family: inherit;
+    transition: all 0.15s;
+  }
+  .ptab:hover { color: var(--ink); }
+  .ptab.active {
+    color: var(--brand);
+    border-bottom-color: var(--brand);
+    background: var(--bg-card);
+  }
+  .prompt-explorer-body {
+    padding: 16px 18px 18px;
+  }
+  .prompt-explorer-body pre.prompt-text {
+    max-height: 420px;
+    overflow: auto;
+  }
+
+  /* Example panel */
+  .example-panel {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 20px 0;
+    background: var(--bg-card);
+  }
+  .example-header {
+    padding: 12px 18px;
+    background: linear-gradient(90deg, var(--brand-light) 0%, rgba(36,24,64,0.3) 100%);
+    border-bottom: 1px solid var(--line);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--brand-dark);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .example-header .tag-real {
+    display: inline-block;
+    background: var(--success-bg);
+    color: var(--success);
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 600;
+    margin-left: auto;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .example-body {
+    padding: 4px 0;
+  }
+  details.example-row {
+    border-bottom: 1px solid var(--line-soft);
+  }
+  details.example-row:last-child { border-bottom: none; }
+  details.example-row summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 10px 18px;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--ink);
+  }
+  details.example-row summary::-webkit-details-marker { display: none; }
+  details.example-row summary::before {
+    content: "▸";
+    font-size: 10px;
+    color: var(--ink-muted);
+    transition: transform 0.2s;
+  }
+  details.example-row[open] summary::before { transform: rotate(90deg); }
+  details.example-row summary code {
+    background: var(--line-soft);
+    font-size: 11px;
+  }
+  .example-row-count {
+    color: var(--ink-muted);
+    font-size: 12px;
+    margin-left: auto;
+  }
+  .example-detail {
+    padding: 2px 18px 16px 42px;
+    font-size: 12px;
+    color: var(--ink-muted);
+    line-height: 1.6;
+  }
+  .example-detail pre {
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-size: 11px;
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    overflow-x: auto;
+    margin: 8px 0;
+    color: var(--ink);
+    white-space: pre-wrap;
+  }
+  .example-detail .kv {
+    display: grid;
+    grid-template-columns: 160px 1fr;
+    gap: 4px 12px;
+    margin: 8px 0;
+  }
+  .example-detail .kv dt {
+    color: var(--ink-muted);
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 11px;
+  }
+  .example-detail .kv dd {
+    color: var(--ink);
+    margin: 0;
+    font-size: 12px;
+  }
+
+  /* Right-side tracker pane */
+  aside.tracker {
+    background: var(--bg-card);
+    border-left: 1px solid var(--line);
+    padding: 24px 18px;
+    position: sticky;
+    top: 0;
+    max-height: 100vh;
+    overflow-y: auto;
+    font-size: 12px;
+  }
+  .tracker-title {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-muted);
+    margin: 0 0 4px;
+  }
+  .tracker-subtitle {
+    font-size: 11px;
+    color: var(--ink-muted);
+    margin: 0 0 16px;
+    line-height: 1.5;
+  }
+  .tracker-stage-label {
+    display: inline-block;
+    background: var(--brand-light);
+    color: var(--brand-dark);
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 10px;
+    margin-bottom: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .tracker-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  details.tracker-item {
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    overflow: hidden;
+    background: var(--bg);
+    transition: all 0.25s;
+    opacity: 1;
+  }
+  details.tracker-item.future {
+    opacity: 0.28;
+    pointer-events: none;
+    filter: grayscale(0.6);
+  }
+  details.tracker-item.just-added {
+    animation: pulseAdded 1.4s ease-out;
+  }
+  @keyframes pulseAdded {
+    0%   { background: var(--brand-light); border-color: var(--brand); transform: translateX(-4px); opacity: 0; }
+    30%  { opacity: 1; transform: translateX(0); }
+    100% { background: var(--bg); border-color: var(--line); }
+  }
+  details.tracker-item summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 8px 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+  }
+  details.tracker-item summary::-webkit-details-marker { display: none; }
+  details.tracker-item summary::after {
+    content: "+";
+    color: var(--ink-muted);
+    font-weight: 400;
+    margin-left: auto;
+    font-size: 14px;
+    transition: transform 0.2s;
+  }
+  details.tracker-item[open] summary::after {
+    content: "−";
+  }
+  .t-icon {
+    font-size: 14px;
+    width: 18px;
+    flex-shrink: 0;
+    text-align: center;
+  }
+  .t-label {
+    font-weight: 600;
+    color: var(--ink);
+    font-size: 12px;
+  }
+  .t-sub {
+    color: var(--ink-muted);
+    font-size: 11px;
+    font-weight: 400;
+  }
+  .t-detail {
+    padding: 4px 12px 10px 36px;
+    font-size: 11px;
+    color: var(--ink-muted);
+    line-height: 1.55;
+    border-top: 1px solid var(--line-soft);
+    background: var(--bg-card);
+  }
+  .t-detail strong { color: var(--ink); font-weight: 600; }
+  .t-detail .t-example {
+    display: block;
+    margin-top: 6px;
+    padding: 6px 8px;
+    background: var(--bg);
+    border-left: 2px solid var(--brand);
+    border-radius: 0 4px 4px 0;
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 10.5px;
+    color: var(--ink);
+    line-height: 1.5;
+    white-space: pre-wrap;
+  }
+  .tracker-category {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-muted);
+    margin: 16px 0 6px;
+    padding: 0 2px;
+  }
+  .tracker-category:first-child { margin-top: 0; }
+
+  /* Responsive: collapse tracker on narrow screens */
+  @media (max-width: 1200px) {
+    .layout { grid-template-columns: 230px 1fr; }
+    aside.tracker { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="page">
+  <h1>Investigate → Memo</h1>
+  <p>How a user's paragraph of prose becomes a 14-section litigation memo</p>
+</header>
+
+<div class="layout">
+
+  <nav class="sidebar">
+    <ol>
+      <li><a href="#overview" class="nav-link active" data-target="overview">Overview</a></li>
+      <li><a href="#input" class="nav-link" data-target="input">What the user gives us</a></li>
+      <li><a href="#extraction" class="nav-link" data-target="extraction">The one AI extraction</a></li>
+      <li><a href="#casefile" class="nav-link" data-target="casefile">The case file (5 tables)</a></li>
+      <li><a href="#pipeline" class="nav-link" data-target="pipeline">The 14-stage pipeline</a></li>
+      <li><a href="#memo" class="nav-link" data-target="memo">The final memo</a></li>
+      <li><a href="#attribution" class="nav-link" data-target="attribution">Where info comes from</a></li>
+      <li><a href="#gotchas" class="nav-link" data-target="gotchas">Gotchas &amp; decisions</a></li>
+    </ol>
+  </nav>
+
+  <main>
+
+    <!-- ── 1. OVERVIEW ───────────────────────────────────────────────────── -->
+    <section id="overview" class="panel active">
+      <div class="eyebrow">§ 1 — Overview</div>
+      <h2>The whole flow in one breath</h2>
+      <p class="lead">The user types prose. One AI call turns that prose into structured JSON. The JSON is sprayed into five tables. Later, when the user asks for a memo, the pipeline reads those five tables back into plain text and feeds it to Claude fourteen times — once per section of a fixed document outline. The fourteen outputs, stitched together, are the memo.</p>
+
+      <div class="flow">
+        <div class="flow-node" onclick="show('input')">
+          <span class="icon">📝</span>
+          <div class="label">User Prose</div>
+          <div class="sub">free text or doc</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node" onclick="show('extraction')">
+          <span class="icon">🧠</span>
+          <div class="label">AI Extraction</div>
+          <div class="sub">1 Claude call</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node" onclick="show('casefile')">
+          <span class="icon">📁</span>
+          <div class="label">Case File</div>
+          <div class="sub">5 tables</div>
+        </div>
+      </div>
+      <div class="flow">
+        <div class="flow-node" onclick="show('casefile')">
+          <span class="icon">📁</span>
+          <div class="label">Case File</div>
+          <div class="sub">5 tables</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node" onclick="show('pipeline')">
+          <span class="icon">⚙️</span>
+          <div class="label">14-Stage Pipeline</div>
+          <div class="sub">14 Claude calls</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node" onclick="show('memo')">
+          <span class="icon">📄</span>
+          <div class="label">Final Memo</div>
+          <div class="sub">~13k words</div>
+        </div>
+      </div>
+
+      <div class="facts">
+        <div class="fact"><div class="fact-num">1</div><div class="fact-label">AI extraction call</div></div>
+        <div class="fact"><div class="fact-num">5</div><div class="fact-label">tables form the case file</div></div>
+        <div class="fact"><div class="fact-num">14</div><div class="fact-label">pipeline stages (Claude calls)</div></div>
+        <div class="fact"><div class="fact-num">~13k</div><div class="fact-label">words in a standard memo</div></div>
+      </div>
+
+      <div class="callout">
+        <strong>Key mental model.</strong> The five tables are not inputs the user fills in. They are a <em>normalized projection</em> of a single AI analysis of the user's prose. Everything in the memo traces back to that one blob of text — or to economic data added by a separate pipeline outside Investigate.
+      </div>
+    </section>
+
+    <!-- ── 2. INPUT ──────────────────────────────────────────────────────── -->
+    <section id="input" class="panel">
+      <div class="eyebrow">§ 2 — Starting Point</div>
+      <h2>What the user actually gives us</h2>
+      <p class="lead">On the Investigate page, the user provides one blob of text. No forms, no structured fields, no dropdowns. Just prose.</p>
+
+      <div class="card">
+        <h4>Option A — Free text</h4>
+        <p style="font-style: italic; color: var(--ink-muted); border-left: 3px solid var(--brand); padding-left: 14px; margin-top: 8px;">
+          "I suspect the major UK supermarkets are coordinating on own-brand pricing — margins look suspiciously identical across Tesco, Sainsbury's and Asda for the same goods."
+        </p>
+      </div>
+
+      <div class="card">
+        <h4>Option B — Document upload</h4>
+        <p>A <code>.docx</code>, <code>.pdf</code>, or <code>.txt</code> file. The page extracts the raw text in the browser before sending it to the backend. Optionally, the user supplies a title; if not, the filename is used.</p>
+      </div>
+
+      <h3>And that's it</h3>
+      <p>There is nothing else the user explicitly tells the system at this point. No defendants to name, no sector to pick, no evidence to list. The entire richness of the downstream memo will be <em>inferred</em> from whatever is in that one blob.</p>
+
+      <div class="callout info">
+        <strong>Why this matters for product.</strong> The quality of the final memo is bounded by the specificity of the input prose. A vague paragraph produces a memo with placeholder defendants and thin evidence; a detailed paragraph (or a full document) produces a memo with named parties, real numbers, and citable sources.
+      </div>
+    </section>
+
+    <!-- ── 3. EXTRACTION ─────────────────────────────────────────────────── -->
+    <section id="extraction" class="panel">
+      <div class="eyebrow">§ 3 — The Turning Point</div>
+      <h2>One AI call turns prose into structured data</h2>
+      <p class="lead">The user's blob goes to the <code>investigate</code> edge function, which makes a single call to Claude with one instruction: <em>read this text and return JSON in this exact shape</em>.</p>
+
+      <div class="card">
+        <h4>What Claude extracts</h4>
+        <table class="compact">
+          <tr><td>hypothesis_title</td><td>A concise title for the alleged violation</td></tr>
+          <tr><td>hypothesis_description</td><td>2–3 sentences describing it</td></tr>
+          <tr><td>violation_type</td><td>e.g. "Chapter I price-fixing", "Chapter II excessive pricing"</td></tr>
+          <tr><td>sector, geographic_market</td><td>Industry and region</td></tr>
+          <tr><td>bayesian_posterior</td><td>0–1 probability that this violation is real</td></tr>
+          <tr><td>confidence_score</td><td>0–100 confidence</td></tr>
+          <tr><td>recommended_action</td><td>PROCEED / MONITOR / INSUFFICIENT_EVIDENCE</td></tr>
+          <tr><td>defendants[]</td><td>Named parties — role, market share, description</td></tr>
+          <tr><td>evidence_items[]</td><td>Extracted evidence — type, source, tier, verification</td></tr>
+          <tr><td>key_findings[]</td><td>Bullet-point findings</td></tr>
+          <tr><td>damages_*_gbp_m</td><td>Conservative / mid / high damages estimates in £M</td></tr>
+          <tr><td>summary</td><td>3–4 sentence summary</td></tr>
+        </table>
+      </div>
+
+      <details class="prompt-viewer">
+        <summary>📜 See the actual prompt sent to Claude</summary>
+        <div class="prompt-body">
+          <div class="prompt-meta">
+            <span class="prompt-tag">model: claude-sonnet-4-6</span>
+            <span class="prompt-tag">max_tokens: 3000</span>
+            <span class="prompt-tag">source: supabase/functions/investigate/index.ts</span>
+          </div>
+
+          <h5>System prompt</h5>
+<pre class="prompt-text">You are a LexIntel competition law analyst. Return ONLY valid JSON, no markdown, no backticks.</pre>
+
+          <h5>User prompt (template)</h5>
+<pre class="prompt-text">Analyse the following for competition law violations.
+
+Return JSON only in this exact format:
+{
+  "hypothesis_title": "concise title",
+  "hypothesis_description": "2-3 sentences describing the alleged violation",
+  "violation_type": "e.g. Chapter I price-fixing / Chapter II excessive pricing",
+  "sector": "sector name",
+  "geographic_market": "UK",
+  "bayesian_posterior": 0.55,
+  "confidence_score": 60,
+  "key_findings": ["finding1", "finding2", "finding3"],
+  "damages_conservative_gbp_m": 20,
+  "damages_mid_gbp_m": 50,
+  "damages_high_gbp_m": 100,
+  "recommended_action": "PROCEED_TO_FULL_INVESTIGATION",
+  "summary": "3-4 sentence summary",
+  "defendants": [
+    {
+      "name": "Company Name",
+      "role": "primary_defendant",
+      "market_share_pct": 40,
+      "description": "brief description of role in alleged violation"
+    }
+  ],
+  "evidence_items": [
+    {
+      "type": "regulatory_signal",
+      "description": "description of the evidence",
+      "source": "source name or URL if known",
+      "tier": 2,
+      "verification_status": "unverified"
+    }
+  ]
+}
+
+TITLE: <span class="injected">${title}</span>
+TEXT: <span class="injected">${input_text.substring(0, 10000)}</span></pre>
+
+          <p class="prompt-note">The <span class="injected">highlighted</span> values are injected at call time from the user's input. Note the <strong>10,000-character cap</strong> on the input text — anything longer is silently truncated before being sent to Claude. The model's response is parsed as JSON; if it comes back with markdown fences or extra text, the parser strips them.</p>
+        </div>
+      </details>
+
+      <div class="callout">
+        <strong>This is the single moment</strong> where unstructured prose becomes structured data. Everything downstream — every table, every memo section — works from this JSON. There is no second AI call in Investigate that adds facts; there is only this one extraction, followed by the memo pipeline that <em>reasons about</em> those facts.
+      </div>
+
+      <h3>What happens next depends on confidence</h3>
+      <div class="callout warn">
+        <strong>The 0.25 gate.</strong> If Claude returns <code>bayesian_posterior &lt; 0.25</code>, the investigation completes but produces <strong>no</strong> hypothesis, flag, or evidence rows. The user sees the analysis in the UI, but nothing enters the memo pipeline. This is a quality gate — low-signal ideas don't pollute the case queue.
+      </div>
+    </section>
+
+    <!-- ── 4. CASE FILE ──────────────────────────────────────────────────── -->
+    <section id="casefile" class="panel">
+      <div class="eyebrow">§ 4 — The Case File</div>
+      <h2>Five tables, all joined by one <code>flag_id</code></h2>
+      <p class="lead">The AI's JSON doesn't get stored as one blob. It's split across five tables — each a different <em>view</em> of the same analysis. This normalization is what lets the memo pipeline (and the review UI, and the dashboards) query the case different ways.</p>
+
+      <div class="legend">
+        <span class="legend-item"><span class="origin-pill origin-user">from user input</span> carried through from the prose</span>
+        <span class="legend-item"><span class="origin-pill origin-ai">AI-derived</span> inferred by Claude</span>
+        <span class="legend-item"><span class="origin-pill origin-hardcoded">default</span> hardcoded or computed</span>
+        <span class="legend-item"><span class="origin-pill origin-external">not from Investigate</span> filled in elsewhere (or empty)</span>
+      </div>
+
+      <div class="tabs">
+        <button class="tab active" data-tab="flags">market_flags</button>
+        <button class="tab" data-tab="hyp">hypotheses</button>
+        <button class="tab" data-tab="parts">market_participants</button>
+        <button class="tab" data-tab="evid">evidence_items</button>
+        <button class="tab" data-tab="prec">precedent_matches</button>
+      </div>
+
+      <!-- market_flags -->
+      <div class="tab-content active" data-tab="flags">
+        <h3>The case container</h3>
+        <p>One row per case. Holds the market's name, its confidence band, and economic metrics (HHI, Lerner, CR4). Every other table points to this row via <code>flag_id</code>.</p>
+        <table class="fields">
+          <thead><tr><th>Field</th><th>What it is</th><th>Origin</th></tr></thead>
+          <tbody>
+            <tr><td>market_name</td><td>Human-readable case name</td><td><span class="origin-pill origin-ai">AI-derived</span></td></tr>
+            <tr><td>practice_area</td><td>Legal domain</td><td><span class="origin-pill origin-hardcoded">default</span> (always <code>competition_law</code>)</td></tr>
+            <tr><td>confidence</td><td>HIGH / MEDIUM / LOW</td><td><span class="origin-pill origin-hardcoded">default</span> (derived from posterior)</td></tr>
+            <tr><td>case_reference</td><td>External case ID</td><td><span class="origin-pill origin-external">not from Investigate</span></td></tr>
+            <tr><td>hhi</td><td>Market concentration index</td><td><span class="origin-pill origin-external">not from Investigate</span></td></tr>
+            <tr><td>hhi_is_inferred</td><td>Inferred vs. sourced</td><td><span class="origin-pill origin-hardcoded">default</span> (always <code>true</code>)</td></tr>
+            <tr><td>hhi_source, hhi_methodology</td><td>HHI provenance</td><td><span class="origin-pill origin-external">not from Investigate</span></td></tr>
+            <tr><td>lerner_index, cr4</td><td>Other economic metrics</td><td><span class="origin-pill origin-external">not from Investigate</span></td></tr>
+            <tr><td>data_quality</td><td>Overall data-quality label</td><td><span class="origin-pill origin-hardcoded">default</span> (always <code>unverified</code>)</td></tr>
+          </tbody>
+        </table>
+        <div class="callout warn">
+          <strong>Important for product.</strong> Investigate populates only half of <code>market_flags</code>. HHI, Lerner, CR4, precedents, and URLs all come from a separate enrichment/main pipeline. A memo generated straight from Investigate will render these as "REQUIRES CALCULATION" or "TBC".
+        </div>
+      </div>
+
+      <!-- hypotheses -->
+      <div class="tab-content" data-tab="hyp">
+        <h3>The thesis</h3>
+        <p>One row capturing the alleged violation as a single claim. The memo pipeline reads <strong>only the first row</strong> per flag — if multiple hypotheses exist, the rest are dropped.</p>
+        <table class="fields">
+          <thead><tr><th>Field</th><th>What it is</th><th>Origin</th></tr></thead>
+          <tbody>
+            <tr><td>hypothesis_title</td><td>Short title</td><td><span class="origin-pill origin-ai">AI-derived</span></td></tr>
+            <tr><td>hypothesis_description</td><td>2–3 sentence description</td><td><span class="origin-pill origin-ai">AI-derived</span></td></tr>
+            <tr><td>initial_confidence_score</td><td>0–100 confidence</td><td><span class="origin-pill origin-hardcoded">default</span> (posterior × 100)</td></tr>
+          </tbody>
+        </table>
+        <p><em>Other columns exist on this table — validation status, risk level, domain, evidence count — but none reach the memo prompt.</em></p>
+      </div>
+
+      <!-- participants -->
+      <div class="tab-content" data-tab="parts">
+        <h3>The parties</h3>
+        <p>One row per named defendant. If the AI extracted none, a placeholder row is inserted so the memo has <em>someone</em> to name. Only three fields reach the prompt.</p>
+        <table class="fields">
+          <thead><tr><th>Field</th><th>What it is</th><th>Origin</th></tr></thead>
+          <tbody>
+            <tr><td>name</td><td>Party name</td><td><span class="origin-pill origin-ai">AI-derived</span> (from prose)</td></tr>
+            <tr><td>role</td><td>primary_defendant, co_defendant, etc.</td><td><span class="origin-pill origin-ai">AI-derived</span></td></tr>
+            <tr><td>market_share</td><td>Percentage of market</td><td><span class="origin-pill origin-ai">AI-derived</span> (often null)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- evidence -->
+      <div class="tab-content" data-tab="evid">
+        <h3>The facts</h3>
+        <p>The evidence pool. Three sources contribute rows:</p>
+        <ol>
+          <li><strong>AI-extracted evidence</strong> — what Claude pulled out of the prose</li>
+          <li><strong>Key findings (fallback)</strong> — if Claude extracted no evidence, its bullet-point findings are promoted to Tier-4 evidence rows</li>
+          <li><strong>Raw user input (always)</strong> — the first 500 chars of what the user typed, tagged as a Tier-3 evidence item. This guarantees the prompt always has <em>something</em> to work from.</li>
+        </ol>
+        <table class="fields">
+          <thead><tr><th>Field</th><th>What it is</th><th>Origin</th></tr></thead>
+          <tbody>
+            <tr><td>type</td><td>Category (pricing_data, regulatory_signal, investigation_input, …)</td><td><span class="origin-pill origin-ai">AI-derived</span></td></tr>
+            <tr><td>tier</td><td>1–4 evidence-quality tier</td><td><span class="origin-pill origin-ai">AI-derived</span> (raw input = Tier 3)</td></tr>
+            <tr><td>verification_status</td><td>verified / unverified / disputed</td><td><span class="origin-pill origin-ai">AI-derived</span> (usually <code>unverified</code>)</td></tr>
+            <tr><td>source</td><td>Provenance label</td><td><span class="origin-pill origin-ai">AI-derived</span></td></tr>
+            <tr><td>description</td><td>Free-text description</td><td><span class="origin-pill origin-user">from user input</span> / <span class="origin-pill origin-ai">AI-derived</span></td></tr>
+            <tr><td>url</td><td>Link to evidence</td><td><span class="origin-pill origin-external">not from Investigate</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- precedents -->
+      <div class="tab-content" data-tab="prec">
+        <h3>Comparable prior cases</h3>
+        <div class="callout warn">
+          <strong>Not populated by Investigate at all.</strong> This table is filled in by a separate enrichment step. On an Investigate-only path, it's empty — and the precedents section of the memo prompt is simply omitted.
+        </div>
+        <table class="fields">
+          <thead><tr><th>Field</th><th>What it is</th><th>Origin</th></tr></thead>
+          <tbody>
+            <tr><td>case_name</td><td>Name of prior case</td><td><span class="origin-pill origin-external">not from Investigate</span></td></tr>
+            <tr><td>year, court</td><td>When &amp; where decided</td><td><span class="origin-pill origin-external">not from Investigate</span></td></tr>
+            <tr><td>violation_type</td><td>Violation category</td><td><span class="origin-pill origin-external">not from Investigate</span></td></tr>
+            <tr><td>citation, outcome</td><td>Legal reference &amp; result</td><td><span class="origin-pill origin-external">not from Investigate</span></td></tr>
+            <tr><td>similarity_score</td><td>0–1 similarity to current case</td><td><span class="origin-pill origin-external">not from Investigate</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 style="margin-top: 32px;">A real case, end to end</h3>
+      <p>Here is what the five tables actually look like for a fully-enriched case in the live database. This one — <strong>Apple Wallet — UK NFC Payments</strong> — came through the main anomaly pipeline (not Investigate), which is why the economic numbers and precedents are populated.</p>
+
+      <div class="example-panel">
+        <div class="example-header">
+          📁 flag_id <code>b0d7afec-6f0e-4c31-815f-911e1c2e9a06</code>
+          <span class="tag-real">live DB</span>
+        </div>
+        <div class="example-body">
+
+          <details class="example-row">
+            <summary>📊 <strong>market_flags</strong> <span class="example-row-count">1 row</span></summary>
+            <div class="example-detail">
+              <dl class="kv">
+                <dt>market_name</dt><dd>Apple Wallet — UK NFC Payments</dd>
+                <dt>practice_area</dt><dd>competition_law</dd>
+                <dt>confidence</dt><dd>HIGH</dd>
+                <dt>case_reference</dt><dd>LXI-2026-FINT-001</dd>
+                <dt>hhi</dt><dd>5,118  <em>(67² + 23² + 10² = 4,489 + 529 + 100)</em></dd>
+                <dt>cr4</dt><dd>95</dd>
+                <dt>hhi_is_inferred</dt><dd>true</dd>
+                <dt>hhi_source</dt><dd>PSR/FCA Feedback Statement FS25/1 (19 Feb 2025)</dd>
+                <dt>data_quality</dt><dd>partial</dd>
+              </dl>
+            </div>
+          </details>
+
+          <details class="example-row">
+            <summary>💡 <strong>hypotheses</strong> <span class="example-row-count">1 row</span></summary>
+            <div class="example-detail">
+              <dl class="kv">
+                <dt>hypothesis_title</dt><dd>Apple Wallet — NFC Restriction Abuse of Dominance</dd>
+                <dt>hypothesis_description</dt><dd>Apple restricted access to the iPhone NFC chip exclusively to Apple Pay until October 2024, preventing competing UK digital wallet providers from offering tap-to-pay functionality. This constitutes abuse of dominance under CA98 s.18. The PSR/FCA FS25/1 (February 2025) confirmed the restriction harmed competition. Apple charges UK card issuers a fee whereas Google Pay does not, constituting exploitative pricing.</dd>
+                <dt>initial_confidence_score</dt><dd>null <em>(not set on this path)</em></dd>
+              </dl>
+              <p style="margin-top: 10px; font-size: 11px;">Note: this hypothesis has many other fields on the row (<code>validated_confidence_score</code>, <code>evidence_strength_score</code>, <code>risk_level</code>, etc.), but <em>only the three above reach the memo prompt</em>.</p>
+            </div>
+          </details>
+
+          <details class="example-row">
+            <summary>👥 <strong>market_participants</strong> <span class="example-row-count">4 rows</span></summary>
+            <div class="example-detail">
+              <pre>DEFENDANT: Apple Inc.         — 67% market share
+DEFENDANT: Google LLC          — 23% market share
+CLAIMANT:  UK Retail Banks (class)
+REGULATOR: PSR / FCA</pre>
+              <p>The memo prompt only renders <code>role</code>, <code>name</code>, and <code>market_share</code>. The claimant and regulator rows appear because this case tracks multiple parties; a pure Investigate flow typically only extracts defendants.</p>
+            </div>
+          </details>
+
+          <details class="example-row">
+            <summary>🔍 <strong>evidence_items</strong> <span class="example-row-count">3 rows</span></summary>
+            <div class="example-detail">
+              <pre>[E1] regulatory | Tier 2 | verified | PSR/FCA FS25/1 Feb 2025
+     "PSR and FCA confirmed Apple and Google are the two largest
+     pass-through digital wallet providers in UK. Until October
+     2024 Apple restricted NFC chip access to Apple Pay only..."
+     URL: https://www.fca.org.uk/publication/feedback/fs25-1.pdf
+
+[E2] statistical | Tier 3 | partial  | Datos Insights UK Mobile Wallet
+     "UK in-store Apple Pay adoption 67% — UK ranks first globally
+     for Apple Pay adoption at point of sale."
+
+[E3] regulatory | Tier 2 | verified | EC Apple NFC Commitments 2024
+     "EC secured legally binding commitments from Apple to open NFC
+     tap-to-pay infrastructure to third-party wallet developers
+     across EEA free of charge for 10 years."
+     URL: https://ec.europa.eu/.../ip_24_3706</pre>
+            </div>
+          </details>
+
+          <details class="example-row">
+            <summary>⚖️ <strong>precedent_matches</strong> <span class="example-row-count">2 rows</span></summary>
+            <div class="example-detail">
+              <pre>Apple NFC — EC Commitments Decision (2024)
+  Court: European Commission
+  Citation: AT.40452
+  Outcome: remedy
+  Similarity: 97%
+
+Phenytoin Sodium Capsules — CMA (2016)
+  Court: CMA
+  Citation: CE/9742-13
+  Outcome: fined
+  Similarity: 68%</pre>
+              <p>This is where an Investigate-only case would be empty. These rows were added by a separate enrichment step that searches the precedent library after the hypothesis was created.</p>
+            </div>
+          </details>
+
+        </div>
+      </div>
+
+      <div class="callout info">
+        <strong>Comparing paths.</strong> If a user had created this same case via Investigate, they'd have market_flags + hypotheses + participants + evidence_items populated (roughly, though less rigorously), but <code>hhi</code>/<code>cr4</code> would be null and <code>precedent_matches</code> would be empty. That's why an Investigate-only memo feels thinner than a main-pipeline memo.
+      </div>
+    </section>
+
+    <!-- ── 5. PIPELINE ───────────────────────────────────────────────────── -->
+    <section id="pipeline" class="panel">
+      <div class="eyebrow">§ 5 — The Pipeline</div>
+      <h2>14 stages, like a writer working through an outline</h2>
+      <p class="lead">When the user asks for a memo, the pipeline doesn't make one big "generate memo" call. It makes fourteen, one per section. Think of a writer working through a fixed document outline, with the case file open on their desk, able to see everything they've already written.</p>
+
+      <h3>What every stage sees</h3>
+      <div class="card">
+        <p>Each of the fourteen Claude calls receives exactly three inputs:</p>
+        <ul>
+          <li><strong>Case context</strong> — the five tables, stringified into one plain-text block. The <em>same</em> block every stage. Identical reference material.</li>
+          <li><strong>Stage prompt</strong> — pulled from the <code>prompt_library</code> table. A generic, reusable instruction like <em>"write Section VI: compute HHI, Lerner, and coefficient of variation."</em> No case data in it.</li>
+          <li><strong>Prior sections</strong> — a truncated trail (3,000 chars, most recent first) of what earlier stages wrote. Empty for stage 0, longest by stage 13.</li>
+        </ul>
+      </div>
+
+      <h3>📜 The actual stage prompts (from the live <code>prompt_library</code>)</h3>
+      <p>These are fetched from the database at runtime by <code>prompt_ref</code>. Click a stage tab to see its prompt.</p>
+
+      <div class="prompt-explorer">
+        <div class="prompt-explorer-tabs">
+          <button class="ptab active" data-pref="PROMPT_0">Stage 0 — Master Control</button>
+          <button class="ptab" data-pref="PROMPT_1">Stage 1 — Discovery</button>
+          <button class="ptab" data-pref="SECTION_VI">Stage 4 — Statistical</button>
+          <button class="ptab" data-pref="PROMPT_19">Stage 12 — QA</button>
+          <button class="ptab" data-pref="SECTION_I">Stage 13 — Exec Summary</button>
+        </div>
+        <div class="prompt-explorer-body">
+          <div class="prompt-meta">
+            <span class="prompt-tag">source: prompt_library table</span>
+            <span class="prompt-tag" id="pref-tag">prompt_ref: PROMPT_0</span>
+            <span class="prompt-tag" id="plen-tag">5,654 chars</span>
+          </div>
+          <pre class="prompt-text" id="prompt-display">Loading…</pre>
+          <p class="prompt-note">Notice the prompts are <strong>case-independent</strong> — they describe <em>how</em> to write a section, not <em>what the case is about</em>. All case-specific content reaches Claude through the static case-context block described above, not through the prompt itself.</p>
+        </div>
+      </div>
+
+      <h3>The 14 stages</h3>
+      <p style="font-size: 13px; color: var(--ink-muted);">Click any stage to see what it does and why it runs where it does.</p>
+
+      <details class="stage opus">
+        <summary><span class="num">0</span><span class="stage-name">Master Control &amp; Pre-Generation</span><span class="stage-sub">— does this case have what it needs?</span><span class="badge badge-opus">OPUS</span></summary>
+        <div class="detail">A pre-flight check. Validates that the case file has enough to generate a credible memo. Uses Opus for rigour — this is the "should we even proceed?" gate.</div>
+      </details>
+
+      <details class="stage">
+        <summary><span class="num">1</span><span class="stage-name">Discovery &amp; Bayesian Analysis</span><span class="stage-sub">— pattern matching &amp; evidence sweep</span><span class="badge badge-sonnet">SONNET</span></summary>
+        <div class="detail">Not a section of the memo — a prep pass. Pattern-matches the case against known violation types and produces a discovery report that later stages lean on.</div>
+      </details>
+
+      <details class="stage">
+        <summary><span class="num">2</span><span class="stage-name">Sections II–III</span><span class="stage-sub">— factual background &amp; market analysis</span><span class="badge badge-sonnet">SONNET</span></summary>
+        <div class="detail">Establishes the facts of the case and describes the market. This is where named defendants, evidence items, and the hypothesis description first appear in prose form.</div>
+      </details>
+
+      <details class="stage">
+        <summary><span class="num">3</span><span class="stage-name">Sections IV–V</span><span class="stage-sub">— legal framework &amp; evidence analysis</span><span class="badge badge-sonnet">SONNET</span></summary>
+        <div class="detail">Maps the facts to legal elements — which statutes, which Chapter, which tests. Where violation_type becomes a legal argument.</div>
+      </details>
+
+      <details class="stage">
+        <summary><span class="num">4</span><span class="stage-name">Section VI</span><span class="stage-sub">— statistical analysis (HHI · Lerner · CV)</span><span class="badge badge-sonnet">SONNET</span></summary>
+        <div class="detail">Computes or restates the economic numbers. If Investigate was the only data source, HHI/Lerner/CR4 are null here and the section notes "REQUIRES CALCULATION."</div>
+      </details>
+
+      <details class="stage">
+        <summary><span class="num">5</span><span class="stage-name">Sections VII–VIII</span><span class="stage-sub">— evidence strategy &amp; comparable precedents</span><span class="badge badge-sonnet">SONNET</span></summary>
+        <div class="detail">Evidence disclosure plan and similar prior cases. Thin on an Investigate-only path since <code>precedent_matches</code> is empty.</div>
+      </details>
+
+      <details class="stage">
+        <summary><span class="num">6</span><span class="stage-name">Sections IX–X</span><span class="stage-sub">— defendants &amp; damages quantification</span><span class="badge badge-sonnet">SONNET</span></summary>
+        <div class="detail">Builds the damages model (PAEV, funder returns, class size) from the AI's damages estimates plus the defendants list.</div>
+      </details>
+
+      <details class="stage">
+        <summary><span class="num">7</span><span class="stage-name">Sections XI–XII</span><span class="stage-sub">— defence analysis &amp; certification</span><span class="badge badge-sonnet">SONNET</span></summary>
+        <div class="detail">Anticipates the defendants' counter-arguments (stress tests) and addresses class-representative viability (CPO).</div>
+      </details>
+
+      <details class="stage">
+        <summary><span class="num">8</span><span class="stage-name">Sections XIII–XV</span><span class="stage-sub">— budget, risk, conclusions</span><span class="badge badge-sonnet">SONNET</span></summary>
+        <div class="detail">Investment Decision Matrix — budget, risk assessment, conclusions. The "should we take this case?" answer.</div>
+      </details>
+
+      <details class="stage">
+        <summary><span class="num">9</span><span class="stage-name">Annexes A–C</span><span class="stage-sub">— glossary · calculations · contacts</span><span class="badge badge-sonnet">SONNET</span></summary>
+        <div class="detail">Reference material: glossary of terms, supporting calculations, expert contact list.</div>
+      </details>
+
+      <details class="stage">
+        <summary><span class="num">10</span><span class="stage-name">Annexes D–F</span><span class="stage-sub">— funders · financials · damages workpapers</span><span class="badge badge-sonnet">SONNET</span></summary>
+        <div class="detail">Financial deep-dives supporting Sections IX–X.</div>
+      </details>
+
+      <details class="stage">
+        <summary><span class="num">11</span><span class="stage-name">Annexes G–R</span><span class="stage-sub">— cases · timeline · PAEV · endnotes</span><span class="badge badge-sonnet">SONNET</span></summary>
+        <div class="detail">Comparable-case write-ups, timeline, PAEV annex, endnotes.</div>
+      </details>
+
+      <details class="stage opus">
+        <summary><span class="num">12</span><span class="stage-name">QA Certificate</span><span class="stage-sub">— QP-1 through QP-11 quality checks</span><span class="badge badge-opus">OPUS</span></summary>
+        <div class="detail">An auditor pass over everything written so far. 11-point quality enforcement. Uses Opus because the cost of false approval is high. Must pass before Section I is written.</div>
+      </details>
+
+      <details class="stage highlight">
+        <summary><span class="num">13</span><span class="stage-name">Section I — Executive Summary</span><span class="stage-sub">— composed last</span><span class="badge badge-last">WRITTEN LAST</span><span class="badge badge-sonnet">SONNET</span></summary>
+        <div class="detail"><strong>Critically, Section I is generated last — not first.</strong> You can only summarize numbers that have already been written. Generating the executive summary first would mean predicting your own conclusions. By running it after QA, the summary reflects verified, auditor-approved figures.</div>
+      </details>
+
+      <h3>Two decisions worth flagging for product</h3>
+      <div class="facts">
+        <div class="fact">
+          <div class="fact-label" style="margin: 0 0 6px; font-weight: 600; color: var(--ink); font-size: 13px;">Why Section I is last</div>
+          <div class="fact-label">The executive summary quotes specific figures. Writing it first would force the model to predict its own later numbers, creating inconsistencies. Running it last makes it a faithful mirror of what's already in the memo.</div>
+        </div>
+        <div class="fact">
+          <div class="fact-label" style="margin: 0 0 6px; font-weight: 600; color: var(--ink); font-size: 13px;">Why Opus only for stages 0 &amp; 12</div>
+          <div class="fact-label">Sonnet 4.6 is 3–4× faster than Opus for comparable quality on legal analysis. Opus is reserved for the two stages where rigour matters most: pre-flight validation and final QA.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── 6. MEMO ───────────────────────────────────────────────────────── -->
+    <section id="memo" class="panel">
+      <div class="eyebrow">§ 6 — The Final Memo</div>
+      <h2>What the user sees</h2>
+      <p class="lead">After all 14 stages run, the outputs are stitched together in display order and presented as a structured, section-by-section document.</p>
+
+      <div class="card">
+        <h4>Display order (v8.0 memo)</h4>
+        <table class="compact">
+          <tr><td>★ Section I</td><td>Executive Summary</td></tr>
+          <tr><td>Stage 0</td><td>Master Control validation</td></tr>
+          <tr><td>Stage 1</td><td>Discovery &amp; Bayesian Report</td></tr>
+          <tr><td>Sections II–III</td><td>Factual Background &amp; Market Analysis</td></tr>
+          <tr><td>Sections IV–V</td><td>Legal Framework &amp; Evidence</td></tr>
+          <tr><td>Section VI</td><td>Statistical Analysis</td></tr>
+          <tr><td>Sections VII–VIII</td><td>Strategy &amp; Precedents</td></tr>
+          <tr><td>Sections IX–X</td><td>Defendants &amp; Damages</td></tr>
+          <tr><td>Sections XI–XII</td><td>Defence &amp; Certification</td></tr>
+          <tr><td>Sections XIII–XV</td><td>Budget, Risk &amp; Conclusions</td></tr>
+          <tr><td>Annexes A–C</td><td>Glossary · Calculations · Contacts</td></tr>
+          <tr><td>Annexes D–F</td><td>Funders · Financials · Damages</td></tr>
+          <tr><td>Annexes G–R</td><td>Cases · Timeline · PAEV · Endnotes</td></tr>
+          <tr><td>⚖️ QA Certificate</td><td>11-point quality attestation</td></tr>
+        </table>
+      </div>
+
+      <div class="facts">
+        <div class="fact"><div class="fact-num">~500</div><div class="fact-label">words — QUICK depth (single call)</div></div>
+        <div class="fact"><div class="fact-num">~13k</div><div class="fact-label">words — STANDARD depth (14 calls)</div></div>
+        <div class="fact"><div class="fact-num">~17k</div><div class="fact-label">words — DEEP depth (14 calls, extended)</div></div>
+      </div>
+
+      <div class="callout success">
+        <strong>What makes the memo a memo.</strong> The sections aren't independent essays. Each one has access to everything written before it, which is why Section VI's HHI number appears consistently in Section I, Section IX, and the QA certificate. The prior-sections trail is the glue that makes the fourteen outputs feel like one document.
+      </div>
+    </section>
+
+    <!-- ── 7. ATTRIBUTION ────────────────────────────────────────────────── -->
+    <section id="attribution" class="panel">
+      <div class="eyebrow">§ 7 — Where Info Comes From</div>
+      <h2>What originates where</h2>
+      <p class="lead">When you read a finished memo, different parts of it came from different sources. Understanding which parts came from where tells you which parts will be weakest when the inputs are thin.</p>
+
+      <table class="fields">
+        <thead><tr><th>What you see in the memo</th><th>Where it ultimately comes from</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>Named defendants, market name, alleged violation, damages band</strong></td>
+            <td>The user's original prose, extracted by the single AI call.</td>
+          </tr>
+          <tr>
+            <td><strong>Confidence posture, recommended action</strong></td>
+            <td>The Bayesian posterior from the AI extraction.</td>
+          </tr>
+          <tr>
+            <td><strong>Economic numbers — HHI, Lerner, CR4</strong></td>
+            <td>Not from Investigate. Either null (renders as "REQUIRES CALCULATION") or populated by a separate enrichment pipeline.</td>
+          </tr>
+          <tr>
+            <td><strong>Comparable prior cases &amp; precedents</strong></td>
+            <td>Not from Investigate. The <code>precedent_matches</code> table must be filled in separately, otherwise the section is thin.</td>
+          </tr>
+          <tr>
+            <td><strong>Evidence URLs, citations</strong></td>
+            <td>Not from Investigate. Added by enrichment or manual editing.</td>
+          </tr>
+          <tr>
+            <td><strong>Legal structure, section ordering, argument scaffolding</strong></td>
+            <td>The stage prompts in <code>prompt_library</code>. Generic, reusable, case-independent. <em>This is the v8.0 template.</em></td>
+          </tr>
+          <tr>
+            <td><strong>Cross-section numerical consistency</strong> (HHI quoted the same way in Sections VI, IX, I)</td>
+            <td>The prior-sections trail passed stage-to-stage. Each stage sees what the previous stages wrote.</td>
+          </tr>
+          <tr>
+            <td><strong>Quality attestation (QA certificate)</strong></td>
+            <td>Stage 12 — Opus reviewing everything written by earlier stages.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout">
+        <strong>Three sources, one merge, fourteen times.</strong> The memo's facts come from the user's prose (via AI extraction). The memo's structure comes from the prompt library. The memo's internal consistency comes from the stage-to-stage trail. Every section is a merge of those three.
+      </div>
+    </section>
+
+    <!-- ── 8. GOTCHAS ────────────────────────────────────────────────────── -->
+    <section id="gotchas" class="panel">
+      <div class="eyebrow">§ 8 — For the product thinker</div>
+      <h2>Gotchas &amp; key design decisions</h2>
+      <p class="lead">Things that shape the user experience and are worth knowing if you're thinking about how this product behaves at the edges.</p>
+
+      <div class="card">
+        <h4>1. The 0.25 posterior gate silently drops weak signals</h4>
+        <p>If the AI assesses the user's input at a Bayesian posterior below 0.25, <strong>nothing is written to the memo pipeline</strong>. The UI shows a result, but no flag, no hypothesis, no evidence rows are created. The user might not realize their investigation was effectively a dead end.</p>
+      </div>
+
+      <div class="card">
+        <h4>2. An Investigate-only memo will have placeholder economics</h4>
+        <p>Investigate doesn't compute HHI, Lerner, or CR4. It doesn't fetch precedents. A memo generated immediately after an investigation — before any enrichment step runs — will show "REQUIRES CALCULATION" in the statistical analysis section and a thin or empty precedents section.</p>
+      </div>
+
+      <div class="card">
+        <h4>3. Only the first hypothesis reaches the memo</h4>
+        <p>If a case somehow ends up with multiple hypotheses on the same flag, the memo pipeline uses only <code>hypotheses[0]</code>. The rest are silently ignored. Relevant if a future workflow lets users add alternative hypotheses.</p>
+      </div>
+
+      <div class="card">
+        <h4>4. The user's raw input always survives as evidence</h4>
+        <p>Whatever the user typed gets stored verbatim (first 500 chars) as a Tier-3 evidence item. So even if Claude fails to extract any other evidence, the memo prompt always has something concrete to work from.</p>
+      </div>
+
+      <div class="card">
+        <h4>5. Depth affects cost, not structure</h4>
+        <p>QUICK runs <em>one</em> Claude call and produces a ~500-word triage memo. STANDARD and DEEP both run all 14 stages — DEEP just asks for longer sections. The structural skeleton is identical; DEEP is just a fuller fill-in.</p>
+      </div>
+
+      <div class="card">
+        <h4>6. Stages can time out silently mid-pipeline</h4>
+        <p>Each stage call has a 110-second timeout. If one fails, the frontend retries up to 3 times with backoff. If a stage completed server-side but the HTTP response was lost, the frontend detects this via the pipeline log and continues. Still, users can see the modal stall on a specific stage — that's a UX signal worth surfacing.</p>
+      </div>
+    </section>
+
+  </main>
+
+  <aside class="tracker">
+    <p class="tracker-title">Data &amp; Sources Introduced</p>
+    <p class="tracker-subtitle">Tracks what's accumulated by the end of the section you're reading. Click any item for detail.</p>
+    <span class="tracker-stage-label" id="tracker-stage">Section 1 of 8</span>
+    <div class="tracker-list" id="tracker-list"></div>
+  </aside>
+</div>
+
+<script>
+  // ── Real prompts fetched from the prompt_library table ──────────────────────
+  const libraryPrompts = {
+    'PROMPT_0': `PROMPT 0 — MASTER CONTROL / ORCHESTRATION
+
+Objective: Establish the global operating rules for every memo run and confirm the full input schema before any discovery or drafting work begins. Run this prompt once per matter, always first. Do not proceed to Prompt 1 until the input schema below is fully completed.
+
+Standing Rules (Active in Every Run)
+1. Work semantically, not just literally. Search for conceptually equivalent phrasing, structurally similar conduct, behavioural patterns, and signals that may support or rebut the hypothesis. Adapt your analytical emphasis to the specific violation type — do not apply a generic template.
+2. Generate a mostly narrative document. Use bullets, tables, matrices, scorecards, charts, and quantified inserts only where they improve comprehension or investment decision-making. Prose analysis takes precedence over checklist completion.
+3. Apply the facts and evidence rigorously to each legal element. For every claim or legal route, state whether each element is: CONFIRMED (satisfied by verified evidence — cite item number) / INFERRED (partially satisfied by connected evidence — cite connection logic) / REQUIRES DISCOVERY (not yet satisfiable — identify specific disclosure target, document category, and legal route: Norwich Pharmacal / Part 31 CPR / CAT Rule 60-65 / EA 2002 s.244).
+4. Consider alternative legal theories and adjacent causes of action whenever the evidence suggests them, including UK and EU routes where there is a nexus, and consumer, regulatory, procurement, abuse, information exchange, bid-rigging, digital market, unjust enrichment, follow-on, stand-alone, and disclosure-based avenues where relevant. Do not limit the analysis to the primary theory.
+5. Consider combined-data analysis using only verified, real, primary-sourced data. Where useful, derive new analytical views by combining verified sources — such as overlaying pricing data with trade association meeting dates, or mapping consumer complaint timestamps against price-change events. Every derived view must explicitly identify both underlying verified sources and state the combination logic. No simulated, synthetic, estimated, or fabricated data is ever permitted under any circumstance.
+6. Test investment viability, not just liability. Confirm whether expected damages, settlement ratios, timing, funder return multiples, law-firm fee economics, ATE costs, adverse-cost exposure, and litigation budget requirements justify investment. If economics are weak, say so directly and explain whether strategic, precedential, market-entry, injunctive, reputational, portfolio, or regulatory leverage nevertheless supports proceeding.
+7. Verify mathematics, internal consistency, citations, and URLs. Check arithmetic, scenario weights, PAEV consistency, cross-section number consistency, endnote sequencing, and whether each URL or citation actually says what the memo claims. Run the Data Integrity Check after every section.
+8. Confirm first-mover status in the UK and Europe using the hedged declaration language specified in the Preamble. Check the CAT register, publicly visible claimant-side firms, and all known competition plaintiff firms. Flag competing claims risk if not resolved.
+9. Review all 10 source categories including regulatory materials, court records, academic work, social media (X/Twitter, LinkedIn, Reddit, Instagram, TikTok, Facebook, YouTube, Glassdoor), news and newspapers, trade press, consumer complaints, defendant-specific corporate filings, marketing materials, ESG reports, archived pricing pages, investor communications, conference records, and former-employee commentary.
+10. Use measured, deferential, non-promotional tone. Assume the reader has a general working knowledge of law, funding, and procedure. Never overstate certainty.
+11. Preserve formatting discipline. No placeholder text in any delivered output. No extra white space between sections. Headings clean, hierarchical, visually consistent.
+12. At the end of the run, produce the full memo, annexes, Data Integrity Declarations for all sections and annexes, and a separate QA certificate with explicit PASS / CONDITIONAL PASS / FAIL results.
+
+Required Input Schema (Complete Before Proceeding)
+- Case hypothesis: The alleged violation in 1–3 sentences stating the conduct and affected market
+- Potential defendants: Named entities with estimated market share and jurisdiction of incorporation
+- Practice area and sub-theory: e.g., Competition law — Chapter I price-fixing cartel; Chapter II excessive pricing
+- Jurisdiction(s): UK / EU / US / multi-jurisdictional — specify all
+- Time period / limitation window: Earliest alleged conduct date; applicable limitation period; any suspensive events
+- Known facts and evidence: All evidence already in hand, with source and verification status
+- Available structured data: Pricing data, financial filings, market share data, regulatory databases available to analyse
+- Investigation directions: Specific sectors, time periods, source categories, or patterns to prioritise
+- Known claimant class or proposed representative: Class description or proposed representative entity
+- Desired output status: Preliminary / full memo / supplemental update — declare before work begins
+
+Mandatory Output Order
+A. Discovery and Hypothesis Report (Prompt 1 output)
+B. Full memo Sections I–XV, each followed immediately by a Data Integrity Declaration
+C. Annexes A–J+R, each followed immediately by a Data Integrity Declaration
+D. QA Certificate and Correction Log (Prompt 19 / Stage 5)
+E. Supplemental Appendix (Prompt 18 / Stage 4) — only if a triggering development exists`,
+
+    'PROMPT_1': `PROMPT 1 — DISCOVERY, PATTERN MATCH, BAYESIAN FRAMING & COMBINED-DATA ANALYSIS
+
+Objective: Force the system to discover and rigorously test the case before any memo drafting begins. Produce a formal Discovery and Hypothesis Report. All data used must be from verified, primary sources. All 10 tasks below must be completed before any memo section is drafted.
+
+Tasks
+1. Identify the most relevant historical pattern or combination of patterns from the LexIntel pattern library (PAT-001 through PAT-007 as detailed in the Preamble). State the Pattern ID(s) and explain specifically why each fits the facts.
+2. Define the initial market hypothesis, defendant set, possible claimant class, claim period, and jurisdictional scope.
+3. Assign a Bayesian prior probability based on market structure, pattern frequency, and practice-area base rates. State the source of the prior.
+4. Run or specify required structured-data analyses: HHI, market shares, Lerner index, margin analysis, CV, price correlation, timing analysis, clustering, event overlays, Benford screening where relevant, survival/hazard analysis where leader-follower conduct may exist. All inputs must be from verified, primary sources — no estimated or simulated figures at any point.
+5. Generate 3–5 investigative hypotheses. For each, specify: (a) what verified evidence would confirm it; (b) what evidence would rebut it; (c) what alternative explanations exist; (d) which source categories are most probative.
+6. Create a combined-data analysis plan. Identify what additional analytical views can be generated by combining verified real-world data sources. Every proposed combination must identify the specific underlying real sources. No data may be simulated, estimated, or fabricated at any stage.
+7. Search all 10 source categories (detailed in the Preamble). Also review defendant marketing language, investor materials, and public comments for behavioural shifts. Include all social media platforms: X/Twitter, LinkedIn, Reddit, Instagram, TikTok, Facebook, YouTube, Glassdoor.
+8. Produce a posterior update ladder showing how each meaningful evidence item, in sequence, updates the hypothesis probability from prior to final posterior.
+9. Classify the matter into one of: monitor only / active investigation / preliminary memo / full memo / decline. If below 0.50 posterior, issue a preliminary assessment and pause — do not proceed to a full memo.
+10. Flag any obvious legal, factual, causation, damages, class, or investability vulnerabilities at the outset — before drafting begins.
+
+Posterior Threshold Table
+< 0.10: Background noise — log and monitor; no active investigation
+0.10–0.25: Weak signal — watchlist; monitor for confirming evidence; quarterly review
+0.25–0.50: Moderate signal — initiate active investigation; deploy evidence protocol (Phase 1–2)
+0.50–0.75: Strong signal — full evidence protocol; begin preliminary memo draft; assess viability
+0.75–0.90: High confidence — generate full litigation opportunity memorandum; engage funder outreach
+> 0.90: Very high confidence — priority memo; expedited processing; first-mover advantage critical
+
+Required Output Format for the Discovery Report
+• Hypothesis statement (1–3 sentences)
+• Pattern-match analysis (Pattern IDs cited with matching indicator evidence)
+• Prior probability and rationale (source documented)
+• Structured data findings table (verified primary sources only; verification tags on every figure)
+• Investigative hypotheses table (3–5 rows: hypothesis / confirming evidence / rebutting evidence / alternative explanation / most probative source category)
+• Combined-data analysis plan (proposed combinations; real underlying sources identified for each)
+• Source-category sweep log (all 10 categories documented: found / not found / flagged)
+• Sequential posterior update ladder (prior → each evidence item → posterior)
+• Go / no-go / further investigation recommendation with matter-status classification
+• Early vulnerability flag list (legal, factual, causation, damages, class, investability)
+
+AMENDMENT P1 — MULTI-STRAND CLAIM ARCHITECTURE
+
+After completing Task 1.1 PAT code selection, run the following
+mandatory check before proceeding:
+
+MULTI-STRAND OBLIGATION CHECK:
+(a) If the evidence pattern supports Chapter II (abuse of dominance)
+    as a qualifying strand — it must be developed as a co-equal
+    primary theory. A single-strand Chapter II analysis is
+    insufficient. Le Patourel v BT Group [2022] CAT 31 is
+    hardwired as authority.
+(b) If two or more PAT codes each score ≥ 50% probability — ALL
+    qualifying PAT theories must be developed as co-equal strands.
+(c) Output a STRAND REGISTER before proceeding to Task 1.2:
+    [Strand 1: PAT code | legal hook | initial probability]
+    [Strand 2: PAT code | legal hook | initial probability]
+    (continue for all qualifying strands)
+
+All subsequent Bayesian analysis, evidence sweep, and posterior
+updates must be conducted per strand, not per matter.`,
+
+    'SECTION_VI': `SECTION VI — Statistical Analysis
+800–1,200 words | 2–3 pages
+PURPOSE: Present the required quantitative analyses. Adapt the analyses to the violation type — a cartel case requires CV and price correlation; an excessive pricing case requires Lerner Index and United Brands test; a bid-rigging case requires Benford's Law and rotation scoring; a market allocation case requires Moran's I. Do not produce the same statistical template for every case. Every calculation must use verified, primary-source data only.
+
+A — HHI CALCULATION
+Formula: HHI = Σ(sᵢ)² where sᵢ = market share as whole number. Show every firm. Calculate CR4. Compare to thresholds. Value must match Sections I, III, and Annex B exactly. All market share inputs from verified primary sources.
+Statistical Translation Box: "An HHI of [X] indicates a [very highly/highly/moderately] concentrated market — [X]x the 2,500 threshold. Pattern library elevated base rate for [violation type]."
+
+B — LERNER INDEX (where applicable)
+Formula: L = (P − MC) / P. State verified data sources for P and MC. Show step-by-step calculation. Benchmark: 0.10–0.25 competitive; >0.40 significant market power; >0.60 strong market power; >0.80 monopoly-level. Statistical Translation Box after calculation.
+
+C — CV — ABRANTES-METZ VARIANCE SCREENING (where applicable)
+Formula: CV = (σ / μ) × 100%. Apply to verified price data. Benchmark: 20–35% expected competitive markets; <10% very strong cartel indicator. Statistical Translation Box after calculation.
+
+D — PRICE CORRELATION ANALYSIS (where applicable)
+Calculate correlation coefficient between defendant firms' prices over the claim period. Benchmark: <0.80 expected for independent competitors; >0.95 very strong coordination indicator. Statistical Translation Box after calculation.
+
+E — MARGIN ANALYSIS
+Compare defendants' gross and operating margins to: (a) pre-infringement period; (b) comparable firms in adjacent unaffected markets; (c) industry median. Flag if margins exceed 1.5x (concern) or 2x (strong indicator).
+
+F — TEMPORAL PATTERN ANALYSIS
+Identify timing of price changes relative to communication opportunities. Apply Regression Discontinuity methodology where data permits.
+
+G — VIOLATION-SPECIFIC ANALYSES
+PAT-003 Bid-Rigging: apply Benford's Law to real bid amounts; calculate rotation score.
+PAT-002 Market Allocation: apply Moran's I spatial autocorrelation.
+PAT-001 Cartel: apply survival/hazard analysis for leader-follower patterns.
+PAT-004 Excessive Pricing: apply United Brands two-limb test with verified cost data.
+
+H — BAYESIAN POSTERIOR UPDATES
+Document sequential evidence updates from prior to final posterior. Final posterior: [0.XX] — [Classification].
+
+SECTION QA GATE
+☐ HHI shown with full verified workings and Statistical Translation Box.
+☐ CR4 calculated from verified data.
+☐ All values match Sections I, III, and Annex B exactly.
+☐ Statistical analyses selected appropriate to violation type.
+☐ All inputs from verified primary sources — no simulated or estimated figures.
+☐ Statistical Translation Boxes present after every calculation.
+☐ Data Integrity Declaration produced.`,
+
+    'PROMPT_19': `PROMPT 19 — FINAL QA, VERIFICATION & STRESS-TEST PROMPT (STAGE 5)
+Run this prompt always, always last. Do not redraft the whole memo unless required; instead identify and classify issues precisely. A memo cannot be delivered without a completed and approved QA Certificate.
+
+PART A — ELEVEN-POINT QUALITY ENFORCEMENT PROTOCOL (QP-1 to QP-11)
+Four checks are ⚠ CRITICAL. A FAIL on any CRITICAL check blocks delivery unconditionally.
+
+QP-1 | COMPLETENESS
+All 15 sections present? All mandatory annexes (A–J+R) present? Master Evidence Table ≥15 items? Investment Decision Matrix present? Verification Statistics Table present? All Data Integrity Declarations present (one per section, one per annex)?
+Sections required: I Executive Summary, II Factual Background, III Market Analysis, IV Legal Framework, V Evidence Analysis, VI Statistical Analysis, VII Evidence Strategy, VIII Comparable Precedents, IX Defendants & Claimants, X Damages Quantification, XI Defence Analysis, XII Certification Analysis, XIII Budget & Timeline, XIV Risk Assessment, XV Conclusions & Recommendations.
+Annexes required: A Glossary, B Market Analysis Calculations, C Expert & Co-Counsel Contacts, D Funder Return Analysis, E Defendant Financial Analysis, F Damages Workpapers, G Comparable Cases, H Regulatory Timeline, I PAEV & Funder Returns, J Endnotes, R Evidence Table (R.1/R.2/R.3).
+RED CRITERIA: Any section missing; any annex absent; Master Evidence Table <15 items; Investment Decision Matrix absent; any Data Integrity Declaration missing.
+
+QP-2 | ALTERNATIVE DATA SOURCES
+Have at least 2 additional data source categories been identified beyond primary evidence?
+RED CRITERIA: Fewer than 2 additional categories identified and addressed.
+
+QP-3 | INVESTMENT VIABILITY
+PAEV ≥ £10M across all scenarios? If below, is an Investment Viability Note present?
+RED CRITERIA: PAEV <£10M with no qualifying funder identified and no Investment Viability Note.
+
+⚠ QP-4 | LEGAL ACCURACY [CRITICAL — FAIL BLOCKS DELIVERY]
+(a) UK CA 1998 (not US Sherman Act) applied to UK conduct?
+(b) Art. 101/102 TFEU applied to EU conduct?
+(c) Chapter I and Chapter II correctly distinguished?
+(d) DMCCA 2024 SMS assessed for digital markets?
+(e) Limitation period calculated explicitly?
+(f) All legal elements stated with CONFIRMED/INFERRED/REQUIRES DISCOVERY?
+(g) Post-Brexit divergence addressed?
+(h) United Brands two-limb test applied for excessive pricing?
+(i) All alternative and adjacent routes assessed?
+RED CRITERIA: Any of the above absent or incorrect.
+
+QP-5 | FACTS-TO-LAW MAPPING
+For every legal element: explicit CONFIRMED/INFERRED/REQUIRES DISCOVERY status? CONFIRMED cites evidence item #? INFERRED cites connection logic? REQUIRES DISCOVERY identifies entity, document category, and legal route?
+RED CRITERIA: Any legal element without mapping status; no disclosure route for REQUIRES DISCOVERY items.
+
+⚠ QP-6 | DAMAGES ARITHMETIC [CRITICAL — FAIL BLOCKS DELIVERY]
+(a) Three scenarios; weights sum to exactly 100%?
+(b) PAEV arithmetic: (C×0.30)+(M×0.50)+(H×0.20) = stated PAEV — calculate explicitly.
+(c) HHI, CR4, Lerner, CV shown with formula→inputs with sources→calculation→result→benchmark?
+(d) Damages identical across Sections I, X, XIII, Annex F, and Annex I?
+(e) PAEV consistent across Sections I, X, XIII, Annexes D, F, and I?
+(f) Funder returns at BOTH 25% AND 40%?
+(g) Statutory interest stated and applied?
+(h) Case Strength Scorecard total correct?
+(i) Per-member harm consistent?
+(j) All inputs from verified primary sources?
+RED CRITERIA: Any arithmetic error; single-point estimate; weights not summing to 100%; PAEV inconsistent; any simulated or fabricated input.
+
+QP-7 | CITATION INTEGRITY
+Every cited URL accessible and confirmed to say what the memo claims? All case citations in correct legal format? Statute references accurate? No fabricated citations?
+RED CRITERIA: Any unresolvable URL; invented citation; incorrect statute reference.
+
+⚠ QP-8 | FIRST-MOVER STATUS [CRITICAL — FAIL BLOCKS DELIVERY]
+First-Mover Status Declaration in Section I using hedged language? Searches documented against ALL of:
+- CAT register (catribunal.gov.uk/cases)
+- Hausfeld, Scott+Scott, Pogust Goodhead, Stewarts Law, Leigh Day, Keller Postgate, Mishcon de Reya, Quinn Emanuel, Herbert Smith Freehills — press releases and sign-up campaigns
+- CMA register (gov.uk/cma-cases)
+- HMCTS Find a Case — High Court competition claims in same sector
+RED CRITERIA: No declaration; fewer than 10 named sources checked; hedged language not used; competing proceedings identified but not analysed.
+
+QP-9 | STRESS TESTS
+All 6 stress tests applied with PASS/CONDITIONAL/FAIL? Every CONDITIONAL has mitigation? "If you were defending this aggressively, where would you attack first?" answered directly in Section XI?
+Required: ST-1 Counterfactual Validity; ST-2 Parallel Conduct Defence (≥3 strong plus factors); ST-3 Limitation Viability; ST-4 Certification Viability (Merricks [2021] UKSC 28); ST-5 Defendant Defences (3 strongest addressed); ST-6 Evidence Sufficiency at Trial.
+RED CRITERIA: Fewer than 6 stress tests; any FAIL not acknowledged.
+
+QP-10 | TONE & FORMAT
+Prohibited language absent? Verification tags on every factual claim? Case reference: LXI-YYYY-[SECTOR]-NNN? No placeholders? Statistical Translation Boxes present? Data Integrity Declarations present for every section and annex?
+RED CRITERIA: Prohibited language; missing tags; any placeholder; Statistical Translation Boxes missing.
+
+⚠ QP-11 | ELEMENTS COVERAGE [CRITICAL — FAIL BLOCKS DELIVERY]
+Elements-of-proof checklist completed for each cause of action:
+Chapter I: (i) agreement/decision/concerted practice; (ii) between undertakings; (iii) object or effect; (iv) appreciable effect.
+Chapter II: (i) dominant position; (ii) abuse; (iii) effect on UK trade.
+Article 101: (i) agreement/concerted practice; (ii) between undertakings; (iii) prevention/restriction/distortion; (iv) effect on inter-Member State trade.
+Article 102: (i) dominant position; (ii) abuse; (iii) effect on inter-Member State trade.
+ATE insurance section present? Pre-action protocol addressed? Dual-class architecture assessed? Bayesian integrity: prior source documented; pattern ID cited; sequential posterior updates shown?
+RED CRITERIA: Elements missing for any cause of action; ATE absent; pre-action protocol not addressed.
+
+[Also includes amendments P4, P5, P9, P10 — truncated here. See prompt_library for full text.]`,
+
+    'SECTION_I': `SECTION I — Executive Summary & Case Strength Scorecard
+600–800 words | 1.5–2 pages
+PURPOSE: Generate Section I LAST (or revise after completing all sections). This is a standalone briefing — a partner or funder must be able to make a threshold investment decision from this section alone, without reading the full memo. Every number must be verified and must exactly match the detailed sections that follow.
+
+A — OPENING STATEMENT
+Write a single dense paragraph (4–6 sentences): "[High/moderate/preliminary]-confidence, [statistical/documentary/regulatory/mixed]-backed litigation opportunity against [defendant description] in [geographic market]. [Evidence type] evidence supports allegations of [violation type] in violation of [primary statute: CA 1998, s.X (Chapter I/II)] and [alternative statutes: Art. 101/102 TFEU]. LexIntel Intelligence Engine assigned a posterior probability of [0.XX] to this hypothesis following sequential evidence integration across [X] verified data points. [Scale of damages and class.] [First-mover status and recommended immediate action.]" Must name both CA 1998 and TFEU. No superlatives. No certainty language. No placeholder text.
+
+B — CASE STRENGTH SCORECARD
+Score each dimension 1–5, multiply by weight, sum for Overall Score (out of 5.0). All scores must be defensible by reference to verified evidence in the memo.
+(1) Liability Strength 15%: 5=regulatory finding confirms violation; 1=untested theory.
+(2) Evidence Quality 15%: 5=Tier 1–2 evidence, ≥10 verified sources; 1=speculative, mostly unverified.
+(3) Damages Quantum 12%: 5=PAEV >£100M; 1=PAEV <£5M.
+(4) Defendant Ability to Pay 8%: 5=publicly listed, strong balance sheet; 1=insolvency risk.
+(5) Certification Prospects 10%: 5=straightforward class, clear common issues; 1=class definition problems.
+(6) Defence Vulnerability 8%: 5=no credible defence; 1=strong pro-competitive justification available.
+(7) Regulatory Tailwinds 7%: 5=active CMA investigation or existing decision; 1=no regulatory activity.
+(8) First-Mover Status 5%: 5=FIRST-MOVER CONFIRMED; 1=rival CPO filed.
+(9) Funder Attractiveness 10%: 5=>5x return multiple, IRR>25% at 36 months; 1=<1.5x.
+(10) Timeline & Liquidity 10%: 5=resolution <30 months; 1=>60 months.
+Score range: 4.0–5.0=STRONG PROCEED; 3.0–3.9=PROMISING PROCEED WITH CONDITIONS; 2.0–2.9=MARGINAL INVESTIGATE FURTHER; 1.0–1.9=WEAK DECLINE.
+
+C — KEY ECONOMIC FINDINGS (4–6 bullet points)
+Each: Metric name + calculated value (from verified data) + benchmark comparison. Format: "[Metric]: [Value] — [X]x the [benchmark] threshold." Metrics: Market Concentration UK (HHI vs 2,500 threshold); Market Concentration EU (HHI, EC Guidelines); Pricing Power (Lerner Index vs 0.10–0.25 competitive range); Price Uniformity (CV vs 20–35% expected); Price Correlation (coefficient vs <0.80 expected); Profit Margins (gross/operating vs industry benchmark with source). All from verified data only.
+
+D — DAMAGES SUMMARY TABLE
+Scenarios: Conservative (30% weight), Mid-Range (50%), High (20%). Columns: Scenario | UK Damages | EU Damages | Key Assumptions. Plus PAEV row: (Conservative midpoint × 0.30) + (Mid midpoint × 0.50) + (High midpoint × 0.20). Weights must sum to exactly 100%. PAEV must match Section X and Annexes F, I, and D identically.
+
+E — FIRST-MOVER STATUS DECLARATION
+Include the hedged formulation specified in the Preamble, documenting all 12 sources searched and confirming status as at the date of analysis.
+
+F — INVESTMENT VIABILITY SUMMARY
+State: funder return multiple at mid-range at both 25% and 40% recovery share; GREEN/AMBER/RED threshold assessment; whether litigation economics warrant proceeding. If PAEV <£10M, include the Investment Viability Note from Pre-Generation Step 9. All figures from verified sources.
+
+G — LEGAL CLAIMS SUMMARY
+List each cause of action: [Statute, Section]: [Violation type] — [Mechanism in one sentence].
+
+H — RECOMMENDATION
+State in bold: RECOMMENDATION: [PROCEED / PROCEED WITH CONDITIONS / INVESTIGATE FURTHER / DECLINE]. Follow with: Case Strength Score: [X.X/5.0] | Bayesian Posterior: [0.XX] | PAEV: £[X]M | Funder Return (mid, 25%): [X.X]x | Timeline: [X] months | First-Mover: [STATUS]. Provide 3–5 sentence rationale. If PROCEED WITH CONDITIONS, state the specific gating conditions, owner of each, and deadline. In all cases: state explicitly what single development would cause the recommendation to be revised downward, and what single development would cause it to be upgraded.
+
+SECTION QA GATE — verify before proceeding
+☐ Opening statement names both CA 1998 and TFEU where dual jurisdiction applies.
+☐ Bayesian posterior explicitly stated; source documented.
+☐ Case Strength Scorecard arithmetic verified: weighted scores sum to stated total.
+☐ PAEV: (Conservative × 0.30) + (Mid × 0.50) + (High × 0.20) = stated PAEV. Weights sum to exactly 100%.
+☐ PAEV matches Section X and Annexes F, I, and D identically.
+☐ First-Mover Status Declaration present using hedged language; all 12 sources documented.
+☐ Investment viability addressed at both 25% and 40%.
+☐ "What would change the recommendation" stated explicitly in both directions.
+☐ No fabricated, simulated, or placeholder data. Data Integrity Declaration produced.`
+  };
+
+  // ── Tracker data ─────────────────────────────────────────────────────────────
+  // Each item is introduced at a specific section and persists thereafter.
+  // Order here = order in which items get "added" as the user moves through sections.
+  const trackerItems = [
+    {
+      id: 'user-prose', introAt: 'input', category: 'User input',
+      icon: '📝', label: "User's prose",
+      sub: 'free text or uploaded doc',
+      detail: `<strong>The only thing the user explicitly supplies.</strong> Free-form text or a .docx/.pdf/.txt upload. Everything downstream is inferred from this.<span class="t-example">"The four major UK veterinary chains (CVS, IVC Evidensia, Medivet, and VetPartners) have systematically acquired independent practices…"
+
+(real Investigate input, April 2026)</span>`
+    },
+    {
+      id: 'investigate-prompt', introAt: 'extraction', category: 'Investigate stage',
+      icon: '📜', label: 'Investigate prompt',
+      sub: 'hardcoded in edge function',
+      detail: `The system prompt + JSON-schema instruction sent to Claude. Lives in <code>supabase/functions/investigate/index.ts</code> — not in the DB. Same template for every investigation.`
+    },
+    {
+      id: 'claude-sonnet', introAt: 'extraction', category: 'Investigate stage',
+      icon: '🧠', label: 'Claude Sonnet 4.6',
+      sub: 'AI model (1 call here)',
+      detail: `The extraction model. Called once with max_tokens=3000. Will be invoked again 12 more times in the memo pipeline.`
+    },
+    {
+      id: 'ai-json', introAt: 'extraction', category: 'Investigate stage',
+      icon: '{ }', label: 'Extracted JSON',
+      sub: 'structured output',
+      detail: `Claude's response — parsed as JSON. Contains <code>hypothesis_title</code>, <code>bayesian_posterior</code>, <code>defendants[]</code>, <code>evidence_items[]</code>, etc. This is the source of truth for every table row written in the next step.`
+    },
+    {
+      id: 'flag-id', introAt: 'casefile', category: 'Case file (5 tables)',
+      icon: '🔑', label: 'flag_id',
+      sub: 'UUID — joins all 5 tables',
+      detail: `Minted when the fan-out happens. Every downstream table holds a <code>flag_id</code> column pointing back at the <code>market_flags</code> row.<span class="t-example">b0d7afec-6f0e-4c31-815f-911e1c2e9a06
+
+(real flag_id — Apple Wallet case)</span>`
+    },
+    {
+      id: 'market-flags', introAt: 'casefile', category: 'Case file (5 tables)',
+      icon: '📊', label: 'market_flags',
+      sub: '1 row — the case container',
+      detail: `Market name, confidence, economic numbers (HHI/Lerner/CR4). Investigate populates the name+confidence; economic numbers come from a separate pipeline.<span class="t-example">market_name: "Apple Wallet — UK NFC Payments"
+confidence:  HIGH
+hhi:         5,118
+cr4:         95</span>`
+    },
+    {
+      id: 'hypotheses', introAt: 'casefile', category: 'Case file (5 tables)',
+      icon: '💡', label: 'hypotheses',
+      sub: '1 row — only first used',
+      detail: `The thesis: title, description, confidence score. If multiple hypotheses exist for a flag, only row [0] reaches the memo prompt.`
+    },
+    {
+      id: 'market-participants', introAt: 'casefile', category: 'Case file (5 tables)',
+      icon: '👥', label: 'market_participants',
+      sub: 'N rows — the parties',
+      detail: `Defendants, claimants, regulators. Only <code>role</code>, <code>name</code>, <code>market_share</code> reach the prompt.<span class="t-example">DEFENDANT: Apple Inc.  — 67% market share
+DEFENDANT: Google LLC  — 23% market share</span>`
+    },
+    {
+      id: 'evidence-items', introAt: 'casefile', category: 'Case file (5 tables)',
+      icon: '🔍', label: 'evidence_items',
+      sub: 'N rows — the facts',
+      detail: `The evidence pool. Investigate always inserts the raw user prose as a Tier-3 item, so the prompt always has <em>something</em> to work from.`
+    },
+    {
+      id: 'precedent-matches', introAt: 'casefile', category: 'Case file (5 tables)',
+      icon: '⚖️', label: 'precedent_matches',
+      sub: 'N rows — comparable cases',
+      detail: `Comparable prior cases. <strong>Not populated by Investigate</strong> — filled in by a separate enrichment step. On an Investigate-only path this is empty.`
+    },
+    {
+      id: 'prompt-library', introAt: 'pipeline', category: 'Memo pipeline',
+      icon: '📚', label: 'prompt_library',
+      sub: '~42 active prompts in DB',
+      detail: `Where every stage prompt lives. Each stage fetches its prompt by <code>prompt_ref</code> (e.g. <code>SECTION_VI</code>, <code>PROMPT_19</code>). Prompts are generic — they describe <em>how</em> to write a section, not what the case is about.`
+    },
+    {
+      id: 'claude-opus', introAt: 'pipeline', category: 'Memo pipeline',
+      icon: '🧠', label: 'Claude Opus 4.6',
+      sub: 'AI model (stages 0 & 12)',
+      detail: `Used only for the two stages where rigour matters most: Stage 0 (pre-flight validation) and Stage 12 (QA certificate). The other 12 stages run on Sonnet 4.6.`
+    },
+    {
+      id: 'case-context', introAt: 'pipeline', category: 'Memo pipeline',
+      icon: '📋', label: 'Case context block',
+      sub: 'built per stage from 5 tables',
+      detail: `The 5 case-file tables, flattened into one plain-text block. Identical on every stage — 14 copies of the same reference material.`
+    },
+    {
+      id: 'memos-sections', introAt: 'pipeline', category: 'Memo pipeline',
+      icon: '📝', label: 'memos.sections',
+      sub: 'accumulates stage outputs',
+      detail: `The JSONB column where each stage writes its output, keyed by section name (<code>section_vi</code>, <code>qa_certificate</code>, etc.).`
+    },
+    {
+      id: 'prior-trail', introAt: 'pipeline', category: 'Memo pipeline',
+      icon: '🔗', label: 'Prior-sections trail',
+      sub: 'what later stages see',
+      detail: `A truncated view of what earlier stages wrote (3,000-char budget, most recent first). This is the glue that makes 14 independent outputs feel like one coherent document.`
+    },
+    {
+      id: 'final-memo', introAt: 'memo', category: 'Output',
+      icon: '📄', label: 'Final memo',
+      sub: '~13k words, 15 sections + annexes',
+      detail: `The 14 stage outputs concatenated in display order. Section I (Executive Summary) appears first but is generated <em>last</em>.`
+    }
+  ];
+
+  // Which tracker items are "introduced by the end of" each section:
+  const introOrder = ['overview','input','extraction','casefile','pipeline','memo','attribution','gotchas'];
+  function itemsIntroducedBy(sectionId) {
+    const introIndex = introOrder.indexOf(sectionId);
+    // attribution + gotchas show everything
+    if (introIndex >= 6) return trackerItems.map(x => x.id);
+    const allowed = new Set(introOrder.slice(0, introIndex + 1));
+    return trackerItems.filter(x => allowed.has(x.introAt)).map(x => x.id);
+  }
+
+  // ── Render tracker ───────────────────────────────────────────────────────────
+  const trackerList = document.getElementById('tracker-list');
+  function renderTracker(activeSection, previousSection) {
+    const introducedNow = new Set(itemsIntroducedBy(activeSection));
+    const introducedBefore = new Set(previousSection ? itemsIntroducedBy(previousSection) : []);
+    const justAdded = new Set([...introducedNow].filter(id => !introducedBefore.has(id)));
+
+    // Group by category, preserving first-appearance order.
+    const byCategory = new Map();
+    for (const item of trackerItems) {
+      if (!byCategory.has(item.category)) byCategory.set(item.category, []);
+      byCategory.get(item.category).push(item);
+    }
+
+    trackerList.innerHTML = '';
+    for (const [category, items] of byCategory) {
+      // Only show a category header if at least one item in it is introduced (even faded future items)
+      const header = document.createElement('p');
+      header.className = 'tracker-category';
+      header.textContent = category;
+      trackerList.appendChild(header);
+
+      for (const item of items) {
+        const isPresent = introducedNow.has(item.id);
+        const isJustAdded = justAdded.has(item.id);
+        const el = document.createElement('details');
+        el.className = 'tracker-item' + (isPresent ? '' : ' future') + (isJustAdded ? ' just-added' : '');
+        el.innerHTML =
+          `<summary>
+             <span class="t-icon">${item.icon}</span>
+             <span class="t-label">${item.label}</span>
+             <span class="t-sub">${item.sub}</span>
+           </summary>
+           <div class="t-detail">${item.detail}</div>`;
+        trackerList.appendChild(el);
+      }
+    }
+
+    // Stage indicator
+    const idx = introOrder.indexOf(activeSection);
+    document.getElementById('tracker-stage').textContent =
+      'Section ' + (idx + 1) + ' of ' + introOrder.length;
+  }
+
+  // ── Section switching (with tracker update) ─────────────────────────────────
+  const links = document.querySelectorAll('.nav-link');
+  const panels = document.querySelectorAll('section.panel');
+  let currentSection = 'overview';
+
+  function show(id) {
+    const prev = currentSection;
+    currentSection = id;
+    links.forEach(l => l.classList.toggle('active', l.dataset.target === id));
+    panels.forEach(p => p.classList.toggle('active', p.id === id));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    history.replaceState(null, '', '#' + id);
+    renderTracker(id, prev);
+  }
+
+  links.forEach(link => {
+    link.addEventListener('click', e => {
+      e.preventDefault();
+      show(link.dataset.target);
+    });
+  });
+
+  // Tab switching within case file section
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      const tabName = tab.dataset.tab;
+      const parent = tab.closest('section');
+      parent.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tabName));
+      parent.querySelectorAll('.tab-content').forEach(c => c.classList.toggle('active', c.dataset.tab === tabName));
+    });
+  });
+
+  // ── Prompt explorer ──────────────────────────────────────────────────────────
+  const promptDisplay = document.getElementById('prompt-display');
+  const prefTag = document.getElementById('pref-tag');
+  const plenTag = document.getElementById('plen-tag');
+  function showPrompt(ref) {
+    const text = libraryPrompts[ref] || '(not loaded)';
+    promptDisplay.textContent = text;
+    prefTag.textContent = 'prompt_ref: ' + ref;
+    plenTag.textContent = text.length.toLocaleString() + ' chars';
+  }
+  document.querySelectorAll('.ptab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.ptab').forEach(t => t.classList.toggle('active', t === tab));
+      showPrompt(tab.dataset.pref);
+    });
+  });
+  showPrompt('PROMPT_0');
+
+  // ── Initial render ───────────────────────────────────────────────────────────
+  renderTracker('overview', null);
+
+  // Deep-link from hash
+  if (window.location.hash) {
+    const id = window.location.hash.substring(1);
+    if (document.getElementById(id)) show(id);
+  }
+</script>
+
+</body>
+</html>
