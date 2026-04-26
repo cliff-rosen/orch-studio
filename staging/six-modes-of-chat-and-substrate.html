@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Six Modes of Chat and Substrate — Orchestrator Studios</title>
+    <meta name="description" content="A survey of the current state of play of chat in apps. Walks through six modes — from classic apps to vibecoding to Claude Code — and surfaces two configurations that should be common but aren't.">
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-9RJRR593J6"></script>
+    <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-9RJRR593J6');</script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --accent: #3730a3;
+            --accent-light: #4f46e5;
+            --accent-subtle: #eef2ff;
+            --text: #1e1b4b;
+            --text-secondary: #4b5563;
+            --bg: #ffffff;
+            --bg-alt: #f8fafc;
+            --bg-darker: #f1f5f9;
+            --border: #e2e8f0;
+            --border-strong: #cbd5e1;
+            --warn: #b45309;
+            --warn-subtle: #fef3c7;
+            --radius: 12px;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            color: var(--text);
+            background: var(--bg);
+            line-height: 1.7;
+            font-size: 17px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        h1, h2, h3, h4 {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            line-height: 1.2;
+        }
+
+        nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .nav-inner {
+            max-width: 1120px;
+            margin: 0 auto;
+            padding: 0 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 64px;
+        }
+
+        .nav-logo {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 800;
+            font-size: 1.15rem;
+            color: var(--accent);
+            text-decoration: none;
+            letter-spacing: -0.02em;
+        }
+
+        .nav-back {
+            text-decoration: none;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .nav-back:hover { color: var(--accent); }
+
+        .banner {
+            background: var(--warn-subtle);
+            border-bottom: 1px solid var(--border);
+            padding: 10px 24px;
+            text-align: center;
+            color: var(--warn);
+            font-size: 0.82rem;
+            font-weight: 500;
+        }
+
+        .article-container {
+            max-width: 880px;
+            margin: 0 auto;
+            padding: 60px 24px 80px;
+        }
+
+        .article-meta { margin-bottom: 48px; }
+
+        .article-title {
+            font-size: clamp(2rem, 4vw, 2.75rem);
+            font-weight: 800;
+            color: var(--text);
+            letter-spacing: -0.03em;
+            margin-bottom: 20px;
+            line-height: 1.15;
+        }
+
+        .article-author {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .article-author strong {
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        .article-date {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .article-body { max-width: 740px; }
+
+        .article-body h2 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-top: 56px;
+            margin-bottom: 20px;
+            letter-spacing: -0.02em;
+        }
+
+        .article-body h3 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-top: 36px;
+            margin-bottom: 12px;
+            letter-spacing: -0.01em;
+        }
+
+        .article-body p {
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+            line-height: 1.8;
+        }
+
+        .article-body p strong {
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        .article-body em {
+            font-style: italic;
+        }
+
+        .article-body ul, .article-body ol {
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+            padding-left: 24px;
+            line-height: 1.8;
+        }
+
+        .article-body li { margin-bottom: 8px; }
+
+        .article-body blockquote {
+            border-left: 3px solid var(--accent);
+            padding: 16px 24px;
+            margin: 28px 0;
+            background: var(--accent-subtle);
+            border-radius: 0 8px 8px 0;
+            color: var(--text);
+            font-style: italic;
+        }
+
+        /* Substrate definition list */
+        .substrate-props {
+            background: var(--bg-alt);
+            border-left: 3px solid var(--accent);
+            padding: 18px 24px;
+            border-radius: 0 var(--radius) var(--radius) 0;
+            margin: 24px 0;
+        }
+
+        .substrate-props ul {
+            margin-bottom: 0;
+            padding-left: 20px;
+        }
+
+        .substrate-props li {
+            color: var(--text);
+        }
+
+        /* Table styling */
+        .rubric-table-wrap {
+            margin: 28px -20px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .rubric-table {
+            width: 100%;
+            min-width: 720px;
+            border-collapse: collapse;
+            font-size: 0.88rem;
+            line-height: 1.5;
+        }
+
+        .rubric-table th,
+        .rubric-table td {
+            padding: 12px 14px;
+            text-align: left;
+            vertical-align: top;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .rubric-table th {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 700;
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-secondary);
+            background: var(--bg-alt);
+            border-bottom: 2px solid var(--border-strong);
+            white-space: nowrap;
+        }
+
+        .rubric-table td.mode {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 700;
+            color: var(--text);
+            white-space: nowrap;
+        }
+
+        .rubric-table td.mode .mode-label {
+            display: inline-block;
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        .rubric-table td.mode .mode-label.a {
+            background: var(--bg-darker);
+            color: var(--text-secondary);
+        }
+
+        .rubric-table td.mode .mode-label.b {
+            background: var(--accent-subtle);
+            color: var(--accent);
+        }
+
+        .rubric-table td.mode .mode-name {
+            display: block;
+            margin-top: 4px;
+            font-weight: 600;
+            font-size: 0.84rem;
+            color: var(--text-secondary);
+        }
+
+        .rubric-table tbody tr.branch-divider td {
+            border-top: 2px solid var(--border-strong);
+        }
+
+        .rubric-table tbody tr.highlight {
+            background: var(--accent-subtle);
+        }
+
+        .rubric-table tbody tr.highlight td.mode {
+            color: var(--accent);
+        }
+
+        .rubric-table td em {
+            color: var(--text);
+            font-style: normal;
+            font-weight: 500;
+        }
+
+        .branch-header {
+            margin: 36px 0 16px;
+            padding: 14px 18px;
+            background: var(--bg-alt);
+            border-left: 4px solid var(--accent);
+            border-radius: 0 var(--radius) var(--radius) 0;
+        }
+
+        .branch-header-eyebrow {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--accent);
+            margin-bottom: 4px;
+        }
+
+        .branch-header-title {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 700;
+            font-size: 1.05rem;
+            color: var(--text);
+        }
+
+        .download-btn {
+            display: inline-block;
+            margin-top: 24px;
+            padding: 12px 28px;
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 600;
+            font-size: 0.9rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.15s;
+        }
+
+        .download-btn:hover {
+            background: var(--accent-light);
+            transform: translateY(-1px);
+        }
+
+        footer {
+            border-top: 1px solid var(--border);
+            padding: 48px 24px;
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        @media (max-width: 768px) {
+            .article-container { padding: 40px 20px 60px; }
+            .article-body h2 { margin-top: 40px; }
+            .rubric-table-wrap { margin: 24px -20px; }
+        }
+
+        @media print {
+            nav, .download-btn, .banner { display: none !important; }
+
+            body {
+                font-family: Georgia, 'Times New Roman', serif;
+                font-size: 11pt;
+                line-height: 1.6;
+                color: #000;
+            }
+
+            h1, h2, h3, h4 {
+                font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+                color: #000;
+            }
+
+            .article-container { max-width: 100%; padding: 0; margin: 0; }
+            .article-body { max-width: 100%; }
+            .article-title { font-size: 22pt; margin-bottom: 12pt; }
+
+            .article-body h2 {
+                font-size: 14pt;
+                margin-top: 22pt;
+                margin-bottom: 8pt;
+                page-break-after: avoid;
+            }
+
+            .article-body h3 {
+                font-size: 12pt;
+                margin-top: 14pt;
+                margin-bottom: 5pt;
+                page-break-after: avoid;
+            }
+
+            .article-body p { color: #000; margin-bottom: 7pt; orphans: 3; widows: 3; }
+
+            .substrate-props { background: none; border-left: 2px solid #000; padding: 6pt 10pt; margin: 8pt 0; }
+
+            .rubric-table-wrap { overflow: visible; margin: 14pt 0; }
+            .rubric-table { min-width: 0; font-size: 9pt; }
+            .rubric-table th, .rubric-table td { padding: 6pt 8pt; }
+            .rubric-table th { background: #eee; }
+            .rubric-table tbody tr.highlight { background: #f4f4f4; }
+
+            .branch-header {
+                background: none;
+                border-left: 2px solid #000;
+                padding: 6pt 10pt;
+                margin: 16pt 0 10pt;
+            }
+
+            footer { border-top: 1px solid #ccc; padding: 16pt 0; font-size: 9pt; }
+
+            a { color: #000; text-decoration: none; }
+
+            @page { margin: 0.75in; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="nav-inner">
+            <a href="/" class="nav-logo">Orchestrator Studios</a>
+            <a href="/staging/" class="nav-back">&larr; Back to staging</a>
+        </div>
+    </nav>
+
+    <div class="banner">Staging — draft article in review, not linked from the public site.</div>
+
+    <article class="article-container">
+        <header class="article-meta">
+            <h1 class="article-title">Six Modes of Chat and Substrate</h1>
+            <p class="article-author">By <strong>Cliff Rosen</strong>, Founder &amp; CTO, Orchestrator Studios</p>
+            <p class="article-date">April 2026</p>
+            <button class="download-btn" onclick="window.print()">Download PDF</button>
+        </header>
+
+        <div class="article-body">
+
+            <h2>Apps before chat</h2>
+
+            <p>Before chat became a productive capability, the structure of an application was settled territory. An app, in its general form, decomposes into three things:</p>
+
+            <ul>
+                <li><strong>The user</strong> — the person doing the work.</li>
+                <li><strong>The substrate</strong> — the structured persistent state the app reads from and writes to. A CRM has records. A word processor has documents. A spreadsheet has cells. A file system has files and directories. The substrate is what gives the app its memory and its shape.</li>
+                <li><strong>The UX</strong> — the interface for interacting with the substrate. Buttons, forms, lists, dashboards.</li>
+            </ul>
+
+            <p>Not every part of an app is everyday-use. Many apps include <strong>fabricator portions</strong> — places where the substrate's structure itself gets shaped, distinct from the everyday-use portions where the user operates within an existing structure. Salesforce has Setup, where admins create custom objects, define fields, configure validation rules. Word has its template-and-style system, where document structure gets defined separately from filling that structure with content. Excel has macros and named ranges. The fabricator portion and the everyday-use portion are often separate experiences — sometimes for different roles (admin vs. end user), sometimes just for different mental modes.</p>
+
+            <p>These patterns were established decades before chat. The architecture of substrate + UX + user, with a fabricator/use distinction layered on top, is more or less how every productive piece of software was built and operated.</p>
+
+            <h2>Then chat showed up</h2>
+
+            <p>Three or four years ago, a new capability arrived in productive form: <strong>chat</strong>. Specifically, a user sending messages to a large language model running in a loop with tools — an LLM that can call tools, see their results, and continue reasoning across multiple turns within a single user prompt.</p>
+
+            <p>Even before LLMs made chat truly viable, the app ecosystem had been trying to incorporate chat-like interfaces, typically as <em>support sidekicks</em>. A help bot tucked into a corner. A question-answerer next to the real product. The pattern was known, even if the experience wasn't great. After ChatGPT in late 2022, this remained the obvious first move: bolt an actual capable chat onto a traditional app and let it explain the UX, answer questions, walk users through tasks. Many products shipped exactly this. A fine starting point — but a small one.</p>
+
+            <h2>Where chat could go beyond the sidekick</h2>
+
+            <p>The bigger question is what chat could do for app design and use <em>beyond</em> the sidekick role. A few possibilities surface as soon as you start asking:</p>
+
+            <ul>
+                <li><strong>Could chat be the entire app?</strong> Imagine the whole Amazon experience as a chat conversation. Some of it would work — you could ask the chat to search for products and get visual results back. But there are things you'd still want as fixed UI: a shopping cart in a specific place, always accessible, with consistent state; a stable navigation; an account view you can find without asking. Some affordances need to be persistent fixtures, not conversational outputs.</li>
+                <li><strong>Could chat be how you take action, while the UI handles everything else?</strong> You'd still browse, scan lists, see your cart in its corner. But to actually do something — place the order, change the shipping address, apply a coupon — you'd just tell the chat. Chat as the action layer; the rest of the interface as the seeing-and-browsing layer.</li>
+                <li><strong>Could chat build the app in the first place?</strong> Describe what you want and have a working application come out the other end. Vibecoding, in current form.</li>
+                <li><strong>Could chat both build and use the app, in the same session, indefinitely?</strong> Could the app keep evolving as the work it supports evolves? Less obvious. Much rarer in practice.</li>
+            </ul>
+
+            <p>Each of these is a different way chat could relate to apps. The table below names six modes that occupy this space, anchored on real products. Three or four years on, the field hasn't converged on which configurations work best for which purposes — products exist at every position, but the picture is unsettled. What follows is an organized look at the state of play.</p>
+
+            <h2>The six modes</h2>
+
+            <p>Here is the rubric in tabular form, then a walkthrough below. The example column names the host platform; the substrate column describes what that platform manages or operates on.</p>
+
+            <div class="rubric-table-wrap">
+                <table class="rubric-table">
+                    <thead>
+                        <tr>
+                            <th>Mode</th>
+                            <th>Examples</th>
+                            <th>Chat builds the app?</th>
+                            <th>Chat operates the app?</th>
+                            <th>Substrate</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="mode">
+                                <span class="mode-label a">A1</span>
+                                Classic App
+                            </td>
+                            <td><em>Salesforce, Word, Excel</em></td>
+                            <td>No (built by developers / admins)</td>
+                            <td>No</td>
+                            <td>Backend-managed state</td>
+                        </tr>
+                        <tr>
+                            <td class="mode">
+                                <span class="mode-label a">A2</span>
+                                Assisted App
+                            </td>
+                            <td><em>Microsoft Office with Clippy</em></td>
+                            <td>No</td>
+                            <td>Helper only — chat explains the UI, doesn't move state</td>
+                            <td>Host app's backend state</td>
+                        </tr>
+                        <tr>
+                            <td class="mode">
+                                <span class="mode-label a">A3</span>
+                                Chat-Driven App
+                            </td>
+                            <td><em>TableThat</em></td>
+                            <td>No (developer-defined schema)</td>
+                            <td>Yes — chat is the primary write interface; UI handles consumption</td>
+                            <td>Fixed schema (rows, columns, records)</td>
+                        </tr>
+                        <tr>
+                            <td class="mode">
+                                <span class="mode-label a">A4</span>
+                                Pure Chat
+                            </td>
+                            <td><em>ChatGPT, Claude</em></td>
+                            <td>N/A — no app</td>
+                            <td>N/A — no app</td>
+                            <td>None. Conversation is a medium, not a substrate</td>
+                        </tr>
+                        <tr class="branch-divider">
+                            <td class="mode">
+                                <span class="mode-label b">B1</span>
+                                Vibecoding Platform
+                            </td>
+                            <td><em>Lovable, Bolt, Replit Agent</em></td>
+                            <td>Yes — chat builds the app</td>
+                            <td>No — chat exits when the build ends</td>
+                            <td>The app being built (becomes a Classic App after chat exits)</td>
+                        </tr>
+                        <tr class="highlight">
+                            <td class="mode">
+                                <span class="mode-label b">B2</span>
+                                Living Workspace
+                            </td>
+                            <td><em>Claude Code</em></td>
+                            <td>Yes</td>
+                            <td>Yes — same chat session, integrated with the build</td>
+                            <td>The file system itself</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>A1 &mdash; Classic App</h3>
+
+            <p>Apps with no chat at all. The substrate (records, documents, spreadsheets) was shaped at design time by developers, with possibly a fabricator portion the user can access through the same UX (Salesforce Setup, Word's template editor). Everyday use happens through the UX. <strong>Salesforce</strong>, <strong>Word</strong>, and <strong>Excel</strong> are canonical examples. This is still the default for the vast majority of software in production today, and has been for decades.</p>
+
+            <h3>A2 &mdash; Assisted App</h3>
+
+            <p>An app whose UX is augmented with a helper chat. The chat is bolted onto the app to explain how to use the UX, point the user at features they missed, narrate what's happening. Crucially, it doesn't move state — it advises on use, but doesn't perform the using itself. <strong>Microsoft Office with Clippy</strong>, in the late 1990s, is the canonical (and famously unsuccessful) example. Note that Clippy itself is just the chat layer; the substrate it sits next to is Office's, not Clippy's. This mode is largely historical now — modern AI assistants in productive apps tend to actually move state, putting them somewhere else in the rubric.</p>
+
+            <h3>A3 &mdash; Chat-Driven App</h3>
+
+            <p>The substrate's schema is fixed up front by the app developer. Chat is the primary path for creating, updating, and transforming things within that schema. The UX next to the chat is the primary interface for <em>consumption</em> — viewing, browsing, reading. Manual UI as a "fallback" applies only on the write side. <strong>TableThat</strong> is the canonical example. The user can technically click through forms to add a row, but the intended path is to describe what they want and let the chat do it.</p>
+
+            <p>Even though chat is the primary write interface, the Chat-Driven App is still in Branch A — because the <em>shape</em> of the substrate (what a row is, what a column is, what a record means) is given by the app developer. The chat fills the schema; it doesn't author it.</p>
+
+            <h3>A4 &mdash; Pure Chat</h3>
+
+            <p><strong>ChatGPT</strong> and <strong>Claude</strong> in their default configuration. There's no app of record beneath the conversation. Artifacts can emerge from chat — text, code, summaries, ideas — but they live in the chat thread, with no organizing principle beyond message order and "projects" as loose containers.</p>
+
+            <p>This is why nobody tries to use ChatGPT <em>instead of</em> a CRM. Not because the model can't reason about customer data, but because there's no substrate to read from, write to, or operate on with structure. The conversation is a medium where things happen, not a substrate that things live in. The mode is common as a standalone product category but sits outside the four-corner question because there's no app to fit chat relative to.</p>
+
+            <h3>B1 &mdash; Vibecoding Platform</h3>
+
+            <p>A platform whose chat is used to <em>create</em> an app or system, then exits. <strong>Lovable</strong>, <strong>Bolt</strong>, and <strong>Replit Agent</strong> are canonical examples — chat-driven environments whose purpose is to generate running applications from conversation. During a build session, the chat shapes a substrate that will become an app. Once creation is done, chat exits — or is replaced by a different chat that isn't the same conversation and isn't capable of continuing the substrate-generation discussion. Two temporally separate phases: build with chat, then use without it.</p>
+
+            <p>The artifact has to stand on its own once built. The output of vibecoding typically lives in Branch A territory afterward — most often a Classic App. In a real sense, vibecoding is <em>a production process for Classic Apps</em>. The chat is a temporary tool. The artifact must be coherent, finished, capable of operating without the conversation that produced it. This category has been expanding rapidly.</p>
+
+            <h3>B2 &mdash; Living Workspace</h3>
+
+            <p>A platform whose chat creates a substrate and stays alongside it throughout. Building, using, refining, extending — all happen with the same chat present. <strong>The substrate is the file system itself</strong> — files and folders, not a database-backed schema — which means its shape is open-ended and remains shapeable by chat as the work proceeds. <strong>Claude Code</strong> is the canonical example.</p>
+
+            <p>The fact that Claude Code's substrate <em>is</em> the file system is its defining property — and what distinguishes it from chat tools like Claude or ChatGPT (which have no substrate at all). The file system is an unusually general substrate: general enough that what's stored in it can describe, configure, or implement another app entirely (a CRM, a website, a data pipeline). Build something inside Claude Code and the artifact you produce can itself be substrate-shaped. While in Claude Code, though, only one substrate is being shaped: the file system. The artifact's eventual runtime substrate (its database, if it has one) only exists after deployment, at which point you've left the Living Workspace.</p>
+
+            <p>There's a second structural property worth naming. The file system is a <em>low-level</em> interface to the substrate. It's not where most of the user's interaction actually sits; it's the layer beneath. What Claude Code does is let the user choose — or even <em>fabricate</em> — the higher-level interface they want to operate the substrate through. Often that's a code editor, especially early in a session. But it can be anything: a terminal, a notebook, a Markdown viewer, a custom dashboard, even an HTML interface that only exists because the user asked Claude Code to make it during the session. The UX in the Living Workspace isn't fixed; it's selectable, and even fabricable, as part of the same chat that shapes the substrate.</p>
+
+            <p>This is the only mode where the chat that defined the substrate is <em>still there</em> when the substrate is being used, and where the using produces more shaping, indefinitely. Building and using are no longer separate phases; they happen in the same session, fluidly. The mode is barely emerging as a category — Claude Code sits nearly alone in the position.</p>
+
+            <h2>Two surprising absences</h2>
+
+            <p>Walking through the modes surfaces something the rubric makes visible: two of the corners are surprisingly empty given how long chat has been a productive capability.</p>
+
+            <h3>The expected mainstream that didn't materialize: A3</h3>
+
+            <p>When chat first arrived as a capability, the obvious bet was that most apps would adopt it as the primary way for users to manipulate their substrate. Why click through five forms when you could describe what you want? Why navigate menus when you could just ask <em>"show me last month's revenue by region, broken down by product line"</em>? You'd expect, three or four years in, that almost every existing productive app would have a chat-as-primary-write-interface configuration shipping or close to it.</p>
+
+            <p>In practice, this hasn't happened. Most apps are still A1 (no chat), or A1 with an A2 helper sidebar tacked on — chat that explains the UX rather than driving it. Genuine A3 products, where chat is the primary way to write to the substrate and the UX is for consumption, remain rare. TableThat is one of the few. The expected mainstream of chat-driven productive software didn't arrive on the timeline most people would have predicted.</p>
+
+            <h3>The configuration barely on the conceptual map: B2</h3>
+
+            <p>The Living Workspace is the configuration where chat is in <em>both</em> building and using, with the same chat session fluidly spanning both — building the substrate and operating it, integrated, persistent throughout. In traditional software, building an app and using it are separate phases — different people, different times, different contexts. B2 is the configuration where these phases blend.</p>
+
+            <p>Vibecoding (B1) is everywhere now; that's chat-in-building-only, with chat exiting before use. But B2 — chat in both, simultaneously — is barely emerging. Claude Code is the canonical example, and it sits almost alone. Most products treat building and using as separate phases (B1 then A1), inheriting the long-standing pre-chat assumption that the boundary between them matters. The idea that the same chat session can fluidly do both — and that the substrate can keep evolving as a result — is not yet a common reference point in how people think about chat-driven products.</p>
+
+            <h3>What the absences add up to</h3>
+
+            <p>Three or four years after chat became a productive capability, the corners you'd expect to be most populated and the corners you'd hope would be most explored are both still mostly empty. The configurations that have proliferated are A4 (pure chat as a standalone tool) and B1 (vibecoding). The configurations that would integrate chat with the everyday substance of productive work — A3 in established apps, B2 as a new shape — are surprisingly thin.</p>
+
+            <p>This isn't a thesis the article wants to defend. It's an observation the rubric surfaces by laying the modes out and asking which corners are inhabited. Why these particular configurations are where activity hasn't gathered yet — that's a question worth asking next, but in another piece.</p>
+
+        </div>
+    </article>
+
+    <footer>
+        &copy; 2026 Orchestrator Studios &middot; Staging
+    </footer>
+
+</body>
+</html>

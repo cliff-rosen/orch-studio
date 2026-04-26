@@ -1,0 +1,3253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Six Primitives of Orchestration — Orchestrator Studios</title>
+    <meta name="description" content="An interactive walkthrough of the six load-bearing primitives behind the orchestration framework.">
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --accent: #3730a3;
+            --accent-light: #4f46e5;
+            --accent-subtle: #eef2ff;
+            --accent-stronger: #312e81;
+            --text: #1e1b4b;
+            --text-secondary: #4b5563;
+            --text-tertiary: #94a3b8;
+            --bg: #ffffff;
+            --bg-alt: #f8fafc;
+            --bg-darker: #f1f5f9;
+            --border: #e2e8f0;
+            --border-strong: #cbd5e1;
+            --warn: #b45309;
+            --warn-subtle: #fef3c7;
+            --good: #059669;
+            --good-subtle: #d1fae5;
+            --bad: #dc2626;
+            --bad-subtle: #fee2e2;
+            --human: #6366f1;
+            --agent: #0891b2;
+            --agent-subtle: #cffafe;
+            --radius: 12px;
+            --radius-sm: 8px;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            color: var(--text);
+            background: var(--bg);
+            line-height: 1.6;
+            font-size: 16px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        h1, h2, h3, h4 { font-family: 'Plus Jakarta Sans', sans-serif; line-height: 1.2; }
+
+        .mono { font-family: 'JetBrains Mono', monospace; }
+
+        nav.top {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .nav-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 60px;
+        }
+
+        .nav-logo {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 800;
+            font-size: 1.1rem;
+            color: var(--accent);
+            text-decoration: none;
+            letter-spacing: -0.02em;
+        }
+
+        .nav-back {
+            text-decoration: none;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .nav-back:hover { color: var(--accent); }
+
+        .banner {
+            background: var(--warn-subtle);
+            border-bottom: 1px solid var(--border);
+            padding: 10px 24px;
+            text-align: center;
+            color: var(--warn);
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        header.hero {
+            padding: 56px 0 32px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .hero-label {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--accent);
+            margin-bottom: 14px;
+        }
+
+        .hero h1 {
+            font-size: clamp(2rem, 4vw, 2.75rem);
+            font-weight: 800;
+            color: var(--text);
+            letter-spacing: -0.03em;
+            margin-bottom: 16px;
+            max-width: 820px;
+        }
+
+        .hero p {
+            font-size: 1.05rem;
+            color: var(--text-secondary);
+            max-width: 720px;
+            line-height: 1.7;
+        }
+
+        /* Primitive selector */
+        .selector {
+            position: sticky;
+            top: 60px;
+            z-index: 90;
+            background: var(--bg);
+            border-bottom: 1px solid var(--border);
+            padding: 16px 0;
+        }
+
+        .selector-track {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 4px;
+        }
+
+        .selector-track::-webkit-scrollbar { height: 4px; }
+        .selector-track::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+        .pill {
+            flex: 0 0 auto;
+            border: 1px solid var(--border);
+            background: var(--bg);
+            color: var(--text-secondary);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 600;
+            font-size: 0.78rem;
+            padding: 8px 14px;
+            border-radius: 999px;
+            cursor: pointer;
+            transition: all 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .pill:hover { border-color: var(--accent-light); color: var(--accent); }
+
+        .pill.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #fff;
+        }
+
+        .pill-num {
+            background: var(--accent-subtle);
+            color: var(--accent);
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 4px;
+            min-width: 22px;
+            text-align: center;
+        }
+
+        .pill.active .pill-num { background: rgba(255,255,255,0.25); color: #fff; }
+
+        /* Main stage */
+        main {
+            padding: 48px 0 64px;
+            min-height: 70vh;
+        }
+
+        .primitive {
+            display: none;
+        }
+
+        .primitive.active { display: block; animation: fadeIn 0.35s ease; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .primitive-header {
+            margin-bottom: 36px;
+            max-width: 820px;
+        }
+
+        .primitive-eyebrow {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--accent);
+            margin-bottom: 12px;
+        }
+
+        .primitive-title {
+            font-size: clamp(1.5rem, 2.5vw, 2rem);
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 12px;
+            line-height: 1.25;
+        }
+
+        .primitive-statement {
+            font-size: 1.02rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        .scenario-tag {
+            display: inline-block;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--accent);
+            background: var(--accent-subtle);
+            padding: 5px 12px;
+            border-radius: 999px;
+            margin-bottom: 24px;
+        }
+
+        /* Step controls */
+        .step-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            background: var(--bg-alt);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            margin-bottom: 24px;
+        }
+
+        .step-indicator {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .step-indicator strong { color: var(--text); }
+
+        .step-progress {
+            flex: 1;
+            margin: 0 24px;
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .step-progress-fill {
+            height: 100%;
+            background: var(--accent);
+            transition: width 0.3s;
+        }
+
+        .step-buttons { display: flex; gap: 8px; }
+
+        .step-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            background: var(--bg);
+            border: 1px solid var(--border-strong);
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .step-btn:hover:not(:disabled) {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .step-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .step-btn.primary {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #fff;
+        }
+
+        .step-btn.primary:hover:not(:disabled) {
+            background: var(--accent-stronger);
+            border-color: var(--accent-stronger);
+            color: #fff;
+        }
+
+        /* Stage area — shared shell */
+        .stage {
+            background: var(--bg-alt);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 32px;
+            margin-bottom: 24px;
+            min-height: 320px;
+            position: relative;
+        }
+
+        @media (max-width: 768px) {
+            .stage { padding: 20px; }
+        }
+
+        .narrative {
+            background: var(--accent-subtle);
+            border-left: 3px solid var(--accent);
+            padding: 16px 20px;
+            border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+            margin-bottom: 24px;
+        }
+
+        .narrative p {
+            color: var(--text);
+            font-size: 0.97rem;
+            line-height: 1.6;
+        }
+
+        .narrative p strong { color: var(--accent-stronger); font-weight: 700; }
+
+        /* === P1 / P5: Pipeline of operation cards === */
+        .pipeline {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: stretch;
+            justify-content: center;
+        }
+
+        .op-card {
+            flex: 1 1 130px;
+            max-width: 170px;
+            min-width: 130px;
+            padding: 16px 14px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            position: relative;
+            opacity: 0.25;
+            transition: all 0.4s ease;
+            transform: translateY(8px);
+        }
+
+        .op-card.revealed {
+            opacity: 1;
+            transform: translateY(0);
+            border-color: var(--accent);
+            box-shadow: 0 4px 12px rgba(55, 48, 163, 0.08);
+        }
+
+        .op-card.done {
+            opacity: 0.85;
+            border-color: var(--border-strong);
+            box-shadow: none;
+        }
+
+        .op-num {
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--accent);
+            color: #fff;
+            font-size: 0.72rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        .op-card.done .op-num { background: var(--text-tertiary); }
+
+        .op-name {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 700;
+            font-size: 0.85rem;
+            margin-bottom: 6px;
+            color: var(--text);
+        }
+
+        .op-desc {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .op-actor {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed var(--border);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.72rem;
+            font-weight: 600;
+        }
+
+        .op-actor.human { color: var(--human); }
+        .op-actor.agent { color: var(--agent); }
+
+        .op-actor-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+        .deliverable {
+            margin-top: 32px;
+            padding: 20px;
+            background: var(--good-subtle);
+            border: 1px solid var(--good);
+            border-radius: var(--radius-sm);
+            text-align: center;
+            opacity: 0;
+            transform: scale(0.95);
+            transition: all 0.5s;
+        }
+
+        .deliverable.revealed { opacity: 1; transform: scale(1); }
+
+        .deliverable-label {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--good);
+            margin-bottom: 4px;
+        }
+
+        .deliverable-name {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--text);
+        }
+
+        /* === P1: Asset-flow conveyor === */
+        .conveyor {
+            position: relative;
+        }
+
+        .conveyor-grid {
+            display: grid;
+            grid-template-columns: 200px 1fr 200px;
+            gap: 18px;
+            align-items: stretch;
+            position: relative;
+            z-index: 2;
+        }
+
+        @media (max-width: 900px) {
+            .conveyor-grid {
+                grid-template-columns: 1fr;
+                gap: 24px;
+            }
+        }
+
+        .rail-label {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--text-tertiary);
+            margin-bottom: 10px;
+        }
+
+        .conv-rail {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .conv-input {
+            padding: 12px 14px;
+            background: var(--bg);
+            border: 2px solid var(--accent-light);
+            border-radius: var(--radius-sm);
+            transition: all 0.3s;
+        }
+
+        .conv-input.drawing-from {
+            border-color: var(--accent);
+            background: var(--accent-subtle);
+            box-shadow: 0 0 0 4px rgba(55, 48, 163, 0.12);
+        }
+
+        .conv-input-tag {
+            display: inline-block;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: var(--accent);
+            background: var(--accent-subtle);
+            padding: 2px 7px;
+            border-radius: 3px;
+            margin-bottom: 6px;
+        }
+
+        .conv-input-text {
+            font-size: 0.82rem;
+            line-height: 1.4;
+            color: var(--text);
+        }
+
+        .conv-deliverable {
+            padding: 18px 14px;
+            background: var(--bg);
+            border: 2px dashed var(--border-strong);
+            border-radius: var(--radius-sm);
+            text-align: center;
+            transition: all 0.4s;
+            min-height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .conv-deliverable.revealed {
+            border-style: solid;
+            border-color: var(--good);
+            background: var(--good-subtle);
+            box-shadow: 0 6px 20px rgba(5, 150, 105, 0.15);
+        }
+
+        .conv-deliverable-label {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--text-tertiary);
+            margin-bottom: 8px;
+        }
+
+        .conv-deliverable.revealed .conv-deliverable-label {
+            color: var(--good);
+        }
+
+        .conv-deliverable-name {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: var(--text);
+            line-height: 1.35;
+        }
+
+        .conv-middle {
+            display: flex;
+            flex-direction: column;
+            gap: 22px;
+            overflow-x: auto;
+            padding: 4px 0;
+        }
+
+        .conv-ops-row, .conv-outs-row {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 10px;
+            min-width: 480px;
+        }
+
+        .conv-op {
+            padding: 14px 10px 10px;
+            background: var(--bg);
+            border: 2px solid var(--border);
+            border-radius: var(--radius-sm);
+            text-align: center;
+            transition: all 0.3s;
+            opacity: 0.45;
+            position: relative;
+        }
+
+        .conv-op.done {
+            opacity: 0.85;
+            border-color: var(--text-tertiary);
+        }
+
+        .conv-op.active {
+            opacity: 1;
+            border-color: var(--accent);
+            background: var(--accent-subtle);
+            box-shadow: 0 6px 20px rgba(55, 48, 163, 0.18);
+            transform: translateY(-2px);
+        }
+
+        .conv-op-num {
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: var(--text-tertiary);
+            color: #fff;
+            font-size: 0.7rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        .conv-op.active .conv-op-num,
+        .conv-op.done .conv-op-num {
+            background: var(--accent);
+        }
+
+        .conv-op-name {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 700;
+            font-size: 0.85rem;
+            margin-bottom: 4px;
+            color: var(--text);
+        }
+
+        .conv-op-verb {
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        .conv-out {
+            padding: 10px 8px;
+            background: var(--bg-alt);
+            border: 1px dashed var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 0.74rem;
+            line-height: 1.35;
+            color: var(--text-secondary);
+            text-align: center;
+            opacity: 0.25;
+            transform: translateY(-6px);
+            transition: all 0.4s;
+            position: relative;
+        }
+
+        .conv-out.revealed {
+            opacity: 1;
+            transform: translateY(0);
+            border-style: solid;
+            border-color: var(--good);
+            background: var(--good-subtle);
+            color: var(--text);
+        }
+
+        .conv-out.drawing-from {
+            border-color: var(--accent);
+            background: var(--accent-subtle);
+            box-shadow: 0 0 0 4px rgba(55, 48, 163, 0.12);
+        }
+
+        .conv-out-tag {
+            display: inline-block;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+            font-weight: 700;
+            color: var(--good);
+            margin-bottom: 3px;
+        }
+
+        .conv-out.drawing-from .conv-out-tag { color: var(--accent); }
+
+        .conv-out-empty {
+            color: var(--text-tertiary);
+            font-style: italic;
+        }
+
+        .conveyor-arrows {
+            position: absolute;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: 3;
+            overflow: visible;
+        }
+
+        /* Inbound arrows (initial input or prior output → active op): indigo, dashed */
+        .arrow-in {
+            fill: none;
+            stroke: var(--accent);
+            stroke-width: 2;
+            stroke-dasharray: 5 4;
+            opacity: 0.85;
+            animation: dashFlow 0.7s linear infinite;
+        }
+
+        /* Production arrow (active op → its own output): green, solid */
+        .arrow-out {
+            fill: none;
+            stroke: var(--good);
+            stroke-width: 2.2;
+            opacity: 0.9;
+        }
+
+        /* Final delivery arrow (last output → deliverable): green, solid, heavier */
+        .arrow-final {
+            fill: none;
+            stroke: var(--good);
+            stroke-width: 2.4;
+            opacity: 0.9;
+        }
+
+        @keyframes dashFlow {
+            to { stroke-dashoffset: -9; }
+        }
+
+        /* === P2: Two expertises + spectrum (environments) === */
+        .ev-container { position: relative; }
+
+        .ev-work {
+            display: flex;
+            align-items: baseline;
+            gap: 14px;
+            padding: 14px 18px;
+            background: var(--bg-darker);
+            border-left: 3px solid var(--text);
+            border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+            margin-bottom: 22px;
+        }
+
+        .ev-work-label {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--text-tertiary);
+        }
+
+        .ev-work-text {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 700;
+            color: var(--text);
+            font-size: 0.95rem;
+        }
+
+        .ev-scene-label {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--accent);
+            margin-bottom: 12px;
+        }
+
+        .ev-stage {
+            display: grid;
+            grid-template-columns: 200px 30px 1fr;
+            gap: 0;
+            align-items: stretch;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 22px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .ev-stage { grid-template-columns: 1fr; gap: 16px; }
+        }
+
+        .ev-person {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 18px 14px;
+            background: var(--accent-subtle);
+            border: 1px solid var(--accent-light);
+            border-radius: var(--radius-sm);
+            align-self: center;
+        }
+
+        .ev-person-avatar {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
+            color: white;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 800;
+            font-size: 1.4rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 12px;
+        }
+
+        .ev-person-name {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: var(--accent-stronger);
+            margin-bottom: 4px;
+        }
+
+        .ev-person-bio {
+            font-size: 0.74rem;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        .ev-plus {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 700;
+            font-size: 1.6rem;
+            color: var(--text-tertiary);
+        }
+
+        .ev-env {
+            background: var(--bg-alt);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-height: 200px;
+        }
+
+        .ev-env-label {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-tertiary);
+            margin-bottom: 14px;
+            text-align: center;
+        }
+
+        /* --- Memory scene (no system) --- */
+        .ev-art-memory {
+            text-align: center;
+            padding: 24px 16px;
+            color: var(--text-tertiary);
+            font-style: italic;
+        }
+
+        .ev-art-memory-icon {
+            font-size: 2.5rem;
+            margin-bottom: 14px;
+            opacity: 0.6;
+            font-style: normal;
+        }
+
+        .ev-art-memory-text {
+            font-size: 0.88rem;
+            line-height: 1.5;
+        }
+
+        /* --- Excel + folders scene --- */
+        .ev-art-excel {
+            display: grid;
+            grid-template-columns: 1.6fr 1fr;
+            gap: 14px;
+        }
+
+        @media (max-width: 600px) {
+            .ev-art-excel { grid-template-columns: 1fr; }
+        }
+
+        .ev-grid {
+            background: white;
+            border: 1px solid #b8c4b8;
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.66rem;
+            overflow: hidden;
+            align-self: start;
+        }
+
+        .ev-grid-row {
+            display: grid;
+            grid-template-columns: 1.4fr 1fr 0.9fr 1.4fr;
+            border-bottom: 1px solid #dde5dd;
+        }
+
+        .ev-grid-row:last-child { border-bottom: none; }
+
+        .ev-grid-row.header {
+            background: #4a8254;
+            color: white;
+            font-weight: 700;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.62rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .ev-grid-cell {
+            padding: 5px 7px;
+            border-right: 1px solid #dde5dd;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .ev-grid-cell:last-child { border-right: none; }
+
+        .ev-grid-row.header .ev-grid-cell { border-right-color: rgba(255,255,255,0.2); }
+
+        .ev-folders {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .ev-folder {
+            padding: 6px 10px 6px 32px;
+            background: #fef5d6;
+            border: 1px solid #d6b870;
+            border-radius: 3px 8px 8px 3px;
+            font-size: 0.74rem;
+            color: var(--text);
+            position: relative;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 600;
+        }
+
+        .ev-folder::before {
+            content: "";
+            position: absolute;
+            left: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 18px;
+            height: 14px;
+            background: linear-gradient(to bottom, #e0c878, #b89048);
+            border-radius: 2px 4px 4px 2px;
+            box-shadow: 0 1px 0 rgba(0,0,0,0.06);
+        }
+
+        .ev-folder::after {
+            content: "";
+            position: absolute;
+            left: 8px;
+            top: calc(50% - 9px);
+            width: 8px;
+            height: 4px;
+            background: #b89048;
+            border-radius: 2px 2px 0 0;
+        }
+
+        /* --- Team scene --- */
+        .ev-art-team-row {
+            display: grid;
+            grid-template-columns: 1.3fr 1fr;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 600px) {
+            .ev-art-team-row { grid-template-columns: 1fr; }
+        }
+
+        .ev-wiki {
+            background: white;
+            border: 1px solid var(--border-strong);
+            border-radius: 4px;
+            padding: 9px;
+            font-size: 0.7rem;
+            min-height: 90px;
+        }
+
+        .ev-wiki-header {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 700;
+            color: var(--text);
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 5px;
+            margin-bottom: 7px;
+            font-size: 0.74rem;
+        }
+
+        .ev-wiki-line {
+            height: 5px;
+            background: var(--border);
+            border-radius: 2px;
+            margin-bottom: 4px;
+        }
+
+        .ev-wiki-line.short { width: 60%; }
+
+        .ev-users {
+            display: flex;
+            align-items: center;
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+        }
+
+        .ev-mini-avatar {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
+            color: white;
+            font-size: 0.62rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid var(--bg-alt);
+            margin-left: -6px;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        .ev-mini-avatar:first-child { margin-left: 0; }
+
+        .ev-users-text {
+            margin-left: 10px;
+        }
+
+        /* --- Tool scene --- */
+        .ev-art-tool {
+            background: white;
+            border: 1px solid var(--border-strong);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .ev-tool-header {
+            background: linear-gradient(to right, #2a4d6a, #3d6a8e);
+            color: white;
+            padding: 7px 11px;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 700;
+            font-size: 0.75rem;
+        }
+
+        .ev-tool-stages {
+            display: flex;
+            gap: 0;
+            padding: 8px;
+            background: #f5f8fa;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .ev-tool-stage {
+            flex: 1;
+            padding: 5px 4px;
+            background: white;
+            border: 1px solid var(--border);
+            border-right: none;
+            text-align: center;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.64rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .ev-tool-stage:first-child { border-radius: 4px 0 0 4px; }
+        .ev-tool-stage:last-child { border-radius: 0 4px 4px 0; border-right: 1px solid var(--border); }
+
+        .ev-tool-stage.active {
+            background: var(--accent-subtle);
+            color: var(--accent);
+            border-color: var(--accent);
+            font-weight: 700;
+        }
+
+        .ev-tool-body {
+            padding: 8px 12px;
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+        }
+
+        .ev-tool-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .ev-tool-row:last-child { border-bottom: none; }
+
+        .ev-tool-badge {
+            display: inline-block;
+            font-size: 0.6rem;
+            padding: 2px 7px;
+            border-radius: 3px;
+            background: var(--good-subtle);
+            color: var(--good);
+            font-weight: 700;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        /* --- Salesforce scene --- */
+        .ev-art-salesforce {
+            background: white;
+            border: 1px solid var(--border-strong);
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 4px 16px rgba(0, 100, 200, 0.08);
+        }
+
+        .ev-sf-header {
+            background: linear-gradient(to right, #00a1e0, #0070c0);
+            color: white;
+            padding: 9px 13px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 700;
+            font-size: 0.78rem;
+        }
+
+        .ev-sf-logo::before {
+            content: "☁ ";
+            opacity: 0.85;
+        }
+
+        .ev-sf-controls {
+            font-size: 0.7rem;
+            opacity: 0.9;
+            font-weight: 600;
+        }
+
+        .ev-sf-body {
+            display: grid;
+            grid-template-columns: 100px 1fr;
+            min-height: 120px;
+        }
+
+        @media (max-width: 600px) {
+            .ev-sf-body { grid-template-columns: 80px 1fr; }
+        }
+
+        .ev-sf-sidebar {
+            background: #f4f6fa;
+            padding: 6px 4px;
+            border-right: 1px solid var(--border);
+            font-size: 0.66rem;
+        }
+
+        .ev-sf-side-item {
+            padding: 5px 7px;
+            border-radius: 3px;
+            color: var(--text-secondary);
+            margin-bottom: 1px;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 500;
+        }
+
+        .ev-sf-side-item.active {
+            background: white;
+            color: #0070c0;
+            font-weight: 700;
+        }
+
+        .ev-sf-main {
+            padding: 9px 11px;
+        }
+
+        .ev-sf-section {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 700;
+            font-size: 0.74rem;
+            color: var(--text);
+            margin-bottom: 7px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .ev-sf-row {
+            display: grid;
+            grid-template-columns: 1.3fr 1fr 0.8fr;
+            gap: 8px;
+            padding: 4px 0;
+            font-size: 0.68rem;
+            align-items: center;
+        }
+
+        .ev-sf-cell {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .ev-sf-stage {
+            display: inline-block;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.6rem;
+            padding: 2px 7px;
+            border-radius: 8px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .ev-sf-stage.qualifying { background: #d1eaff; color: #0070c0; }
+        .ev-sf-stage.negotiating { background: #ffe8b8; color: #b08020; }
+        .ev-sf-stage.demo { background: #e0d8ff; color: #6040c0; }
+
+        /* --- Attribution lines --- */
+        .ev-attribs {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+
+        .ev-attrib {
+            display: grid;
+            grid-template-columns: 240px 1fr;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 16px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            border-left-width: 4px;
+        }
+
+        @media (max-width: 600px) {
+            .ev-attrib { grid-template-columns: 1fr; gap: 4px; }
+        }
+
+        .ev-attrib-domain { border-left-color: var(--accent); }
+        .ev-attrib-orch { border-left-color: var(--warn); }
+
+        .ev-attrib-label {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .ev-attrib-domain .ev-attrib-label { color: var(--accent); }
+        .ev-attrib-orch .ev-attrib-label { color: var(--warn); }
+
+        .ev-attrib-value {
+            font-size: 0.92rem;
+            color: var(--text);
+            font-weight: 500;
+            line-height: 1.4;
+        }
+
+        /* --- Summary view --- */
+        .ev-summary-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+        }
+
+        @media (max-width: 700px) {
+            .ev-summary-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        .ev-summary-cell {
+            padding: 12px 8px;
+            background: var(--bg);
+            border: 1px solid var(--border-strong);
+            border-radius: var(--radius-sm);
+            text-align: center;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 600;
+            font-size: 0.74rem;
+            color: var(--text);
+            line-height: 1.3;
+        }
+
+        .ev-summary-cell::before {
+            content: "▶";
+            display: block;
+            font-size: 0.6rem;
+            margin-bottom: 6px;
+            color: var(--warn);
+        }
+
+        /* === The Dial control === */
+        .dial-container {
+            position: relative;
+        }
+
+        .dial {
+            background: linear-gradient(to bottom, var(--bg-darker), var(--bg-alt));
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 22px 30px 38px;
+            margin-bottom: 22px;
+        }
+
+        .dial-instruction {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+            color: var(--text-tertiary);
+            text-align: center;
+            margin-bottom: 22px;
+        }
+
+        .dial-track {
+            position: relative;
+            height: 28px;
+            margin: 0 90px;
+        }
+
+        @media (max-width: 768px) {
+            .dial-track { margin: 0 70px; }
+        }
+
+        @media (max-width: 540px) {
+            .dial-track { margin: 0 56px; }
+            .dial { padding: 18px 16px 36px; }
+        }
+
+        .dial-line {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 5px;
+            transform: translateY(-50%);
+            background: linear-gradient(to right, var(--accent), var(--warn));
+            border-radius: 3px;
+            opacity: 0.85;
+        }
+
+        .dial-end {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-secondary);
+            white-space: nowrap;
+        }
+
+        .dial-end-left { right: 100%; padding-right: 16px; color: var(--accent); }
+        .dial-end-right { left: 100%; padding-left: 16px; color: var(--warn); }
+
+        .dial-dot {
+            position: absolute;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: white;
+            border: 3px solid var(--border-strong);
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s, background 0.2s;
+            padding: 0;
+            outline: none;
+            z-index: 2;
+        }
+
+        .dial-dot:hover {
+            border-color: var(--accent);
+            transform: translate(-50%, -50%) scale(1.15);
+        }
+
+        .dial-dot:focus-visible {
+            box-shadow: 0 0 0 4px rgba(55, 48, 163, 0.25);
+        }
+
+        .dial-dot.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            width: 26px;
+            height: 26px;
+            box-shadow: 0 0 0 7px rgba(55, 48, 163, 0.16);
+        }
+
+        .dial-dot-label {
+            position: absolute;
+            top: calc(100% + 12px);
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            transition: color 0.2s, font-weight 0.2s;
+            pointer-events: none;
+        }
+
+        .dial-dot.active .dial-dot-label {
+            color: var(--accent);
+            font-weight: 700;
+        }
+
+        @media (max-width: 540px) {
+            .dial-dot-label {
+                font-size: 0.62rem;
+                /* Stagger labels vertically on small screens to prevent overlap */
+            }
+            .dial-dot:nth-child(odd) .dial-dot-label { top: calc(100% + 8px); }
+            .dial-dot:nth-child(even) .dial-dot-label { top: calc(100% + 22px); }
+        }
+
+        /* === Dial card (the position display) === */
+        .dial-card {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 22px;
+        }
+
+        .dial-card-header {
+            display: flex;
+            align-items: baseline;
+            gap: 14px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .dial-card-pos {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--accent);
+            background: var(--accent-subtle);
+            padding: 4px 10px;
+            border-radius: 4px;
+        }
+
+        .dial-card-name {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .dial-card-stage {
+            display: grid;
+            grid-template-columns: 180px 28px 1fr;
+            gap: 0;
+            align-items: stretch;
+            background: var(--bg-alt);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 18px;
+            margin-bottom: 18px;
+        }
+
+        @media (max-width: 768px) {
+            .dial-card-stage { grid-template-columns: 1fr; gap: 14px; }
+        }
+
+        .dial-card-narrative {
+            padding: 14px 18px;
+            background: var(--bg-alt);
+            border-left: 3px solid var(--text-tertiary);
+            border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+            margin-bottom: 16px;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: var(--text);
+        }
+
+        /* === P2 (legacy lanes — retained for safety, not used) === */
+        .lanes {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+
+        .lane {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 18px 20px;
+        }
+
+        .lane-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .lane-tag {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        .lane-domain .lane-tag { background: var(--accent-subtle); color: var(--accent); }
+        .lane-orch .lane-tag { background: var(--good-subtle); color: var(--good); }
+
+        .lane-title {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 700;
+        }
+
+        .lane-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            min-height: 40px;
+        }
+
+        .lane-item {
+            padding: 8px 12px;
+            background: var(--bg-alt);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 0.83rem;
+            color: var(--text);
+            opacity: 0;
+            transform: translateY(6px);
+            transition: all 0.35s;
+        }
+
+        .lane-item.revealed { opacity: 1; transform: translateY(0); }
+        .lane-domain .lane-item.revealed { border-color: var(--accent); background: var(--accent-subtle); }
+        .lane-orch .lane-item.revealed { border-color: var(--good); background: var(--good-subtle); }
+
+        /* === P3: Same work, different homes === */
+        .homes-stage {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 24px;
+        }
+
+        .work-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            padding: 16px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+        }
+
+        .work-step {
+            padding: 6px 12px;
+            background: var(--bg-alt);
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+        }
+
+        .homes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+        }
+
+        .home-card {
+            padding: 16px;
+            background: var(--bg);
+            border: 2px solid var(--border);
+            border-radius: var(--radius-sm);
+            transition: all 0.3s;
+            opacity: 0.5;
+        }
+
+        .home-card.active {
+            opacity: 1;
+            border-color: var(--accent);
+            box-shadow: 0 4px 16px rgba(55, 48, 163, 0.1);
+            transform: translateY(-3px);
+        }
+
+        .home-icon {
+            font-size: 1.6rem;
+            margin-bottom: 8px;
+        }
+
+        .home-name {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 700;
+            font-size: 0.92rem;
+            margin-bottom: 4px;
+        }
+
+        .home-desc {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        /* === P4: Spectrum === */
+        .spectrum-wrap { padding: 8px 0; }
+
+        .spectrum-track {
+            position: relative;
+            height: 6px;
+            background: linear-gradient(to right, var(--accent-subtle), var(--accent-light));
+            border-radius: 3px;
+            margin: 60px 12px 80px;
+        }
+
+        .spectrum-stop {
+            position: absolute;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--bg);
+            border: 3px solid var(--border-strong);
+            cursor: pointer;
+            transition: all 0.25s;
+        }
+
+        .spectrum-stop.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            transform: translate(-50%, -50%) scale(1.4);
+            box-shadow: 0 0 0 6px rgba(55, 48, 163, 0.15);
+        }
+
+        .spectrum-label {
+            position: absolute;
+            top: -42px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            transition: color 0.25s;
+        }
+
+        .spectrum-stop.active .spectrum-label { color: var(--accent); }
+
+        .spectrum-endcap {
+            position: absolute;
+            top: 28px;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.72rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-tertiary);
+        }
+
+        .spectrum-endcap.left { left: 0; transform: translateX(-50%); }
+        .spectrum-endcap.right { right: 0; transform: translateX(50%); }
+
+        .spectrum-detail {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 20px 24px;
+            min-height: 120px;
+            transition: all 0.3s;
+        }
+
+        .spectrum-detail-name {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 700;
+            font-size: 1.05rem;
+            margin-bottom: 8px;
+            color: var(--text);
+        }
+
+        .spectrum-detail-desc {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            line-height: 1.6;
+        }
+
+        .spectrum-tradeoff {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .tradeoff-tag {
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 999px;
+        }
+
+        .tradeoff-tag.flexible { background: var(--good-subtle); color: var(--good); }
+        .tradeoff-tag.encoded { background: var(--accent-subtle); color: var(--accent); }
+
+        /* === P6: Within-turn timeline === */
+        .turn-zone {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+
+        .turn-zone-label {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--text-tertiary);
+            margin-bottom: 12px;
+        }
+
+        .turn-prompt {
+            padding: 14px 18px;
+            background: var(--accent-subtle);
+            border-left: 3px solid var(--accent);
+            border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+            font-size: 0.9rem;
+            color: var(--text);
+        }
+
+        .turn-actions {
+            margin-top: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .turn-action {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px 14px;
+            background: var(--agent-subtle);
+            border-left: 3px solid var(--agent);
+            border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+            opacity: 0;
+            transform: translateX(-8px);
+            transition: all 0.35s;
+        }
+
+        .turn-action.revealed { opacity: 1; transform: translateX(0); }
+
+        .turn-action-num {
+            flex-shrink: 0;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: var(--agent);
+            color: #fff;
+            font-size: 0.7rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 1px;
+        }
+
+        .turn-action-body { flex: 1; }
+
+        .turn-action-kind {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--agent);
+            margin-bottom: 2px;
+        }
+
+        .turn-action-text {
+            font-size: 0.85rem;
+            color: var(--text);
+            line-height: 1.5;
+        }
+
+        .turn-response {
+            margin-top: 16px;
+            padding: 14px 18px;
+            background: var(--good-subtle);
+            border-left: 3px solid var(--good);
+            border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+            font-size: 0.9rem;
+            color: var(--text);
+            opacity: 0;
+            transition: all 0.35s;
+        }
+
+        .turn-response.revealed { opacity: 1; }
+
+        /* === P7: Two columns side by side === */
+        .compare {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        @media (max-width: 768px) {
+            .compare { grid-template-columns: 1fr; }
+        }
+
+        .compare-col {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 18px;
+        }
+
+        .compare-col.good { border-color: var(--good); }
+        .compare-col.bad { border-color: var(--bad); }
+
+        .compare-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+
+        .compare-tag {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        .compare-col.good .compare-tag { background: var(--good-subtle); color: var(--good); }
+        .compare-col.bad .compare-tag { background: var(--bad-subtle); color: var(--bad); }
+
+        .compare-title {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 700;
+            font-size: 0.95rem;
+        }
+
+        .compare-row {
+            padding: 10px 12px;
+            background: var(--bg-alt);
+            border-radius: var(--radius-sm);
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            opacity: 0;
+            transform: translateY(4px);
+            transition: all 0.3s;
+        }
+
+        .compare-row.revealed { opacity: 1; transform: translateY(0); }
+
+        .compare-row strong {
+            display: block;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 4px;
+        }
+
+        .compare-col.good .compare-row strong { color: var(--good); }
+        .compare-col.bad .compare-row strong { color: var(--bad); }
+
+        /* === P8: Directory + behavior preview === */
+        .ide {
+            display: grid;
+            grid-template-columns: 240px 1fr;
+            gap: 0;
+            border: 1px solid var(--border-strong);
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+            background: var(--bg);
+            min-height: 360px;
+        }
+
+        @media (max-width: 768px) {
+            .ide { grid-template-columns: 1fr; }
+        }
+
+        .ide-tree {
+            background: var(--bg-darker);
+            padding: 14px;
+            border-right: 1px solid var(--border);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+        }
+
+        .ide-tree-label {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-tertiary);
+            margin-bottom: 10px;
+        }
+
+        .ide-file {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 6px;
+            border-radius: 4px;
+            color: var(--text);
+            opacity: 0;
+            transform: translateX(-4px);
+            transition: all 0.3s;
+            margin-bottom: 2px;
+        }
+
+        .ide-file.revealed { opacity: 1; transform: translateX(0); }
+
+        .ide-file.editing {
+            background: var(--accent-subtle);
+            color: var(--accent-stronger);
+        }
+
+        .ide-file-icon { color: var(--text-tertiary); flex-shrink: 0; }
+
+        .ide-empty {
+            color: var(--text-tertiary);
+            font-style: italic;
+            font-size: 0.78rem;
+            padding: 4px 6px;
+        }
+
+        .ide-preview {
+            padding: 18px;
+        }
+
+        .ide-preview-label {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-tertiary);
+            margin-bottom: 10px;
+        }
+
+        .ide-prompt {
+            padding: 10px 14px;
+            background: var(--accent-subtle);
+            border-radius: var(--radius-sm);
+            font-size: 0.85rem;
+            color: var(--text);
+            margin-bottom: 12px;
+        }
+
+        .ide-prompt-tag {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--accent);
+            margin-bottom: 4px;
+        }
+
+        .ide-output {
+            padding: 12px 14px;
+            background: var(--bg-alt);
+            border: 1px dashed var(--border-strong);
+            border-radius: var(--radius-sm);
+            font-size: 0.85rem;
+            color: var(--text);
+            line-height: 1.6;
+            transition: all 0.3s;
+        }
+
+        .ide-output-tag {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-tertiary);
+            margin-bottom: 4px;
+        }
+
+        /* Punchline panel */
+        .punchline {
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
+            color: #fff;
+            padding: 36px 32px;
+            border-radius: var(--radius);
+            margin-top: 40px;
+        }
+
+        .punchline-eyebrow {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            opacity: 0.85;
+            margin-bottom: 14px;
+        }
+
+        .punchline-text {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 1.25rem;
+            font-weight: 600;
+            line-height: 1.5;
+            max-width: 720px;
+        }
+
+        .punchline-text em {
+            background: rgba(255, 255, 255, 0.18);
+            padding: 1px 7px;
+            border-radius: 4px;
+            font-style: normal;
+            font-weight: 700;
+        }
+
+        /* Footer between primitives */
+        .between {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0 0;
+            border-top: 1px solid var(--border);
+            margin-top: 32px;
+        }
+
+        .between-link {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .between-link:hover { color: var(--accent-light); }
+
+        .between-link.disabled { color: var(--text-tertiary); pointer-events: none; }
+
+        footer.bottom {
+            border-top: 1px solid var(--border);
+            padding: 28px 24px;
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.82rem;
+        }
+
+        /* Mobile tweaks */
+        @media (max-width: 640px) {
+            .nav-inner { height: 52px; }
+            .selector { top: 52px; padding: 12px 0; }
+            header.hero { padding: 36px 0 24px; }
+            .step-bar { flex-direction: column; gap: 12px; align-items: stretch; }
+            .step-progress { margin: 0; }
+            .step-buttons { justify-content: space-between; }
+            .punchline-text { font-size: 1.05rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="top">
+        <div class="nav-inner">
+            <a href="/" class="nav-logo">Orchestrator Studios</a>
+            <a href="/staging/" class="nav-back">&larr; Back to staging</a>
+        </div>
+    </nav>
+
+    <div class="banner">Staging — interactive walkthrough in review, not linked from the public site.</div>
+
+    <header class="hero">
+        <div class="container">
+            <p class="hero-label">Interactive Walkthrough</p>
+            <h1>Six Primitives of Orchestration</h1>
+            <p>Six load-bearing assertions that everything in the orchestration framework rests on. Step through each one. Each panel uses a worked example to make the primitive concrete — pick a primitive from the bar below, then use the prev/next buttons to advance.</p>
+        </div>
+    </header>
+
+    <div class="selector">
+        <div class="container">
+            <div class="selector-track" id="selectorTrack"></div>
+        </div>
+    </div>
+
+    <main>
+        <div class="container">
+            <div id="primitiveStage"></div>
+        </div>
+    </main>
+
+    <footer class="bottom">
+        &copy; 2026 Orchestrator Studios &middot; Staging
+    </footer>
+
+    <script>
+    // ============================================================
+    //  Primitive definitions
+    // ============================================================
+    //  Each primitive declares:
+    //    - meta (id, short label, title, statement, scenario tag)
+    //    - sceneType (which renderer to use)
+    //    - steps (one per stepIndex; each has narrative + scene state)
+    //    - sceneData (per-scene-type data the renderer reads)
+    // ============================================================
+
+    const primitives = [
+      // ========================================================
+      // P1 — Atomic operations
+      // ========================================================
+      {
+        id: 1,
+        short: "Atomic Ops",
+        title: "All knowledge work reduces to a sequence of atomic operations",
+        statement: "Knowledge work is a pipeline. Every effort starts with fixed initial inputs on the left and aims at a target deliverable on the right. Each operation in between draws from prior assets — the initial inputs and any earlier output — and transforms them into a new output. Outputs accumulate left to right on the conveyor; the deliverable is what the chain produces.",
+        scenario: "Worked example — writing a one-page research memo",
+        sceneType: "conveyor",
+        sceneData: {
+          inputs: [
+            { id: "in-q", tag: "Q", text: "Research question to be answered." },
+            { id: "in-s", tag: "S", text: "Folder of source documents." },
+            { id: "in-a", tag: "A", text: "Audience: senior team, plain-English tone." }
+          ],
+          ops: [
+            { id: "op-0", name: "Frame",      verb: "sharpen the question",     output: "Precise framing",    drawsFrom: ["in-q"] },
+            { id: "op-1", name: "Skim",       verb: "spot relevant sources",    output: "Shortlist of sources", drawsFrom: ["op-0", "in-s"] },
+            { id: "op-2", name: "Read",       verb: "extract key points",       output: "Notes per source",    drawsFrom: ["op-1"] },
+            { id: "op-3", name: "Synthesize", verb: "find the answer pattern",  output: "Synthesis",           drawsFrom: ["op-2"] },
+            { id: "op-4", name: "Draft",      verb: "write the memo",           output: "First draft",         drawsFrom: ["op-3", "in-a"] },
+            { id: "op-5", name: "Polish",     verb: "tighten and finalize",     output: "Final memo",          drawsFrom: ["op-4"] }
+          ],
+          deliverable: "The research memo"
+        },
+        steps: [
+          {
+            narrative: "<p>Every piece of knowledge work starts with <strong>fixed initial inputs</strong> on the left and aims at a <strong>target deliverable</strong> on the right. Here: a one-page research memo. The question, the source folder, and the audience are the inputs. Nothing has been done yet — no operations have run, no outputs are on the conveyor.</p>",
+            activeOp: -1, completedOps: 0, delivered: false
+          },
+          {
+            narrative: "<p>Operation 1 — <strong>Frame</strong>. One arrow in, from the question. One arrow out, producing the precise framing. The output now sits on the conveyor and is available to every operation downstream.</p>",
+            activeOp: 0, completedOps: 1, delivered: false
+          },
+          {
+            narrative: "<p>Operation 2 — <strong>Skim</strong>. Two arrows in — the precise framing (the prior output) tells the operation <em>what</em> to look for, the source folder (initial input) tells it <em>where</em> to look. One arrow out: the shortlist.</p>",
+            activeOp: 1, completedOps: 2, delivered: false
+          },
+          {
+            narrative: "<p>Operation 3 — <strong>Read</strong>. One arrow in, from the shortlist. One arrow out: notes per source. The chain continues.</p>",
+            activeOp: 2, completedOps: 3, delivered: false
+          },
+          {
+            narrative: "<p>Operation 4 — <strong>Synthesize</strong>. One arrow in, from the notes. One arrow out: the synthesis. The conveyor now holds four outputs.</p>",
+            activeOp: 3, completedOps: 4, delivered: false
+          },
+          {
+            narrative: "<p>Operation 5 — <strong>Draft</strong>. Two arrows in — the synthesis (the spine of the memo) and the audience input (governs tone and length, sat untouched on the rail until exactly this point). One arrow out: the first draft.</p>",
+            activeOp: 4, completedOps: 5, delivered: false
+          },
+          {
+            narrative: "<p>Operation 6 — <strong>Polish</strong>. One arrow in, from the draft. One arrow out: the final memo, which feeds directly into the deliverable on the right.</p>",
+            activeOp: 5, completedOps: 6, delivered: true
+          },
+          {
+            narrative: "<p><strong>Look at the whole thing.</strong> Six operations, each with at most a couple of clean inputs and exactly one output. The conveyor accumulated outputs left to right. Initial inputs sat on the rail and were drawn upon at exactly the moments they were needed — Q at the start, S in the middle, A near the end. The pipeline isn't a single act. It's a chain of small operations, each obvious in isolation. Naming them this way is what lets us ask the next question: <em>who performs each operation, and who decides the order?</em></p>",
+            activeOp: -1, completedOps: 6, delivered: true
+          }
+        ]
+      },
+
+      // ========================================================
+      // P2 — Two expertises + orchestration spectrum (dial)
+      //      (merged from old P2 "two expertises" + P3 "locatable" + P4 "spectrum")
+      // ========================================================
+      {
+        id: 2,
+        short: "Two Expertises",
+        title: "Two expertises required — and only one of them moves",
+        statement: "Every piece of knowledge work draws on two distinct expertises. Domain expertise (what makes the work right) and orchestration expertise (how to structure it). Both are always required. The user always provides the domain. Orchestration can come from many places — turn the dial.",
+        scenario: "Worked example — same sales rep, five working environments",
+        sceneType: "environments",
+        customLayout: true,
+        sceneData: {
+          work: "Managing the sales pipeline and pursuing the Acme deal",
+          person: { initial: "M", name: "Mike", bio: "B2B sales rep, 12 years in software" },
+          dialEnds: { left: "No system", right: "Compiled software" },
+          scenes: [
+            {
+              id: "memory",
+              label: "All from memory",
+              envType: "memory",
+              envLabel: "No system",
+              narrative: "Mike with no system. He calls accounts when he thinks of them. The entire pipeline lives in his head — maximally flexible, but nothing transfers if he's out sick or moves on.",
+              domainSource: "Mike (his customer relationships and sales judgment)",
+              orchSource: "Mike's head — improvised, no notes"
+            },
+            {
+              id: "excel",
+              label: "Excel + folders",
+              envType: "excel",
+              envLabel: "Personal Excel + folders",
+              narrative: "Mike's pipeline is now a workbook — one row per contact, columns for stage, last-touch, next step. On his hard drive: a folder per account with proposals, decks, and email threads. The orchestration moved out of his head into his own DIY system. Still entirely his — but visible, repeatable.",
+              domainSource: "Mike (unchanged)",
+              orchSource: "Mike's own Excel + per-account folders on his drive"
+            },
+            {
+              id: "team",
+              label: "Team-shared",
+              envType: "team",
+              envLabel: "Team-shared system",
+              narrative: "Now everyone uses the same Excel template and stage names. A team wiki documents the sales playbook — qualification criteria, follow-up cadence, when to escalate. Mike still owns his deals. The orchestration belongs to the team now, not just to him.",
+              domainSource: "Mike (unchanged)",
+              orchSource: "Team's shared template + the documented sales playbook"
+            },
+            {
+              id: "tool",
+              label: "Internal tool",
+              envType: "tool",
+              envLabel: "Internal pipeline tool",
+              narrative: "The team built (or adopted) a lightweight pipeline tool. Stages enforced by the tool. Activity logging required to advance an opportunity. Reminders auto-fire. The orchestration is now configured software — Mike operates within its rules.",
+              domainSource: "Mike (unchanged)",
+              orchSource: "A configured internal tool — stages enforced, activity required"
+            },
+            {
+              id: "salesforce",
+              label: "Salesforce",
+              envType: "salesforce",
+              envLabel: "Vendor's compiled CRM",
+              narrative: "Mike's entire sales process now lives in a vendor-shipped product. Excel rows became Opportunity records in a browser. Hard-drive folders became account areas in the app. Stages, automation, forecasting, commission rules — all baked in. Mike brings the relationships and the pitch. Salesforce brings the orchestration.",
+              domainSource: "Mike (unchanged)",
+              orchSource: "Salesforce — vendor's compiled CRM"
+            }
+          ]
+        },
+        steps: [
+          { sceneIdx: 0 },
+          { sceneIdx: 1 },
+          { sceneIdx: 2 },
+          { sceneIdx: 3 },
+          { sceneIdx: 4 }
+        ]
+      },
+
+      // ========================================================
+      // P3 — Agents execute atomic operations
+      // ========================================================
+      {
+        id: 3,
+        short: "Agents Execute",
+        title: "Agents can execute the atomic operations of knowledge work",
+        statement: "An LLM in a loop with tools and instructions can perform many of the operations of knowledge work — read, search, evaluate, summarize, draft, extract — at speed and quality that previously required a human per operation.",
+        scenario: "Worked example — the résumé pipeline, before and after agents",
+        sceneType: "pipeline",
+        sceneData: {
+          ops: [
+            { name: "Recall", desc: "Pull job history from memory and old records.", actor: { 0: "human", 2: "agent" } },
+            { name: "Search", desc: "Look up exact dates, titles, achievements.", actor: { 0: "human", 3: "agent" } },
+            { name: "Extract", desc: "Pull the most relevant accomplishments.", actor: { 0: "human", 4: "agent" } },
+            { name: "Draft", desc: "Write the summary and bullet points.", actor: { 0: "human", 5: "agent" } },
+            { name: "Evaluate", desc: "Read aloud. Cut what's weak.", actor: { 0: "human", 6: "human" } },
+            { name: "Revise", desc: "Sharpen verbs. Quantify impact.", actor: { 0: "human", 6: "agent" } },
+            { name: "Format", desc: "Final layout. Export.", actor: { 0: "human", 6: "agent" } }
+          ],
+          revealAll: true
+        },
+        steps: [
+          { narrative: "<p>Here is the same résumé pipeline. Before LLMs, every operation in this chain required a human cognitive act — reading, evaluating, drafting, revising. Each card below has a human icon underneath.</p>", showActors: 0 },
+          { narrative: "<p>An <strong>agent</strong> — an LLM in a loop with tools and instructions — can perform the search step. Given a name and a year, it can find the project, the metric, the title. The operation didn't change. Who performs it did.</p>", showActors: 3 },
+          { narrative: "<p>The agent can also extract. Given a pile of raw history, it can pick the few items most relevant to a target role. <strong>Extract</strong> is one of the LLM's strongest moves.</p>", showActors: 4 },
+          { narrative: "<p>It can draft. Given the extracted material and a tone target, the agent produces a first pass — summary, bullets, the works.</p>", showActors: 5 },
+          { narrative: "<p>It can revise. Sharpen verbs. Compress. Quantify. The whole second-pass loop.</p>", showActors: 6 },
+          { narrative: "<p><strong>Most of the operations have moved.</strong> Many cards that used to need a human now have an agent doing the work. A few — the evaluation gate, the strategic call about which job this résumé targets — stay with the human, deliberately. The pipeline didn't change. The cost of running it collapsed.</p>", showActors: 6 }
+        ]
+      },
+
+      // ========================================================
+      // P4 — Within-turn orchestration
+      // ========================================================
+      {
+        id: 4,
+        short: "Within-turn",
+        title: "Agents perform orchestration — but only within a turn",
+        statement: "Given an instruction, the agent decides which tool to call, when the sub-task is done, whether to loop. That is genuine orchestration, performed by the model. Between turns, orchestration is still the user's.",
+        scenario: "Worked example — one turn, expanded",
+        sceneType: "turn",
+        sceneData: {
+          prompt: "Draft three bullet candidates for my last role at Acme, leaning into the cost-savings work.",
+          actions: [
+            { kind: "Tool call", text: "Read profile.md from the workspace to get the Acme role context." },
+            { kind: "Reasoning", text: "Cost-savings work was tied to the Q3 procurement project. Surface those metrics." },
+            { kind: "Tool call", text: "Search notes/ for files containing 'procurement' and 'savings'." },
+            { kind: "Reasoning", text: "Three savings figures appear: $1.2M, 14%, and a payback period. Use all three across three different bullets." },
+            { kind: "Tool call", text: "Draft three bullets, each leading with an action verb." },
+            { kind: "Reasoning", text: "Read drafts back. Bullet 2 is weakest — replace verb." }
+          ],
+          response: "Three candidate bullets, each with a different angle on the cost-savings work."
+        },
+        steps: [
+          { narrative: "<p>Look closely at <strong>a single turn</strong>. The user issues an instruction — one sentence. Then control passes to the agent until the agent's response comes back. Everything that happens in that interval is what we'll call <em>within-turn</em>.</p>" },
+          { narrative: "<p>The agent's first move is a <strong>tool call</strong>: read a file from the workspace. The user didn't tell it to. The agent decided.</p>", reveal: 1 },
+          { narrative: "<p>Then a <strong>reasoning step</strong>: connect the user's intent to known context. Decide which thread to pull.</p>", reveal: 2 },
+          { narrative: "<p>Another <strong>tool call</strong>: search the notes folder. A choice about <em>where to look next</em> — orchestration in action.</p>", reveal: 3 },
+          { narrative: "<p>More <strong>reasoning</strong>: digest the results. Pick the three figures that matter. Decide how to allocate them across bullets.</p>", reveal: 4 },
+          { narrative: "<p>A <strong>tool call</strong> to draft. Then one more <strong>reasoning step</strong> to read the drafts back and self-correct. The agent decided when to stop.</p>", reveal: 6 },
+          { narrative: "<p>The <strong>response</strong> goes back to the user. Now control is with the user again.</p>", reveal: 6, response: true },
+          { narrative: "<p>Every decision inside that turn was <strong>orchestration</strong> — which tool, in what order, when to stop. Performed by the model. Between turns, the user is back in charge: deciding what to attempt next, judging the output, redirecting. The agent inherited a slice of orchestration that didn't have a place to live before.</p>", reveal: 6, response: true }
+        ]
+      },
+
+      // ========================================================
+      // P5 — The turn is the boundary
+      // ========================================================
+      {
+        id: 5,
+        short: "Turn Boundary",
+        title: "The turn is the structural boundary",
+        statement: "Within the turn, the agent decides. Between turns, the user decides. The quality of how the boundary is set — clear scope in, clear result out — determines whether the turn lands cleanly or spirals.",
+        scenario: "Worked example — well-bounded vs. badly-bounded turns",
+        sceneType: "compare",
+        sceneData: {
+          good: {
+            title: "Well-bounded turn",
+            rows: [
+              { label: "Scope in", text: "Draft three bullets for the Acme role — cost-savings angle." },
+              { label: "Context the agent has", text: "profile.md and notes/ are in scope and current." },
+              { label: "Stop condition", text: "Three bullets returned, with sources cited." },
+              { label: "Within-turn moves", text: "Read, search, draft, self-check. All in service of the stated goal." },
+              { label: "Result", text: "Three usable candidate bullets. User picks one." }
+            ]
+          },
+          bad: {
+            title: "Badly-bounded turn",
+            rows: [
+              { label: "Scope in", text: "Help me with my résumé." },
+              { label: "Context the agent has", text: "Unclear what's current, what's outdated, what to prioritize." },
+              { label: "Stop condition", text: "None — keep going until something feels done?" },
+              { label: "Within-turn moves", text: "Drift. Asks five clarifying questions. Hallucinates a previous job." },
+              { label: "Result", text: "Long output with confident errors. User has to redo the work." }
+            ]
+          }
+        },
+        steps: [
+          { narrative: "<p>Two turns, side by side. Same agent. Same workspace. Different boundaries.</p>" },
+          { narrative: "<p>The well-bounded turn starts with <strong>tight scope</strong>. The user names exactly what they want and the angle. The badly-bounded one starts with a vague request.</p>", reveal: 1 },
+          { narrative: "<p>Context matters. In one, the agent has clear pointers to what's current. In the other, the workspace is cluttered or stale and the agent has no signal about what to trust.</p>", reveal: 2 },
+          { narrative: "<p>A <strong>stop condition</strong> is half the boundary. The good turn says <em>three bullets, sources cited</em>. The bad one says nothing — and the agent will fill that vacuum, badly.</p>", reveal: 3 },
+          { narrative: "<p>Inside the turn, the moves diverge. Good turn: tool calls in service of the stated goal. Bad turn: clarifying questions, hallucinations, and drift, because the goal wasn't clear enough to pull against.</p>", reveal: 4 },
+          { narrative: "<p>Result. One produces three usable candidates. The other produces a confidently-wrong wall of text the user has to redo by hand.</p>", reveal: 5 },
+          { narrative: "<p><strong>The turn boundary is a real design surface.</strong> Every orchestration decision belongs on one side or the other — inside the turn (the agent's call) or outside (the user's call). Quality of the boundary is itself something the operator can shape, by being more precise on the way in and tighter on the stop condition.</p>", reveal: 5 }
+        ]
+      },
+
+      // ========================================================
+      // P6 — Substrate shapes the agent
+      // ========================================================
+      {
+        id: 6,
+        short: "Substrate",
+        title: "The substrate shapes the agent",
+        statement: "Files in the workspace — instructions, samples, rules, state maps, tools, skills — configure how the agent orchestrates within a turn. The workspace is where the agent's behavior is set, and the operator is the one writing the files.",
+        scenario: "Worked example — same prompt, evolving substrate",
+        sceneType: "ide",
+        sceneData: {
+          prompt: "Draft three bullets for the Acme role.",
+          stages: [
+            {
+              files: [],
+              empty: "(empty workspace)",
+              outputTag: "Output (no substrate)",
+              output: "Generic bullets. Action verbs are mild. No metric. Tone wanders. The agent did its best without context."
+            },
+            {
+              files: [{ name: "sample.md", icon: "📄" }],
+              outputTag: "Output (sample present)",
+              output: "Bullets now match the structure and tone of the sample. Voice is consistent. Still no metrics — the sample didn't teach that."
+            },
+            {
+              files: [{ name: "sample.md", icon: "📄" }, { name: "CLAUDE.md", icon: "📜" }],
+              outputTag: "Output (rules added)",
+              output: "Each bullet leads with an action verb. Each cites a metric. Length capped at 18 words. The rules file did the orchestration."
+            },
+            {
+              files: [{ name: "sample.md", icon: "📄" }, { name: "CLAUDE.md", icon: "📜", editing: true }],
+              outputTag: "Output (rule edited mid-session)",
+              output: "Rule changed: 'always cite a source URL.' Next turn: every bullet now includes a source. No restart. No release. The substrate updated and the behavior followed."
+            }
+          ]
+        },
+        steps: [
+          { narrative: "<p>Start with an <strong>empty directory</strong>. Same agent. Same prompt: draft three bullets for the Acme role. With no substrate, the agent has nothing to lean on. The output is generic.</p>", stage: 0 },
+          { narrative: "<p>Drop in a <strong>sample.md</strong> — a previously-written résumé in the voice you want. Same agent, same prompt. The output now matches the sample's structure and tone. Nothing was reprogrammed. A file appeared in the directory and the behavior changed.</p>", stage: 1 },
+          { narrative: "<p>Add a <strong>CLAUDE.md</strong> with rules: lead with an action verb, cite a metric, cap at 18 words. Now the agent's within-turn orchestration is being shaped by an explicit policy file. The bullets get sharper, more disciplined.</p>", stage: 2 },
+          { narrative: "<p>Mid-session, edit CLAUDE.md to add one new rule: <em>always cite a source URL</em>. The very next turn, every bullet includes a source. No restart. No release. The substrate updated and the agent adapted.</p>", stage: 3 },
+          { narrative: "<p><strong>This is the unlock.</strong> The orchestration that lives in the agent's per-turn reasoning is not fixed — it is whatever the substrate currently encodes. Files in the workspace configure agent behavior. Editing a file edits the agent. The operator authors the agent's orchestration, in conversation, while the work proceeds.</p>", stage: 3 }
+        ]
+      }
+    ];
+
+    const punchline = {
+      eyebrow: "The framework these primitives build to",
+      text: "Orchestration used to live in one of two places: someone's head, or compiled software. Agents created a <em>third</em> place — the per-turn reasoning of the model, configured by files in the workspace. The work for an operator is to decide, in conversation, how to <em>distribute</em> their orchestration across all three — and climb from one to the next as the work earns it."
+    };
+
+    // ============================================================
+    //  State and rendering
+    // ============================================================
+
+    const state = {
+      activePrimitive: 1,
+      stepIndex: {} // primitive id -> current step index
+    };
+
+    primitives.forEach(p => state.stepIndex[p.id] = 0);
+
+    function renderSelector() {
+      const track = document.getElementById('selectorTrack');
+      track.innerHTML = '';
+      primitives.forEach(p => {
+        const btn = document.createElement('button');
+        btn.className = 'pill' + (p.id === state.activePrimitive ? ' active' : '');
+        btn.innerHTML = `<span class="pill-num">${String(p.id).padStart(2, '0')}</span><span>${p.short}</span>`;
+        btn.addEventListener('click', () => switchPrimitive(p.id));
+        track.appendChild(btn);
+      });
+    }
+
+    function renderStage() {
+      const stage = document.getElementById('primitiveStage');
+      const p = primitives.find(x => x.id === state.activePrimitive);
+      const stepIdx = state.stepIndex[p.id];
+      const step = p.steps[stepIdx];
+      const totalSteps = p.steps.length;
+
+      const isLastPrimitive = p.id === primitives[primitives.length - 1].id;
+      const isAtEnd = stepIdx === totalSteps - 1;
+      const showPunchline = isLastPrimitive && isAtEnd;
+      const useCustom = p.customLayout === true;
+
+      const stepBarHtml = useCustom ? '' : `
+        <div class="step-bar">
+          <div class="step-indicator">Step <strong>${stepIdx + 1}</strong> of ${totalSteps}</div>
+          <div class="step-progress"><div class="step-progress-fill" style="width: ${((stepIdx + 1) / totalSteps) * 100}%"></div></div>
+          <div class="step-buttons">
+            <button class="step-btn" id="prevBtn" ${stepIdx === 0 ? 'disabled' : ''}>&larr; Prev</button>
+            <button class="step-btn primary" id="nextBtn" ${stepIdx === totalSteps - 1 ? 'disabled' : ''}>Next &rarr;</button>
+          </div>
+        </div>
+      `;
+
+      const narrativeHtml = useCustom ? '' : `<div class="narrative">${step.narrative}</div>`;
+
+      stage.innerHTML = `
+        <section class="primitive active">
+          <div class="primitive-header">
+            <p class="primitive-eyebrow">Primitive ${String(p.id).padStart(2, '0')} of ${String(primitives.length).padStart(2, '0')}</p>
+            <h2 class="primitive-title">${p.title}</h2>
+            <p class="primitive-statement">${p.statement}</p>
+          </div>
+
+          <span class="scenario-tag">${p.scenario}</span>
+
+          ${stepBarHtml}
+
+          <div class="stage" id="sceneStage"></div>
+
+          ${narrativeHtml}
+
+          ${showPunchline ? `
+            <div class="punchline">
+              <p class="punchline-eyebrow">${punchline.eyebrow}</p>
+              <p class="punchline-text">${punchline.text}</p>
+            </div>
+          ` : ''}
+
+          <div class="between">
+            <a href="#" class="between-link ${p.id === 1 ? 'disabled' : ''}" id="prevPrimitive">${p.id > 1 ? '&larr; Previous primitive' : ''}</a>
+            <a href="#" class="between-link ${isLastPrimitive ? 'disabled' : ''}" id="nextPrimitive">${!isLastPrimitive ? 'Next primitive &rarr;' : ''}</a>
+          </div>
+        </section>
+      `;
+
+      renderScene(p, step, stepIdx);
+
+      if (!useCustom) {
+        document.getElementById('prevBtn').addEventListener('click', () => stepBy(-1));
+        document.getElementById('nextBtn').addEventListener('click', () => stepBy(1));
+      }
+      document.getElementById('prevPrimitive').addEventListener('click', e => { e.preventDefault(); if (p.id > 1) switchPrimitive(p.id - 1); });
+      document.getElementById('nextPrimitive').addEventListener('click', e => { e.preventDefault(); if (!isLastPrimitive) switchPrimitive(p.id + 1); });
+    }
+
+    // ============================================================
+    //  Scene renderers (one per sceneType)
+    // ============================================================
+
+    function renderScene(p, step, stepIdx) {
+      const stage = document.getElementById('sceneStage');
+      const renderers = {
+        pipeline: renderPipeline,
+        conveyor: renderConveyor,
+        environments: renderEnvironments,
+        turn: renderTurn,
+        compare: renderCompare,
+        ide: renderIde
+      };
+      const fn = renderers[p.sceneType];
+      if (fn) fn(stage, p, step, stepIdx);
+    }
+
+    function renderPipeline(stage, p, step, stepIdx) {
+      const ops = p.sceneData.ops;
+      const isAgentExecute = p.id === 3;
+      let html = '<div class="pipeline">';
+      ops.forEach((op, i) => {
+        const revealed = isAgentExecute ? true : i < stepIdx;
+        const done = isAgentExecute ? false : i < stepIdx - 1;
+        const cls = revealed ? (done ? 'op-card revealed done' : 'op-card revealed') : 'op-card';
+
+        let actorHtml = '';
+        if (isAgentExecute) {
+          const showActors = step.showActors;
+          const actorByStep = op.actor;
+          let actor = 'human';
+          for (let s = showActors; s >= 0; s--) {
+            if (actorByStep[s]) { actor = actorByStep[s]; break; }
+          }
+          actorHtml = `<div class="op-actor ${actor}"><span class="op-actor-dot"></span>${actor === 'human' ? 'Human' : 'Agent'}</div>`;
+        }
+
+        html += `
+          <div class="${cls}">
+            <span class="op-num">${i + 1}</span>
+            <div class="op-name">${op.name}</div>
+            <div class="op-desc">${op.desc}</div>
+            ${actorHtml}
+          </div>
+        `;
+      });
+      html += '</div>';
+      if (p.sceneData.deliverable && step.revealDeliverable) {
+        html += `<div class="deliverable revealed">
+          <div class="deliverable-label">Deliverable</div>
+          <div class="deliverable-name">${p.sceneData.deliverable}</div>
+        </div>`;
+      } else if (p.sceneData.deliverable) {
+        html += `<div class="deliverable">
+          <div class="deliverable-label">Deliverable</div>
+          <div class="deliverable-name">${p.sceneData.deliverable}</div>
+        </div>`;
+      }
+      stage.innerHTML = html;
+    }
+
+    function renderConveyor(stage, p, step, stepIdx) {
+      const data = p.sceneData;
+      const activeOpIdx = step.activeOp;
+      const completedOps = step.completedOps;
+      const delivered = step.delivered;
+
+      const inputsHtml = data.inputs.map(inp => `
+        <div class="conv-input" data-asset="${inp.id}">
+          <span class="conv-input-tag">${inp.tag}</span>
+          <div class="conv-input-text">${inp.text}</div>
+        </div>
+      `).join('');
+
+      const opsHtml = data.ops.map((op, i) => {
+        const cls = activeOpIdx === i ? 'active' : (completedOps > i ? 'done' : '');
+        return `
+          <div class="conv-op ${cls}" data-op="${op.id}">
+            <div class="conv-op-num">${i + 1}</div>
+            <div class="conv-op-name">${op.name}</div>
+            <div class="conv-op-verb">${op.verb}</div>
+          </div>
+        `;
+      }).join('');
+
+      const outsHtml = data.ops.map((op, i) => {
+        const revealed = completedOps > i;
+        return `
+          <div class="conv-out ${revealed ? 'revealed' : ''}" data-asset="${op.id}">
+            ${revealed
+              ? `<span class="conv-out-tag">Out ${i + 1}</span><div>${op.output}</div>`
+              : `<span class="conv-out-empty">— not yet —</span>`}
+          </div>
+        `;
+      }).join('');
+
+      stage.innerHTML = `
+        <div class="conveyor">
+          <div class="conveyor-grid">
+            <div class="conv-rail conv-left">
+              <div class="rail-label">Initial inputs</div>
+              ${inputsHtml}
+            </div>
+            <div class="conv-middle">
+              <div class="conv-ops-row">${opsHtml}</div>
+              <div class="conv-outs-row">${outsHtml}</div>
+            </div>
+            <div class="conv-rail conv-right">
+              <div class="rail-label">Target</div>
+              <div class="conv-deliverable ${delivered ? 'revealed' : ''}">
+                <div class="conv-deliverable-label">Deliverable</div>
+                <div class="conv-deliverable-name">${data.deliverable}</div>
+              </div>
+            </div>
+          </div>
+          <svg class="conveyor-arrows" id="conveyorArrows"></svg>
+        </div>
+      `;
+
+      // Highlight source assets and draw arrows for the active op
+      if (activeOpIdx >= 0) {
+        const drawsFrom = data.ops[activeOpIdx].drawsFrom;
+        drawsFrom.forEach(srcId => {
+          const el = stage.querySelector(`[data-asset="${srcId}"]`);
+          if (el) el.classList.add('drawing-from');
+        });
+        requestAnimationFrame(() => drawConveyorArrows(stage, data.ops[activeOpIdx]));
+      } else if (delivered) {
+        // Final summary state — arrow from last output into the deliverable
+        const lastOp = data.ops[data.ops.length - 1];
+        requestAnimationFrame(() => drawFinalArrow(stage, lastOp.id));
+      }
+    }
+
+    function drawConveyorArrows(stage, activeOp) {
+      const svg = stage.querySelector('#conveyorArrows');
+      const conveyor = stage.querySelector('.conveyor');
+      if (!svg || !conveyor) return;
+
+      const containerRect = conveyor.getBoundingClientRect();
+      svg.setAttribute('width', containerRect.width);
+      svg.setAttribute('height', containerRect.height);
+      svg.innerHTML = `
+        <defs>
+          <marker id="ah-in" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+            <path d="M0,0 L10,5 L0,10 Z" fill="#3730a3" />
+          </marker>
+          <marker id="ah-out" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto">
+            <path d="M0,0 L10,5 L0,10 Z" fill="#059669" />
+          </marker>
+        </defs>
+      `;
+
+      const targetEl = stage.querySelector(`[data-op="${activeOp.id}"]`);
+      if (!targetEl) return;
+      const tRect = targetEl.getBoundingClientRect();
+
+      // === Inbound arrows: each source enters the op at a dedicated edge ===
+      // Initial inputs (from left rail)   → arc OVER the ops row, enter at the TOP center.
+      // Prior output (from below-left)    → curve up-right, enter at the LEFT center.
+      // The two entry points cannot collide regardless of how many of each are drawn.
+      activeOp.drawsFrom.forEach(srcId => {
+        const sourceEl = stage.querySelector(`[data-asset="${srcId}"]`);
+        if (!sourceEl) return;
+        const sRect = sourceEl.getBoundingClientRect();
+        const isInput = srcId.startsWith('in-');
+
+        let d;
+        if (isInput) {
+          // Initial input → TOP of active op (arc over the ops row)
+          const sx = sRect.right - containerRect.left;
+          const sy = sRect.top + sRect.height / 2 - containerRect.top;
+          const tx = tRect.left + tRect.width / 2 - containerRect.left;
+          const ty = tRect.top - containerRect.top;
+          // Peak the arc well above the operations row so it can't graze any op card
+          const peakY = Math.min(sy, ty) - 56;
+          const c1x = sx + (tx - sx) * 0.25;
+          const c2x = sx + (tx - sx) * 0.75;
+          d = `M ${sx} ${sy} C ${c1x} ${peakY}, ${c2x} ${peakY}, ${tx} ${ty - 4}`;
+        } else {
+          // Prior output → LEFT side of active op (smooth up-right curve)
+          const sx = sRect.left + sRect.width / 2 - containerRect.left;
+          const sy = sRect.top - containerRect.top;
+          const tx = tRect.left - containerRect.left;
+          const ty = tRect.top + tRect.height / 2 - containerRect.top;
+          const dx = tx - sx;
+          const c1x = sx + dx * 0.55;
+          const c1y = sy;
+          const c2x = tx - 22;
+          const c2y = ty;
+          d = `M ${sx} ${sy} C ${c1x} ${c1y}, ${c2x} ${c2y}, ${tx - 4} ${ty}`;
+        }
+
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.setAttribute('d', d);
+        path.setAttribute('class', 'arrow-in');
+        path.setAttribute('marker-end', 'url(#ah-in)');
+        svg.appendChild(path);
+      });
+
+      // === Production arrow: active op → its own output (BOTTOM center, vertical) ===
+      const ownOutEl = stage.querySelector(`[data-asset="${activeOp.id}"]`);
+      if (ownOutEl) {
+        const oRect = ownOutEl.getBoundingClientRect();
+        const sx = tRect.left + tRect.width / 2 - containerRect.left;
+        const sy = tRect.bottom - containerRect.top;
+        const tx = oRect.left + oRect.width / 2 - containerRect.left;
+        const ty = oRect.top - containerRect.top;
+        const d = `M ${sx} ${sy} L ${tx} ${ty - 4}`;
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.setAttribute('d', d);
+        path.setAttribute('class', 'arrow-out');
+        path.setAttribute('marker-end', 'url(#ah-out)');
+        svg.appendChild(path);
+      }
+    }
+
+    function drawFinalArrow(stage, lastOutId) {
+      const svg = stage.querySelector('#conveyorArrows');
+      const conveyor = stage.querySelector('.conveyor');
+      if (!svg || !conveyor) return;
+
+      const containerRect = conveyor.getBoundingClientRect();
+      svg.setAttribute('width', containerRect.width);
+      svg.setAttribute('height', containerRect.height);
+      svg.innerHTML = `
+        <defs>
+          <marker id="ah-final" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto">
+            <path d="M0,0 L10,5 L0,10 Z" fill="#059669" />
+          </marker>
+        </defs>
+      `;
+
+      const sourceEl = stage.querySelector(`[data-asset="${lastOutId}"]`);
+      const targetEl = stage.querySelector('.conv-deliverable');
+      if (!sourceEl || !targetEl) return;
+
+      const sRect = sourceEl.getBoundingClientRect();
+      const tRect = targetEl.getBoundingClientRect();
+      const sx = sRect.right - containerRect.left;
+      const sy = sRect.top + sRect.height / 2 - containerRect.top;
+      const tx = tRect.left - containerRect.left;
+      const ty = tRect.top + tRect.height / 2 - containerRect.top;
+      const dx = (tx - sx) * 0.5;
+      const d = `M ${sx} ${sy} C ${sx + dx} ${sy}, ${tx - dx} ${ty}, ${tx - 4} ${ty}`;
+
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', d);
+      path.setAttribute('class', 'arrow-final');
+      path.setAttribute('marker-end', 'url(#ah-final)');
+      svg.appendChild(path);
+    }
+
+    function renderEnvironments(stage, p, step, stepIdx) {
+      const data = p.sceneData;
+      const sceneIdx = step.sceneIdx;
+      const scene = data.scenes[sceneIdx];
+      const totalScenes = data.scenes.length;
+
+      // Build the dial dots
+      const dotsHtml = data.scenes.map((s, i) => {
+        const left = totalScenes === 1 ? 50 : (i / (totalScenes - 1)) * 100;
+        return `
+          <button class="dial-dot ${i === sceneIdx ? 'active' : ''}"
+                  data-pos="${i}"
+                  style="left: ${left}%;"
+                  aria-label="Turn dial to ${s.label}">
+            <span class="dial-dot-label">${s.label}</span>
+          </button>
+        `;
+      }).join('');
+
+      const envArt = renderEnvArt(scene.envType);
+
+      stage.innerHTML = `
+        <div class="dial-container">
+
+          <div class="ev-work">
+            <span class="ev-work-label">The work</span>
+            <span class="ev-work-text">${data.work}</span>
+          </div>
+
+          <div class="dial">
+            <div class="dial-instruction">Turn the dial</div>
+            <div class="dial-track">
+              <span class="dial-end dial-end-left">${data.dialEnds.left}</span>
+              <div class="dial-line"></div>
+              ${dotsHtml}
+              <span class="dial-end dial-end-right">${data.dialEnds.right}</span>
+            </div>
+          </div>
+
+          <div class="dial-card">
+            <div class="dial-card-header">
+              <span class="dial-card-pos">Position ${sceneIdx + 1} of ${totalScenes}</span>
+              <span class="dial-card-name">${scene.label}</span>
+            </div>
+
+            <div class="dial-card-stage">
+              <div class="ev-person">
+                <div class="ev-person-avatar">${data.person.initial}</div>
+                <div class="ev-person-name">${data.person.name}</div>
+                <div class="ev-person-bio">${data.person.bio}</div>
+              </div>
+              <div class="ev-plus">+</div>
+              <div class="ev-env">
+                <div class="ev-env-label">${scene.envLabel}</div>
+                ${envArt}
+              </div>
+            </div>
+
+            <div class="dial-card-narrative">${scene.narrative}</div>
+
+            <div class="ev-attribs">
+              <div class="ev-attrib ev-attrib-domain">
+                <div class="ev-attrib-label">Domain from</div>
+                <div class="ev-attrib-value">${scene.domainSource}</div>
+              </div>
+              <div class="ev-attrib ev-attrib-orch">
+                <div class="ev-attrib-label">Orchestration from</div>
+                <div class="ev-attrib-value">${scene.orchSource}</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      `;
+
+      // Wire up the dial dots
+      stage.querySelectorAll('.dial-dot').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const pos = parseInt(btn.dataset.pos, 10);
+          if (pos !== state.stepIndex[p.id]) {
+            state.stepIndex[p.id] = pos;
+            renderStage();
+          }
+        });
+      });
+    }
+
+    function renderEnvArt(envType) {
+      switch (envType) {
+        case 'memory':
+          return `
+            <div class="ev-art-memory">
+              <div class="ev-art-memory-icon">💭</div>
+              <div class="ev-art-memory-text">Pipeline lives entirely in Mike's head. No notes, no spreadsheet, no folders.</div>
+            </div>
+          `;
+        case 'excel':
+          return `
+            <div class="ev-art-excel">
+              <div class="ev-grid">
+                <div class="ev-grid-row header">
+                  <div class="ev-grid-cell">Account</div>
+                  <div class="ev-grid-cell">Stage</div>
+                  <div class="ev-grid-cell">Last Touch</div>
+                  <div class="ev-grid-cell">Next Step</div>
+                </div>
+                <div class="ev-grid-row">
+                  <div class="ev-grid-cell">Acme Corp</div>
+                  <div class="ev-grid-cell">Demo</div>
+                  <div class="ev-grid-cell">3/14</div>
+                  <div class="ev-grid-cell">Send proposal</div>
+                </div>
+                <div class="ev-grid-row">
+                  <div class="ev-grid-cell">Brand Inc</div>
+                  <div class="ev-grid-cell">Qualifying</div>
+                  <div class="ev-grid-cell">3/12</div>
+                  <div class="ev-grid-cell">Discovery call</div>
+                </div>
+                <div class="ev-grid-row">
+                  <div class="ev-grid-cell">Cardinal LLC</div>
+                  <div class="ev-grid-cell">Negotiate</div>
+                  <div class="ev-grid-cell">3/16</div>
+                  <div class="ev-grid-cell">Counter price</div>
+                </div>
+              </div>
+              <div class="ev-folders">
+                <div class="ev-folder">Acme Corp</div>
+                <div class="ev-folder">Brand Inc</div>
+                <div class="ev-folder">Cardinal LLC</div>
+              </div>
+            </div>
+          `;
+        case 'team':
+          return `
+            <div class="ev-art-team">
+              <div class="ev-art-team-row">
+                <div class="ev-grid">
+                  <div class="ev-grid-row header">
+                    <div class="ev-grid-cell">Account</div>
+                    <div class="ev-grid-cell">Stage</div>
+                    <div class="ev-grid-cell">Owner</div>
+                    <div class="ev-grid-cell">Next</div>
+                  </div>
+                  <div class="ev-grid-row">
+                    <div class="ev-grid-cell">Acme</div>
+                    <div class="ev-grid-cell">Demo</div>
+                    <div class="ev-grid-cell">Mike</div>
+                    <div class="ev-grid-cell">Proposal</div>
+                  </div>
+                  <div class="ev-grid-row">
+                    <div class="ev-grid-cell">Brand</div>
+                    <div class="ev-grid-cell">Qual</div>
+                    <div class="ev-grid-cell">Lisa</div>
+                    <div class="ev-grid-cell">Discovery</div>
+                  </div>
+                  <div class="ev-grid-row">
+                    <div class="ev-grid-cell">Cardinal</div>
+                    <div class="ev-grid-cell">Neg.</div>
+                    <div class="ev-grid-cell">Mike</div>
+                    <div class="ev-grid-cell">Counter</div>
+                  </div>
+                </div>
+                <div class="ev-wiki">
+                  <div class="ev-wiki-header">Sales Playbook</div>
+                  <div class="ev-wiki-line"></div>
+                  <div class="ev-wiki-line short"></div>
+                  <div class="ev-wiki-line"></div>
+                  <div class="ev-wiki-line short"></div>
+                  <div class="ev-wiki-line"></div>
+                </div>
+              </div>
+              <div class="ev-users">
+                <div class="ev-mini-avatar">M</div>
+                <div class="ev-mini-avatar">L</div>
+                <div class="ev-mini-avatar">D</div>
+                <div class="ev-mini-avatar">+4</div>
+                <span class="ev-users-text">shared by the sales team</span>
+              </div>
+            </div>
+          `;
+        case 'tool':
+          return `
+            <div class="ev-art-tool">
+              <div class="ev-tool-header">PipelineHQ — internal CRM</div>
+              <div class="ev-tool-stages">
+                <div class="ev-tool-stage">Discover</div>
+                <div class="ev-tool-stage">Qualify</div>
+                <div class="ev-tool-stage active">Demo</div>
+                <div class="ev-tool-stage">Propose</div>
+                <div class="ev-tool-stage">Close</div>
+              </div>
+              <div class="ev-tool-body">
+                <div class="ev-tool-row">
+                  <span>Acme Corp · $45k</span>
+                  <span class="ev-tool-badge">activity logged</span>
+                </div>
+                <div class="ev-tool-row">
+                  <span>Brand Inc · $22k</span>
+                  <span class="ev-tool-badge">stage gated</span>
+                </div>
+                <div class="ev-tool-row">
+                  <span>Cardinal · $78k</span>
+                  <span class="ev-tool-badge">reminder due</span>
+                </div>
+              </div>
+            </div>
+          `;
+        case 'salesforce':
+          return `
+            <div class="ev-art-salesforce">
+              <div class="ev-sf-header">
+                <span class="ev-sf-logo">Salesforce — Sales Cloud</span>
+                <span class="ev-sf-controls">Mike · Q3</span>
+              </div>
+              <div class="ev-sf-body">
+                <div class="ev-sf-sidebar">
+                  <div class="ev-sf-side-item">Home</div>
+                  <div class="ev-sf-side-item">Accounts</div>
+                  <div class="ev-sf-side-item active">Opportunities</div>
+                  <div class="ev-sf-side-item">Contacts</div>
+                  <div class="ev-sf-side-item">Tasks</div>
+                  <div class="ev-sf-side-item">Reports</div>
+                </div>
+                <div class="ev-sf-main">
+                  <div class="ev-sf-section">My Open Opportunities</div>
+                  <div class="ev-sf-row">
+                    <span class="ev-sf-cell">Acme Corp</span>
+                    <span class="ev-sf-cell"><span class="ev-sf-stage demo">Demo</span></span>
+                    <span class="ev-sf-cell">$45,000</span>
+                  </div>
+                  <div class="ev-sf-row">
+                    <span class="ev-sf-cell">Brand Inc</span>
+                    <span class="ev-sf-cell"><span class="ev-sf-stage qualifying">Qual</span></span>
+                    <span class="ev-sf-cell">$22,000</span>
+                  </div>
+                  <div class="ev-sf-row">
+                    <span class="ev-sf-cell">Cardinal LLC</span>
+                    <span class="ev-sf-cell"><span class="ev-sf-stage negotiating">Negotiating</span></span>
+                    <span class="ev-sf-cell">$78,000</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+      }
+      return '';
+    }
+
+    function renderLanes(stage, p, step, stepIdx) {
+      const reveal = step.reveal || { domain: 0, orch: 0 };
+      const lanes = p.sceneData.lanes;
+      const buildLane = (key, lane, cls) => {
+        const count = reveal[key] || 0;
+        const items = lane.items.map((item, i) =>
+          `<span class="lane-item${i < count ? ' revealed' : ''}">${item}</span>`
+        ).join('');
+        return `
+          <div class="lane lane-${cls}">
+            <div class="lane-header">
+              <span class="lane-tag">${cls === 'domain' ? 'Domain' : 'Orchestration'}</span>
+              <span class="lane-title">${lane.title}</span>
+            </div>
+            <div class="lane-items">${items}</div>
+          </div>
+        `;
+      };
+      stage.innerHTML = `<div class="lanes">${buildLane('domain', lanes.domain, 'domain')}${buildLane('orch', lanes.orch, 'orch')}</div>`;
+    }
+
+    function renderHomes(stage, p, step, stepIdx) {
+      const active = step.active;
+      const workSteps = p.sceneData.workSteps.map(s => `<span class="work-step">${s}</span>`).join('');
+      const homes = p.sceneData.homes.map((h, i) => `
+        <div class="home-card ${i === active || active === -1 ? 'active' : ''}">
+          <div class="home-icon">${h.icon}</div>
+          <div class="home-name">${h.name}</div>
+          <div class="home-desc">${h.desc}</div>
+        </div>
+      `).join('');
+      stage.innerHTML = `
+        <div class="homes-stage">
+          <div>
+            <div class="ide-preview-label" style="margin-bottom: 8px;">The same work, every time</div>
+            <div class="work-row">${workSteps}</div>
+          </div>
+          <div>
+            <div class="ide-preview-label" style="margin-bottom: 8px;">Where the orchestration lives</div>
+            <div class="homes-grid">${homes}</div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderSpectrum(stage, p, step, stepIdx) {
+      const active = step.active;
+      const stops = p.sceneData.stops;
+      const stopsHtml = stops.map((s, i) => `
+        <div class="spectrum-stop ${i === active ? 'active' : ''}" style="left: ${s.pos}%;">
+          <div class="spectrum-label">${s.label}</div>
+        </div>
+      `).join('');
+      let detailHtml = '';
+      if (active >= 0 && active < stops.length) {
+        const s = stops[active];
+        detailHtml = `
+          <div class="spectrum-detail">
+            <div class="spectrum-detail-name">${s.name}</div>
+            <div class="spectrum-detail-desc">${s.desc}</div>
+            <div class="spectrum-tradeoff">
+              <span class="tradeoff-tag flexible">${s.flexible}</span>
+              <span class="tradeoff-tag encoded">${s.encoded}</span>
+            </div>
+          </div>
+        `;
+      } else {
+        detailHtml = `
+          <div class="spectrum-detail">
+            <div class="spectrum-detail-name">The full range</div>
+            <div class="spectrum-detail-desc">Every piece of knowledge work sits somewhere on this spectrum. The choice — heads, paper, software — is rarely made deliberately. Naming the spectrum is what lets us start asking <em>where should this work's orchestration live?</em></div>
+          </div>
+        `;
+      }
+      stage.innerHTML = `
+        <div class="spectrum-wrap">
+          <div class="spectrum-track">
+            <span class="spectrum-endcap left">Improvised</span>
+            <span class="spectrum-endcap right">Compiled</span>
+            ${stopsHtml}
+          </div>
+          ${detailHtml}
+        </div>
+      `;
+    }
+
+    function renderTurn(stage, p, step, stepIdx) {
+      const reveal = step.reveal || 0;
+      const showResponse = step.response;
+      const actions = p.sceneData.actions.map((a, i) => `
+        <div class="turn-action ${i < reveal ? 'revealed' : ''}">
+          <div class="turn-action-num">${i + 1}</div>
+          <div class="turn-action-body">
+            <div class="turn-action-kind">${a.kind}</div>
+            <div class="turn-action-text">${a.text}</div>
+          </div>
+        </div>
+      `).join('');
+      stage.innerHTML = `
+        <div class="turn-zone">
+          <div class="turn-zone-label">User instruction (between-turn)</div>
+          <div class="turn-prompt">${p.sceneData.prompt}</div>
+        </div>
+        <div class="turn-zone">
+          <div class="turn-zone-label">Within the turn (agent decides)</div>
+          <div class="turn-actions">${actions}</div>
+          <div class="turn-response ${showResponse ? 'revealed' : ''}">
+            <strong>Response →</strong> ${p.sceneData.response}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderCompare(stage, p, step, stepIdx) {
+      const reveal = step.reveal || 0;
+      const buildCol = (col, cls, tag) => {
+        const rows = col.rows.map((r, i) => `
+          <div class="compare-row ${i < reveal ? 'revealed' : ''}">
+            <strong>${r.label}</strong>
+            ${r.text}
+          </div>
+        `).join('');
+        return `
+          <div class="compare-col ${cls}">
+            <div class="compare-header">
+              <span class="compare-tag">${tag}</span>
+              <span class="compare-title">${col.title}</span>
+            </div>
+            ${rows}
+          </div>
+        `;
+      };
+      stage.innerHTML = `
+        <div class="compare">
+          ${buildCol(p.sceneData.good, 'good', 'Lands cleanly')}
+          ${buildCol(p.sceneData.bad, 'bad', 'Spirals')}
+        </div>
+      `;
+    }
+
+    function renderIde(stage, p, step, stepIdx) {
+      const stageData = p.sceneData.stages[step.stage];
+      const filesHtml = stageData.files.length === 0
+        ? `<div class="ide-empty">${stageData.empty || '(empty)'}</div>`
+        : stageData.files.map(f => `
+            <div class="ide-file revealed ${f.editing ? 'editing' : ''}">
+              <span class="ide-file-icon">${f.icon}</span>
+              <span>${f.name}</span>
+            </div>
+          `).join('');
+      stage.innerHTML = `
+        <div class="ide">
+          <div class="ide-tree">
+            <div class="ide-tree-label">workspace/</div>
+            ${filesHtml}
+          </div>
+          <div class="ide-preview">
+            <div class="ide-preview-label">Same prompt, every step</div>
+            <div class="ide-prompt">
+              <div class="ide-prompt-tag">Prompt</div>
+              ${p.sceneData.prompt}
+            </div>
+            <div class="ide-output-tag">${stageData.outputTag}</div>
+            <div class="ide-output">${stageData.output}</div>
+          </div>
+        </div>
+      `;
+    }
+
+    // ============================================================
+    //  Navigation
+    // ============================================================
+
+    function stepBy(delta) {
+      const p = primitives.find(x => x.id === state.activePrimitive);
+      const next = state.stepIndex[p.id] + delta;
+      if (next < 0 || next >= p.steps.length) return;
+      state.stepIndex[p.id] = next;
+      renderStage();
+    }
+
+    function switchPrimitive(id) {
+      state.activePrimitive = id;
+      renderSelector();
+      renderStage();
+      window.scrollTo({ top: document.querySelector('.selector').offsetTop - 60, behavior: 'smooth' });
+    }
+
+    document.addEventListener('keydown', e => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      if (e.key === 'ArrowRight') stepBy(1);
+      else if (e.key === 'ArrowLeft') stepBy(-1);
+    });
+
+    // Recompute conveyor arrows on resize
+    let resizeTimer;
+    window.addEventListener('resize', () => {
+      const p = primitives.find(x => x.id === state.activePrimitive);
+      if (p && p.sceneType === 'conveyor') {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => renderStage(), 120);
+      }
+    });
+
+    renderSelector();
+    renderStage();
+    </script>
+
+</body>
+</html>
