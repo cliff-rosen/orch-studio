@@ -1,0 +1,11 @@
+{
+  "id": "task-005",
+  "title": "Wait for Tom's review of the contract draft",
+  "detail": "Sent April 23. Follow up if nothing by April 30.",
+  "state": "waiting",
+  "area": "area-002",
+  "priority": "normal",
+  "waiting_on": "Tom — contract review",
+  "contexts": [],
+  "created_at": "2026-04-23T16:30:00Z"
+}

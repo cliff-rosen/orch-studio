@@ -1,0 +1,10 @@
+{
+  "id": "task-004",
+  "title": "Schedule dentist appointment",
+  "detail": "Last cleaning was October. Overdue.",
+  "state": "inbox",
+  "area": "area-001",
+  "priority": "normal",
+  "contexts": ["@phone"],
+  "created_at": "2026-04-26T07:45:00Z"
+}

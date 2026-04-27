@@ -1,0 +1,11 @@
+{
+  "id": "task-001",
+  "title": "Email Sarah about Tuesday's review meeting",
+  "detail": "Confirm the agenda items and ask if she wants the deck pre-circulated.",
+  "state": "next",
+  "area": "area-002",
+  "priority": "high",
+  "due": "2026-04-28",
+  "contexts": ["@email"],
+  "created_at": "2026-04-26T08:15:00Z"
+}

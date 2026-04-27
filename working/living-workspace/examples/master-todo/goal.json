@@ -1,0 +1,25 @@
+{
+  "purpose": "Maintain a single, trustworthy source of truth for everything I need to do across all parts of my life.",
+  "deliverable": "An ongoing system, used continuously. The deliverable is the system itself, not a one-shot artifact.",
+  "audience": "Just me.",
+  "timeframe": "Ongoing. Continuous capture; weekly review.",
+  "scope_in": [
+    "Personal tasks: errands, appointments, follow-ups",
+    "Work tasks: deliverables, meetings, follow-ups",
+    "Multi-step projects with multiple tasks",
+    "Areas of responsibility I want to track over time"
+  ],
+  "scope_out": [
+    "Calendar and time-blocking (lives in a calendar app)",
+    "Time tracking",
+    "Journaling and reflection",
+    "Reference material and notes (lives elsewhere)"
+  ],
+  "success_criteria": [
+    "At any moment, I can see what I should be doing now (state=doing)",
+    "At any moment, I can see what's on deck (state=next) without overwhelming detail",
+    "Items I'm not ready for don't clutter my view (someday, waiting)",
+    "Nothing falls through the cracks: capture is fast and trusted",
+    "Weekly review has a clear surface to operate on"
+  ]
+}

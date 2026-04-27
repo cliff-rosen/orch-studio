@@ -1,0 +1,10 @@
+{
+  "id": "task-007",
+  "title": "Read 'Working in Public' by Nadia Eghbal",
+  "detail": "Long-form, not urgent. Maybe a vacation read.",
+  "state": "someday",
+  "area": "area-002",
+  "priority": "low",
+  "contexts": ["@reading"],
+  "created_at": "2026-03-12T22:00:00Z"
+}

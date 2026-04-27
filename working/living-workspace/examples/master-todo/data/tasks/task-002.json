@@ -1,0 +1,11 @@
+{
+  "id": "task-002",
+  "title": "Order the squat rack",
+  "detail": "Decided on the Rogue R-3. Confirm shipping address and place order.",
+  "state": "next",
+  "area": "area-001",
+  "project": "proj-002",
+  "priority": "normal",
+  "contexts": ["@home", "@computer"],
+  "created_at": "2026-04-22T19:00:00Z"
+}

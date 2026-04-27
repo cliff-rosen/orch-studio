@@ -1,0 +1,69 @@
+{
+  "kind": "task",
+  "kind_plural": "tasks",
+  "description": "An atomic action — something I need or want to do.",
+  "schema": {
+    "type": "object",
+    "required": ["id", "title", "state", "created_at"],
+    "properties": {
+      "id": { "type": "string", "pattern": "^task-\\d{3,}$" },
+      "title": { "type": "string", "minLength": 1, "maxLength": 200 },
+      "detail": { "type": "string" },
+      "state": {
+        "enum": ["inbox", "next", "doing", "waiting", "done", "someday", "dropped"]
+      },
+      "area": {
+        "type": "string",
+        "description": "References an area id."
+      },
+      "project": {
+        "type": "string",
+        "description": "References a project id. Optional."
+      },
+      "due": { "type": "string", "format": "date" },
+      "priority": {
+        "enum": ["urgent", "high", "normal", "low"],
+        "default": "normal"
+      },
+      "contexts": {
+        "type": "array",
+        "items": { "type": "string" },
+        "description": "Tags like @home, @phone, @errand."
+      },
+      "created_at": { "type": "string", "format": "date-time" },
+      "completed_at": { "type": "string", "format": "date-time" },
+      "waiting_on": {
+        "type": "string",
+        "description": "Free text: who or what is blocking. Required when state == waiting."
+      }
+    }
+  },
+  "states": ["inbox", "next", "doing", "waiting", "done", "someday", "dropped"],
+  "initial_state": "inbox",
+  "transitions": [
+    { "from": "inbox", "to": "next" },
+    { "from": "inbox", "to": "someday" },
+    { "from": "inbox", "to": "dropped" },
+    { "from": "next", "to": "doing" },
+    { "from": "next", "to": "someday" },
+    { "from": "next", "to": "dropped" },
+    { "from": "doing", "to": "waiting", "guard": "waiting_on must be set" },
+    { "from": "doing", "to": "done" },
+    { "from": "doing", "to": "next" },
+    { "from": "waiting", "to": "doing" },
+    { "from": "someday", "to": "next" },
+    { "from": "someday", "to": "dropped" }
+  ],
+  "invariants": [
+    "If state == done, completed_at must be set.",
+    "If state == waiting, waiting_on must be set.",
+    "If project is set, it must reference an existing project id.",
+    "If area is set, it must reference an existing area id."
+  ],
+  "id_field": "id",
+  "title_field": "title",
+  "references": [
+    { "field": "area", "kind": "area" },
+    { "field": "project", "kind": "project" }
+  ]
+}

@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Living Workspace Plugin — Workspace</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --accent: #3730a3;
+            --accent-light: #4f46e5;
+            --accent-subtle: #eef2ff;
+            --accent-strong: #312e81;
+            --text: #1e1b4b;
+            --text-secondary: #4b5563;
+            --text-muted: #6b7280;
+            --bg: #ffffff;
+            --bg-alt: #f8fafc;
+            --bg-code: #f1f5f9;
+            --border: #e2e8f0;
+            --border-strong: #cbd5e1;
+            --warn: #b45309;
+            --warn-subtle: #fef3c7;
+            --ok: #047857;
+            --ok-subtle: #d1fae5;
+            --info: #1d4ed8;
+            --info-subtle: #dbeafe;
+            --radius: 10px;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            color: var(--text);
+            background: var(--bg-alt);
+            line-height: 1.6;
+            font-size: 14.5px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        h1, h2, h3, h4 {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            line-height: 1.25;
+        }
+
+        code, pre, .mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* ===== GOAL BANNER ===== */
+        .goal-banner {
+            background: linear-gradient(135deg, var(--accent-strong) 0%, var(--accent) 100%);
+            color: white;
+            padding: 32px 0 28px;
+        }
+
+        .goal-eyebrow {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+            opacity: 0.75;
+            margin-bottom: 6px;
+        }
+
+        .goal-banner h1 {
+            font-size: 1.55rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            margin-bottom: 14px;
+            max-width: 880px;
+        }
+
+        .goal-meta {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 18px 28px;
+            margin-top: 18px;
+            padding-top: 18px;
+            border-top: 1px solid rgba(255, 255, 255, 0.18);
+        }
+
+        .goal-meta-item .label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            opacity: 0.7;
+            margin-bottom: 4px;
+        }
+
+        .goal-meta-item .value {
+            font-size: 0.92rem;
+            color: white;
+            line-height: 1.45;
+        }
+
+        /* ===== WORKFLOW STRIP ===== */
+        .workflow-strip {
+            background: var(--bg);
+            border-bottom: 1px solid var(--border);
+            padding: 16px 0;
+        }
+
+        .workflow-track {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            overflow-x: auto;
+            padding: 6px 0;
+        }
+
+        .workflow-track .strip-label {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            margin-right: 14px;
+            flex-shrink: 0;
+        }
+
+        .stage {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.78rem;
+            padding: 6px 12px;
+            border-radius: 999px;
+            background: var(--bg-code);
+            color: var(--text-muted);
+            white-space: nowrap;
+            border: 1px solid transparent;
+            flex-shrink: 0;
+        }
+
+        .stage.done {
+            background: var(--ok-subtle);
+            color: var(--ok);
+        }
+
+        .stage.current {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent-strong);
+            font-weight: 600;
+        }
+
+        .stage-arrow {
+            color: var(--border-strong);
+            flex-shrink: 0;
+        }
+
+        /* ===== MAIN GRID ===== */
+        main { padding: 28px 0 64px; }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+            margin-bottom: 18px;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 18px;
+            margin-bottom: 18px;
+        }
+
+        .panel {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px 22px;
+        }
+
+        .panel.full { grid-column: 1 / -1; }
+
+        .panel-header {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            gap: 10px;
+        }
+
+        .panel h2 {
+            font-size: 0.95rem;
+            font-weight: 700;
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+        }
+
+        .panel h2 .count {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.78rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            background: var(--bg-code);
+            padding: 2px 8px;
+            border-radius: 999px;
+        }
+
+        .panel h2 .layer-tag {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+
+        .panel h3 {
+            font-size: 0.84rem;
+            font-weight: 600;
+            margin-top: 14px;
+            margin-bottom: 6px;
+        }
+
+        /* ===== ITEM LISTS ===== */
+        .item-list {
+            list-style: none;
+        }
+
+        .item-list li {
+            padding: 10px 0;
+            border-top: 1px solid var(--border);
+        }
+
+        .item-list li:first-child {
+            padding-top: 0;
+            border-top: none;
+        }
+
+        .item-title {
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 3px;
+            font-size: 0.92rem;
+        }
+
+        .item-detail {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            line-height: 1.55;
+        }
+
+        .item-meta {
+            display: flex;
+            gap: 8px;
+            margin-top: 6px;
+            flex-wrap: wrap;
+        }
+
+        .tag {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+
+        .tag.state-open { background: var(--warn-subtle); color: var(--warn); }
+        .tag.state-decided { background: var(--ok-subtle); color: var(--ok); }
+        .tag.state-ready { background: var(--info-subtle); color: var(--info); }
+        .tag.state-progress { background: var(--accent-subtle); color: var(--accent); }
+        .tag.state-backlog { background: var(--bg-code); color: var(--text-muted); }
+        .tag.kind { background: var(--bg-code); color: var(--text); }
+
+        /* ===== CONTRACTS PANEL ===== */
+        .contract-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            padding: 8px 0;
+            border-top: 1px solid var(--border);
+            font-size: 0.88rem;
+        }
+
+        .contract-row:first-of-type {
+            border-top: none;
+        }
+
+        .contract-name {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .contract-summary {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            text-align: right;
+        }
+
+        /* ===== META PANEL ===== */
+        .meta-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px 18px;
+            font-size: 0.85rem;
+        }
+
+        .meta-grid dt {
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .meta-grid dd {
+            color: var(--text);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.82rem;
+        }
+
+        /* ===== META-SCHEMA REFERENCE ===== */
+        details.schema-ref {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 18px 22px;
+        }
+
+        details.schema-ref summary {
+            cursor: pointer;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: var(--text);
+            list-style: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        details.schema-ref summary::before {
+            content: '▸';
+            color: var(--text-muted);
+            transition: transform 0.15s;
+        }
+
+        details.schema-ref[open] summary::before {
+            transform: rotate(90deg);
+        }
+
+        details.schema-ref summary::-webkit-details-marker { display: none; }
+
+        details.schema-ref .ref-tag {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-left: auto;
+        }
+
+        details.schema-ref pre {
+            background: var(--bg-code);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 14px 16px;
+            margin: 12px 0;
+            overflow-x: auto;
+            font-size: 0.8rem;
+            line-height: 1.55;
+        }
+
+        details.schema-ref ul {
+            margin: 8px 0 12px 0;
+            padding-left: 22px;
+            color: var(--text-secondary);
+            font-size: 0.88rem;
+        }
+
+        details.schema-ref ul li { margin-bottom: 4px; }
+
+        details.schema-ref ul li strong { color: var(--text); }
+
+        details.schema-ref h3 {
+            font-size: 0.9rem;
+            font-weight: 700;
+            margin: 16px 0 8px;
+        }
+
+        details.schema-ref > div { margin-top: 14px; }
+
+        @media (max-width: 900px) {
+            .grid-2, .grid-3 { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ============================================================
+         GOAL BANNER  —  goal.md rendered
+         ============================================================ -->
+    <section class="goal-banner">
+        <div class="container">
+            <p class="goal-eyebrow">Goal</p>
+            <h1>Build a Claude Code plugin that turns the file system into a browser-native workspace UX, so a knowledge worker can run the chat in their terminal and have everything else happen in a browser tab.</h1>
+            <div class="goal-meta">
+                <div class="goal-meta-item">
+                    <div class="label">Deliverable</div>
+                    <div class="value">A working v0 plugin + one worked example workspace</div>
+                </div>
+                <div class="goal-meta-item">
+                    <div class="label">Audience</div>
+                    <div class="value">Knowledge workers running Claude Code locally; ourselves as first user</div>
+                </div>
+                <div class="goal-meta-item">
+                    <div class="label">Success criteria</div>
+                    <div class="value">End-to-end: scaffold workspace from chat, render in browser, watch it update live as Claude edits</div>
+                </div>
+                <div class="goal-meta-item">
+                    <div class="label">Scope (out)</div>
+                    <div class="value">Chat wrapping · multi-user · hosted version · contract migrations</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================
+         WORKFLOW STRIP  —  workflow.md rendered as a stage track
+         ============================================================ -->
+    <section class="workflow-strip">
+        <div class="container">
+            <div class="workflow-track">
+                <span class="strip-label">Stage</span>
+                <span class="stage current">design</span>
+                <span class="stage-arrow">→</span>
+                <span class="stage">format-decisions</span>
+                <span class="stage-arrow">→</span>
+                <span class="stage">server-stub</span>
+                <span class="stage-arrow">→</span>
+                <span class="stage">first-view</span>
+                <span class="stage-arrow">→</span>
+                <span class="stage">contract-enforcement</span>
+                <span class="stage-arrow">→</span>
+                <span class="stage">smoke-test</span>
+                <span class="stage-arrow">→</span>
+                <span class="stage">v0</span>
+            </div>
+        </div>
+    </section>
+
+    <main>
+        <div class="container">
+
+            <!-- ROW: contracts + workspace meta + recent process -->
+            <div class="grid-3">
+
+                <!-- CONTRACTS panel -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>Contracts <span class="count">4</span></h2>
+                        <span class="layer-tag mono">contracts/</span>
+                    </div>
+                    <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 12px;">Kinds we're tracking in this workspace.</p>
+
+                    <div class="contract-row">
+                        <span class="contract-name">decision</span>
+                        <span class="contract-summary">open · considering · decided · revisited</span>
+                    </div>
+                    <div class="contract-row">
+                        <span class="contract-name">question</span>
+                        <span class="contract-summary">raised · investigating · resolved · deferred</span>
+                    </div>
+                    <div class="contract-row">
+                        <span class="contract-name">task</span>
+                        <span class="contract-summary">backlog · ready · in-progress · done · blocked</span>
+                    </div>
+                    <div class="contract-row">
+                        <span class="contract-name">pivot</span>
+                        <span class="contract-summary">event-only (no states)</span>
+                    </div>
+                </div>
+
+                <!-- WORKSPACE META panel -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>Workspace</h2>
+                        <span class="layer-tag mono">meta.json</span>
+                    </div>
+                    <dl class="meta-grid">
+                        <dt>id</dt><dd>lws-plugin-dev</dd>
+                        <dt>status</dt><dd>bootstrap</dd>
+                        <dt>stage</dt><dd>design</dd>
+                        <dt>domain</dt><dd>tool-development</dd>
+                        <dt>schema ver</dt><dd>0.1</dd>
+                    </dl>
+
+                    <h3 style="margin-top: 18px;">Stakes in the ground</h3>
+                    <ul style="margin: 0; padding-left: 18px; color: var(--text-secondary); font-size: 0.85rem;">
+                        <li>Two windows: terminal + browser</li>
+                        <li>No chat wrapping</li>
+                        <li>Plugin is domain-agnostic</li>
+                        <li>Contracts are machine-readable</li>
+                        <li>Views are derived, not authored</li>
+                    </ul>
+                </div>
+
+                <!-- PROCESS panel -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>Recent process <span class="count">2</span></h2>
+                        <span class="layer-tag mono">process.md</span>
+                    </div>
+
+                    <ul class="item-list">
+                        <li>
+                            <div class="item-title">Pivot: terminal stays as chat</div>
+                            <div class="item-detail">Initially designed plugin to wrap chat in browser. Realized that's an app, not a plugin — and it absorbs Claude Code's distinctive feature. Reframed: plugin is browser-only, terminal handles chat.</div>
+                            <div class="item-meta"><span class="tag kind">pivot</span></div>
+                        </li>
+                        <li>
+                            <div class="item-title">Spine candidate: layered model (Goal → Workflow → Contract → Data → Views)</div>
+                            <div class="item-detail">Promoted to core operating discipline. The model's reasoning chain mirrors the substrate layout.</div>
+                            <div class="item-meta"><span class="tag kind">spine</span></div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- ROW: open questions + next steps (the real working data) -->
+            <div class="grid-2">
+
+                <!-- QUESTIONS data -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>Open questions <span class="count">6</span></h2>
+                        <span class="layer-tag mono">data/questions/</span>
+                    </div>
+
+                    <ul class="item-list">
+                        <li>
+                            <div class="item-title">Slash command naming?</div>
+                            <div class="item-detail"><code>/workspace</code>, <code>/canvas</code>, <code>/scaffold</code>, <code>/render</code>? Probably more than one — bootstrap, render, spine-check.</div>
+                            <div class="item-meta"><span class="tag state-open">raised</span></div>
+                        </li>
+                        <li>
+                            <div class="item-title">Contract format?</div>
+                            <div class="item-detail">JSON Schema for shapes is fine. State machines need a format — XState-style declarative? Custom minimal DSL?</div>
+                            <div class="item-meta"><span class="tag state-open">raised</span></div>
+                        </li>
+                        <li>
+                            <div class="item-title">View descriptor format?</div>
+                            <div class="item-detail">How does Claude tell the plugin <em>"render this folder as a list with these columns, sortable by status"</em>?</div>
+                            <div class="item-meta"><span class="tag state-open">raised</span></div>
+                        </li>
+                        <li>
+                            <div class="item-title">Plugin packaging?</div>
+                            <div class="item-detail">What does <em>"installing the plugin"</em> mean in Claude Code's plugin model?</div>
+                            <div class="item-meta"><span class="tag state-open">raised</span></div>
+                        </li>
+                        <li>
+                            <div class="item-title">Error visibility?</div>
+                            <div class="item-detail">When a contract violation happens during Claude's work, where does the user find out — browser, terminal, both?</div>
+                            <div class="item-meta"><span class="tag state-open">raised</span></div>
+                        </li>
+                        <li>
+                            <div class="item-title">Workspace discovery?</div>
+                            <div class="item-detail">Plugin opens cwd? Or pointed at explicit folder? Multi-workspace switching at all in v0?</div>
+                            <div class="item-meta"><span class="tag state-open">raised</span></div>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- TASKS data -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>Next steps <span class="count">7</span></h2>
+                        <span class="layer-tag mono">data/tasks/</span>
+                    </div>
+
+                    <ul class="item-list">
+                        <li>
+                            <div class="item-title">Decide slash command + plugin packaging shape</div>
+                            <div class="item-detail">Pick names, settle on Claude Code plugin manifest format. Unblocks bootstrap implementation.</div>
+                            <div class="item-meta"><span class="tag state-ready">ready</span></div>
+                        </li>
+                        <li>
+                            <div class="item-title">Pick contract format + write one worked example</div>
+                            <div class="item-detail">E.g., a Source contract for a competitive analysis workspace.</div>
+                            <div class="item-meta"><span class="tag state-ready">ready</span></div>
+                        </li>
+                        <li>
+                            <div class="item-title">Worked example: goal.md and workflow.md for the same domain</div>
+                            <div class="item-detail">Validates the meta-schema by populating it.</div>
+                            <div class="item-meta"><span class="tag state-backlog">backlog</span></div>
+                        </li>
+                        <li>
+                            <div class="item-title">Stub local server, file watcher, WebSocket transport</div>
+                            <div class="item-meta"><span class="tag state-backlog">backlog</span></div>
+                        </li>
+                        <li>
+                            <div class="item-title">Implement one generic view (list)</div>
+                            <div class="item-meta"><span class="tag state-backlog">backlog</span></div>
+                        </li>
+                        <li>
+                            <div class="item-title">Implement contract enforcement on writes</div>
+                            <div class="item-meta"><span class="tag state-backlog">backlog</span></div>
+                        </li>
+                        <li>
+                            <div class="item-title">End-to-end smoke test</div>
+                            <div class="item-detail">Scaffold workspace from chat, render in browser, watch it update.</div>
+                            <div class="item-meta"><span class="tag state-backlog">backlog</span></div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- ROW: meta-schema reference (collapsed by default) -->
+            <details class="schema-ref">
+                <summary>Meta-schema reference <span class="ref-tag">v0 draft</span></summary>
+
+                <div>
+                    <p style="color: var(--text-secondary); font-size: 0.92rem;">The meta-schema is invariant across workspaces. Domain contracts (kinds, fields, states) are workspace-specific; the meta-schema describes the skeleton every workspace shares.</p>
+
+                    <h3>Required documents</h3>
+                    <ul>
+                        <li><strong><code>goal.md</code></strong> — Purpose · Deliverable · Audience · Timeframe · Scope (in/out) · Success criteria</li>
+                        <li><strong><code>workflow.md</code></strong> — Stages (named, ordered) · Items (what flows, refs contracts) · Transitions (with guards) · Stage invariants</li>
+                        <li><strong><code>process.md</code></strong> — Decisions · Pivots · Spine candidates</li>
+                    </ul>
+
+                    <h3>Required directories</h3>
+                    <ul>
+                        <li><strong><code>contracts/</code></strong> — One file per kind: schema + states + transitions + invariants. Machine-readable.</li>
+                        <li><strong><code>data/</code></strong> — Subdir per kind, file per instance, conforming to its contract.</li>
+                        <li><strong><code>views/</code></strong> — Custom views. Mostly empty; plugin renders defaults.</li>
+                        <li><strong><code>escapes/</code></strong> — Objects that resist the contract, captured raw with a why-it-doesn't-fit note.</li>
+                    </ul>
+
+                    <h3>Required machine state</h3>
+                    <ul>
+                        <li><strong><code>meta.json</code></strong> — <code>workspace_id</code> · <code>created_at</code> · <code>last_modified</code> · <code>status</code> · <code>current_stage</code> · <code>domain_hint</code> · <code>meta_schema_version</code></li>
+                    </ul>
+
+                    <h3>Lifecycle</h3>
+                    <ul>
+                        <li><strong>bootstrap:</strong> goal not yet specified, or workflow/contracts not yet drafted</li>
+                        <li><strong>operating:</strong> goal/workflow/contracts in place; work is happening</li>
+                        <li><strong>wrapping-up:</strong> deliverable being finalized</li>
+                        <li><strong>archived:</strong> work complete</li>
+                    </ul>
+
+                    <h3>Folder layout</h3>
+                    <pre>workspace/
+├── meta.json
+├── goal.md
+├── workflow.md
+├── process.md
+├── contracts/
+│   └── &lt;kind&gt;.contract.json
+├── data/
+│   └── &lt;kind-plural&gt;/
+│       └── &lt;instance-id&gt;.json
+├── views/
+└── escapes/</pre>
+
+                    <h3>Cross-cutting</h3>
+                    <ul>
+                        <li><strong>Spine</strong> — load-bearing patterns the model proposes for promotion to contract</li>
+                        <li><strong>Escapes</strong> — objects that don't fit; trigger contract evolution</li>
+                        <li><strong>Classification</strong> — every user message lands at one layer; propagate top-down from there</li>
+                    </ul>
+                </div>
+            </details>
+
+        </div>
+    </main>
+
+</body>
+</html>

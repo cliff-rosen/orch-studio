@@ -1,0 +1,12 @@
+{
+  "id": "task-003",
+  "title": "Draft Q3 roadmap intro section",
+  "detail": "Frame the year's themes and where Q3 lands in that arc. Aim for 1.5 pages.",
+  "state": "doing",
+  "area": "area-002",
+  "project": "proj-001",
+  "priority": "high",
+  "due": "2026-04-29",
+  "contexts": ["@deepwork"],
+  "created_at": "2026-04-23T10:00:00Z"
+}

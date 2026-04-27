@@ -1,0 +1,24 @@
+{
+  "name": "open-tasks",
+  "view_type": "smart-table",
+  "kind": "task",
+  "config": {
+    "columns": [
+      { "field": "title" },
+      { "field": "state" },
+      { "field": "area" },
+      { "field": "project" },
+      { "field": "due" },
+      { "field": "priority" },
+      {
+        "field": "age_days",
+        "mode": "computed",
+        "expression": "today - created_at"
+      }
+    ],
+    "filters": {
+      "state": ["inbox", "next", "doing", "waiting"]
+    },
+    "sort": { "field": "due", "direction": "asc" }
+  }
+}

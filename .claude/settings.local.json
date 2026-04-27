@@ -14,7 +14,14 @@
       "Bash(git push:*)",
       "WebFetch(domain:claude.ai)",
       "Bash(bash deploy.sh)",
-      "Bash(python3)"
+      "Bash(python3)",
+      "Bash(cp six-modes-of-chat-and-substrate.html modes-of-chat-and-substrate.html)",
+      "Bash(sed -i 's|<title>Five Modes of Chat and Substrate|<title>Modes of Chat and Substrate|' modes-of-chat-and-substrate.html)",
+      "Bash(sed -i 's|<h1 class=\"article-title\">Five Modes of Chat and Substrate</h1>|<h1 class=\"article-title\">Modes of Chat and Substrate</h1>|' modes-of-chat-and-substrate.html)",
+      "Bash(sed -i 's|/staging/six-modes-of-chat-and-substrate.html|/staging/modes-of-chat-and-substrate.html|g' index.html)",
+      "Bash(sed -i 's|/staging/six-modes-of-chat-and-substrate.html|/staging/modes-of-chat-and-substrate.html|g' building-the-tool-while-doing-the-work.html)",
+      "Bash(mkdir -p examples/master-todo/contracts examples/master-todo/data/tasks examples/master-todo/data/projects examples/master-todo/data/areas examples/master-todo/views examples/master-todo/escapes)",
+      "Read(//c/c/code/orch-studio/working/living-workspace/examples/**)"
     ]
   }
 }
