@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "lws://meta-schema/view",
+  "title": "View Descriptor",
+  "description": "Configures a widget to render a slice of the workspace. Plugin renders defaults if no descriptors are present.",
+  "type": "object",
+  "required": ["name", "view_type"],
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "view_type": {
+      "enum": ["smart-table", "kanban", "list", "detail", "cards", "tree", "timeline", "form", "dashboard", "command-bar", "custom"]
+    },
+    "kind": {
+      "type": "string",
+      "description": "Which contract kind this view shows. Optional for dashboards that span kinds."
+    },
+    "config": {
+      "type": "object",
+      "description": "Widget-specific configuration. Shape varies by view_type.",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "description": "smart-table: column descriptors.",
+          "items": {
+            "type": "object",
+            "required": ["field"],
+            "properties": {
+              "field": { "type": "string" },
+              "mode": {
+                "enum": ["data", "computed", "enriched", "manual"],
+                "default": "data",
+                "description": "data = direct from instance; computed = formula; enriched = Claude writes per row; manual = empty for user fill."
+              },
+              "expression": {
+                "type": "string",
+                "description": "For mode=computed."
+              },
+              "enrichment_prompt": {
+                "type": "string",
+                "description": "For mode=enriched."
+              }
+            }
+          }
+        },
+        "filters": {
+          "type": "object",
+          "description": "Field/value pairs to filter on."
+        },
+        "sort": {
+          "type": "object",
+          "properties": {
+            "field": { "type": "string" },
+            "direction": { "enum": ["asc", "desc"] }
+          }
+        },
+        "group_by": {
+          "type": "string"
+        },
+        "fields": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "list/detail/cards: which fields to show."
+        },
+        "date_field": {
+          "type": "string",
+          "description": "timeline: which field positions items."
+        },
+        "parent_field": {
+          "type": "string",
+          "description": "tree: field that references parent."
+        },
+        "tiles": {
+          "type": "array",
+          "description": "dashboard: composed tiles.",
+          "items": { "type": "object" }
+        }
+      }
+    },
+    "custom_html_path": {
+      "type": "string",
+      "description": "Path to custom HTML if view_type == custom."
+    }
+  }
+}

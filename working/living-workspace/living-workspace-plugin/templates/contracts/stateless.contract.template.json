@@ -1,0 +1,21 @@
+{
+  "kind": "{{ kind_singular }}",
+  "kind_plural": "{{ kind_plural }}",
+  "description": "{{ what_this_kind_is }}",
+  "schema": {
+    "type": "object",
+    "required": ["id", "{{ title_field }}"],
+    "properties": {
+      "id": {
+        "type": "string",
+        "pattern": "^{{ id_prefix }}-\\d{3,}$"
+      },
+      "{{ title_field }}": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  },
+  "id_field": "id",
+  "title_field": "{{ title_field }}"
+}

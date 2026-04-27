@@ -1,6 +1,32 @@
 # Living Workspace Plugin — Architecture
 
-Stakes-in-the-ground for v0. Open questions flagged inline.
+Stakes-in-the-ground for v0. Open questions consolidated at the bottom.
+
+---
+
+## Model discipline
+
+The plugin only earns its keep if Claude reasons in layers. The substrate layout, the slash commands, and the contracts are all designed to keep Claude pinned to this discipline:
+
+```
+Goal → Workflow → Contract → Data → Views
+```
+
+- **Goal.** A short, durable anchor in `goal.json`. Reread when orientation drifts; changes rarely.
+- **Workflow.** Stages and transitions in `workflow.json`. State-machine-flavored.
+- **Contract.** Schema + states + transitions + invariants per kind. The load-bearing layer. Machine-readable so the plugin can enforce.
+- **Data.** Instances of the schema, evolving per the contract. Folder-per-kind, file-per-instance.
+- **Views.** Derived, not authored. Plugin ships generic widgets; custom views are HTML Claude generates against a known contract.
+
+Five operating rules:
+
+1. **Bootstrap top-down.** First session, vague request: elicit the goal, pick the substrate type, sketch contracts — *before* generating data or views.
+2. **Classify every request.** Each user message lands at one of the layers. *"Add credibility tag to sources"* is contract. *"Show items stuck in 'extracted' for 3+ days"* is view. *"It's a board deck now"* is goal. Classification determines propagation.
+3. **Propagate top-down.** Goal change ripples through workflow, contract, data, views. Don't patch the bottom when the change is at the top.
+4. **Flag schema-fit.** Real work generates objects that resist the current contract. Mark them as escapes / candidates; don't mash them into something close-but-wrong.
+5. **Identify spine.** As the substrate accumulates, propose what's load-bearing for promotion to contract. The user confirms; the contract evolves.
+
+This discipline is the operating system of the plugin's value. The substrate layout encodes it; `CLAUDE.md` (TODO — see open questions) makes it executable.
 
 ---
 
@@ -125,267 +151,22 @@ For ongoing-system and tracker workspaces, `wrapping-up` is rarely used — they
 
 ## Meta-schemas (invariant across all workspaces)
 
-These five JSON Schemas define the skeleton of every workspace.
+Five JSON Schemas define the skeleton of every workspace. Canonical definitions live in [`schemas/`](./schemas/).
 
-### `meta.schema.json`
+| Schema | What it validates | Required keys |
+|---|---|---|
+| [`meta.schema.json`](./schemas/meta.schema.json) | Workspace identity + lifecycle | `workspace_id`, `created_at`, `status`, `meta_schema_version` |
+| [`goal.schema.json`](./schemas/goal.schema.json) | The anchor | `purpose`, `deliverable`, `success_criteria` |
+| [`workflow.schema.json`](./schemas/workflow.schema.json) | Stages + transitions | `stages`, `transitions` |
+| [`contract.schema.json`](./schemas/contract.schema.json) | A domain contract's shape (the most important meta-schema) | `kind`, `schema` |
+| [`view.schema.json`](./schemas/view.schema.json) | View descriptor | `name`, `view_type` |
 
-```json
-{
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "lws://meta-schema/meta",
-  "title": "Workspace Meta",
-  "type": "object",
-  "required": ["workspace_id", "created_at", "status", "meta_schema_version"],
-  "properties": {
-    "workspace_id": { "type": "string" },
-    "created_at": { "type": "string", "format": "date-time" },
-    "last_modified": { "type": "string", "format": "date-time" },
-    "status": {
-      "enum": [
-        "goal-defining",
-        "substrate-selecting",
-        "contracts-drafting",
-        "operating",
-        "wrapping-up",
-        "archived"
-      ]
-    },
-    "substrate_type": {
-      "enum": [
-        "ongoing-system",
-        "single-deliverable",
-        "pipeline",
-        "tracker",
-        "project-plan",
-        "hybrid"
-      ],
-      "description": "Selected during bootstrap; determines which starter pack loads."
-    },
-    "current_stage": {
-      "type": "string",
-      "description": "Reference to a workflow.json stage name (used during operating)."
-    },
-    "domain_hint": {
-      "type": "string",
-      "description": "Free-text tag, e.g. 'competitive-analysis', 'master-todo'."
-    },
-    "meta_schema_version": { "type": "string" },
-    "title": {
-      "type": "string",
-      "description": "Display name for the workspace."
-    }
-  }
-}
-```
+Notable shape decisions captured in those files:
 
-### `goal.schema.json`
-
-```json
-{
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "lws://meta-schema/goal",
-  "title": "Workspace Goal",
-  "type": "object",
-  "required": ["purpose", "deliverable", "success_criteria"],
-  "properties": {
-    "purpose": {
-      "type": "string",
-      "description": "One sentence: what this workspace exists to produce."
-    },
-    "deliverable": {
-      "type": "string",
-      "description": "The artifact(s) being produced. Could be ongoing, e.g. 'a trustworthy system'."
-    },
-    "audience": { "type": "string" },
-    "timeframe": { "type": "string" },
-    "scope_in": {
-      "type": "array",
-      "items": { "type": "string" }
-    },
-    "scope_out": {
-      "type": "array",
-      "items": { "type": "string" }
-    },
-    "success_criteria": {
-      "type": "array",
-      "items": { "type": "string" },
-      "minItems": 1
-    }
-  }
-}
-```
-
-### `workflow.schema.json`
-
-```json
-{
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "lws://meta-schema/workflow",
-  "title": "Workspace Workflow",
-  "type": "object",
-  "required": ["stages", "transitions"],
-  "properties": {
-    "stages": {
-      "type": "array",
-      "minItems": 1,
-      "items": {
-        "type": "object",
-        "required": ["name"],
-        "properties": {
-          "name": { "type": "string" },
-          "description": { "type": "string" },
-          "invariants": {
-            "type": "array",
-            "items": { "type": "string" }
-          }
-        }
-      }
-    },
-    "items": {
-      "type": "array",
-      "description": "Which kinds flow through these stages.",
-      "items": {
-        "type": "object",
-        "required": ["kind"],
-        "properties": {
-          "kind": { "type": "string" }
-        }
-      }
-    },
-    "transitions": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "required": ["from", "to"],
-        "properties": {
-          "from": { "type": "string" },
-          "to": { "type": "string" },
-          "kind": { "type": "string" },
-          "guard": {
-            "type": "string",
-            "description": "Condition that must be true to make this transition."
-          }
-        }
-      }
-    }
-  }
-}
-```
-
-### `contract.schema.json` — the meta-schema for contracts themselves
-
-This is the most important one. Every domain contract conforms to this shape.
-
-```json
-{
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "lws://meta-schema/contract",
-  "title": "Domain Contract",
-  "type": "object",
-  "required": ["kind", "schema"],
-  "properties": {
-    "kind": {
-      "type": "string",
-      "description": "Singular name, e.g. 'task'."
-    },
-    "kind_plural": {
-      "type": "string",
-      "description": "Plural form for directory naming, e.g. 'tasks'."
-    },
-    "description": { "type": "string" },
-    "schema": {
-      "description": "Standard JSON Schema for the data shape.",
-      "type": "object"
-    },
-    "states": {
-      "type": "array",
-      "items": { "type": "string" },
-      "description": "If state-machine-flavored, list the states."
-    },
-    "initial_state": { "type": "string" },
-    "transitions": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "required": ["from", "to"],
-        "properties": {
-          "from": { "type": "string" },
-          "to": { "type": "string" },
-          "guard": { "type": "string" }
-        }
-      }
-    },
-    "invariants": {
-      "type": "array",
-      "items": { "type": "string" },
-      "description": "Prose statements about what must be true; some may be machine-checked."
-    },
-    "id_field": {
-      "type": "string",
-      "default": "id",
-      "description": "Which field uniquely identifies an instance."
-    },
-    "title_field": {
-      "type": "string",
-      "description": "Which field to use as the display title in views."
-    },
-    "references": {
-      "type": "array",
-      "description": "Foreign-key-like links to other kinds.",
-      "items": {
-        "type": "object",
-        "required": ["field", "kind"],
-        "properties": {
-          "field": { "type": "string" },
-          "kind": { "type": "string" }
-        }
-      }
-    }
-  }
-}
-```
-
-### `view.schema.json`
-
-```json
-{
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "lws://meta-schema/view",
-  "title": "View Descriptor",
-  "type": "object",
-  "required": ["name", "view_type"],
-  "properties": {
-    "name": { "type": "string" },
-    "view_type": {
-      "enum": ["list", "table", "detail", "kanban", "dashboard", "custom"]
-    },
-    "kind": {
-      "type": "string",
-      "description": "Which contract kind this view shows. Optional for dashboards that span kinds."
-    },
-    "fields": {
-      "type": "array",
-      "items": { "type": "string" }
-    },
-    "filters": {
-      "type": "object",
-      "description": "Field/value pairs to filter on."
-    },
-    "sort": {
-      "type": "object",
-      "properties": {
-        "field": { "type": "string" },
-        "direction": { "enum": ["asc", "desc"] }
-      }
-    },
-    "group_by": { "type": "string" },
-    "custom_html_path": {
-      "type": "string",
-      "description": "Path to custom HTML if view_type == custom."
-    }
-  }
-}
-```
+- **Status enum** spans the full lifecycle: `goal-defining`, `substrate-selecting`, `contracts-drafting`, `operating`, `wrapping-up`, `archived`.
+- **Substrate type enum**: `ongoing-system`, `single-deliverable`, `pipeline`, `tracker`, `project-plan`, `hybrid`.
+- **Contract** carries `states`, `initial_state`, `transitions` (with optional `guard`), and `references` (foreign-key-like links between kinds).
+- **View descriptor** has a polymorphic `config` whose shape varies by `view_type`. Smart-table columns support `mode: data | computed | enriched | manual`.
 
 ---
 
@@ -484,15 +265,27 @@ Each widget has its own config schema (sub-schemas of `view.schema.json`). The v
 
 ## Templates the plugin ships
 
-The plugin ships skeletons, not domain knowledge. Contracts are always fabricated per-workspace by Claude; the plugin provides the boilerplate.
+The plugin ships skeletons, not domain knowledge. Contracts are always fabricated per-workspace by Claude; the plugin provides the boilerplate. All in [`templates/`](./templates/) — see [`templates/README.md`](./templates/README.md) for the layout.
 
-| Template | What's in it |
+| Path | Purpose |
 |---|---|
-| **Empty workspace skeleton** | Directory tree + empty placeholder files + initial `meta.json` (status=bootstrap). |
-| **`goal.json` placeholder** | Required keys with empty/example values. |
-| **`workflow.json` starters** | A few common patterns: linear, kanban, GTD-like, research-pipeline. User picks one or starts blank. |
-| **`contract.json` boilerplate** | Skeleton with the required keys; Claude fills schema + states + transitions. |
-| **Default views** | List, detail, table, kanban, dashboard — generic, contract-aware. Rendered by the plugin without any view file present. |
+| [`templates/dashboard.template.html`](./templates/dashboard.template.html) | Canonical dashboard render. Plugin substitutes workspace data into placeholders. |
+| [`templates/workspace-skeleton/`](./templates/workspace-skeleton/) | What `/scaffold` copies into an empty folder. Empty placeholder values; bootstrap conversation fills them. |
+| [`templates/starter-packs/<substrate-type>/`](./templates/starter-packs/) | Per substrate type: default `workflow.json` + suggested contracts + default views. Loaded after the user picks a substrate type. |
+| [`templates/contracts/`](./templates/contracts/) | Boilerplate contract patterns: stateless, stateful, hierarchical. |
+| [`templates/views/`](./templates/views/) | View descriptor templates per widget type (smart-table, kanban, list, detail, dashboard). |
+
+**Status of starter packs.** `ongoing-system` exists (matches the master-todo example). The other five (`single-deliverable`, `pipeline`, `tracker`, `project-plan`, `hybrid`) are open work — see "Open questions → Most consequential."
+
+**Default views (no descriptors present).** When `views/` is empty, the plugin falls back to substrate-type defaults:
+- `ongoing-system`: smart-table + kanban + dashboard
+- `single-deliverable`: outline + cards + dashboard
+- `pipeline`: kanban + smart-table
+- `tracker`: timeline + smart-table
+- `project-plan`: tree + timeline + dashboard
+- `hybrid`: dashboard + smart-table
+
+Workspaces can override by dropping a view descriptor in `views/`.
 
 ---
 
@@ -524,13 +317,62 @@ The user can drop back at any point: substrate-selecting → goal-defining (re-p
 
 ---
 
-## Open architectural questions
+## Open questions
 
-- **Server runtime**: Node vs Python.
-- **Slash command names**: as listed above, but worth a sanity pass.
-- **Workspace discovery**: open the cwd, accept an explicit path, or maintain a registry of workspaces?
-- **Browser routes**: `/`, `/kind/<kind>`, `/kind/<kind>/<id>`, `/view/<name>`?
-- **Validation timing**: write-time only, or also read-time defensive check?
-- **Custom view sandboxing**: iframes vs scoped CSS vs Web Components?
-- **State machine format**: inlined transitions in the contract (current draft) is fine for v0. Revisit if guards get complex.
-- **Migration**: when contracts change, what happens to existing data? Out of scope for v0; revisit when we hit it.
+### Most consequential (v0 load-bearing gaps)
+
+1. **`CLAUDE.md` and slash command bodies.** The discipline made executable. We have the design for what Claude *should* do; we don't have the prompt that makes it do that. Without this, nothing else works.
+2. **Invariant / guard expression language.** Today invariants and guards are prose strings. Without machine-checkable rules, contracts decay to advisory comments and the plugin can't enforce. Approaches: JSON Schema `if/then/else`, a small predicate DSL, or generated JS predicates per contract.
+3. **Substrate-type starter packs.** Each substrate type needs concrete `workflow.json` + `contracts/*.contract.json` boilerplate, otherwise the bootstrap conversation has nothing to load.
+4. **ID generation + referential integrity.** Who assigns `task-001`? Who checks that `task.area = "area-001"` points to a real area? At what timing?
+5. **Default rendering with no views.** What does the plugin show when `views/` is empty? This is what most users see most of the time, and currently undefined.
+
+### Substrate concerns
+
+- **Prose-heavy data.** When a kind's primary content is a 500-word body, JSON-with-`body`-field is brutal to hand-edit. Sidecar `.md`? Folder-per-instance with `body.md` plus `meta.json`?
+- **Atomic / concurrent writes.** Claude writes file A while user edits A by hand; or one operation needs to update several files atomically.
+- **Cascading deletes.** Area deleted, tasks reference it. Forbid? Cascade-null? Cascade-delete?
+- **Binary attachments.** Images, PDFs. Where, and how referenced from JSON?
+- **Schema evolution.** When contracts change, what happens to existing data? Punted for v0; flag for revisit.
+
+### Rendering & widgets
+
+- **URL structure / routing.** `/`, `/kind/<kind>`, `/view/<name>`, `/kind/<kind>/<id>`?
+- **View state persistence.** Sort/filter/hidden columns — ephemeral, saved-to-descriptor, or per-user-preference?
+- **View composition.** Can a dashboard contain a smart-table tile?
+- **Custom HTML view security.** Iframe sandbox, scoped CSS, or strict CSP? Big call.
+- **Reactivity granularity.** Whole-workspace refresh vs per-view diffs.
+
+### Live update loop
+
+- **Half-written files.** Watcher fires on partial JSON; parser breaks. Atomic-rename pattern, or debounce?
+- **Conflict resolution.** Browser has unsaved local edit; file change arrives.
+- **Activity feed.** Should the user see *"Claude wrote task-003"* as a stream?
+
+### Action routing (browser → Claude)
+
+- **Click-to-copy UX.** Prompt format, preview-before-copy.
+- **Bulk action protocol.** 5 selected tasks → 1 prompt or 5? How does the user verify?
+- **Structured invocation.** Could a button-click write a small `pending-action.json` Claude polls, instead of free-text routing?
+
+### Lifecycle / persistence
+
+- **Server lifecycle.** Shut down on terminal exit? Idle? User-controlled?
+- **Crash recovery.** Server dies mid-write; state on disk vs server memory.
+- **Undo / history.** File system has none. Rely on user's git, or maintain plugin snapshots?
+- **Audit log.** What got written, by whom, when.
+
+### Plugin shape
+
+- **Packaging / install flow.** Manifest format, distribution channel, runtime requirements.
+- **Runtime.** Node vs Python.
+- **Workspace discovery.** Open cwd, explicit path, or registry of workspaces?
+
+### Out of scope for v0
+
+- Back channel that injects prompts into the running Claude Code session
+- Multi-user collaboration
+- Hosted / cloud version
+- Migrations between contract versions
+- Cross-workspace references
+- Mobile / responsive

@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "lws://meta-schema/contract",
+  "title": "Domain Contract",
+  "description": "Schema + state machine + invariants for a single kind. The load-bearing layer of the substrate.",
+  "type": "object",
+  "required": ["kind", "schema"],
+  "properties": {
+    "kind": {
+      "type": "string",
+      "description": "Singular name, e.g. 'task'."
+    },
+    "kind_plural": {
+      "type": "string",
+      "description": "Plural form for directory naming, e.g. 'tasks'."
+    },
+    "description": {
+      "type": "string"
+    },
+    "schema": {
+      "type": "object",
+      "description": "Standard JSON Schema for the data shape. Each instance file conforms to this."
+    },
+    "states": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "If state-machine-flavored, list the states."
+    },
+    "initial_state": {
+      "type": "string"
+    },
+    "transitions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["from", "to"],
+        "properties": {
+          "from": { "type": "string" },
+          "to": { "type": "string" },
+          "guard": { "type": "string" }
+        }
+      }
+    },
+    "invariants": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Prose statements about what must be true. Machine-checkable form is an open question (see architecture.md)."
+    },
+    "id_field": {
+      "type": "string",
+      "default": "id",
+      "description": "Which field uniquely identifies an instance."
+    },
+    "title_field": {
+      "type": "string",
+      "description": "Which field to use as the display title in views."
+    },
+    "references": {
+      "type": "array",
+      "description": "Foreign-key-like links to other kinds.",
+      "items": {
+        "type": "object",
+        "required": ["field", "kind"],
+        "properties": {
+          "field": { "type": "string" },
+          "kind": { "type": "string" }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Master To-Do — Living Workspace</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --accent: #3730a3;
+            --accent-light: #4f46e5;
+            --accent-subtle: #eef2ff;
+            --accent-strong: #312e81;
+            --text: #1e1b4b;
+            --text-secondary: #4b5563;
+            --text-muted: #6b7280;
+            --bg: #ffffff;
+            --bg-alt: #f8fafc;
+            --bg-code: #f1f5f9;
+            --border: #e2e8f0;
+            --border-strong: #cbd5e1;
+            --warn: #b45309;
+            --warn-subtle: #fef3c7;
+            --ok: #047857;
+            --ok-subtle: #d1fae5;
+            --info: #1d4ed8;
+            --info-subtle: #dbeafe;
+            --rose: #be185d;
+            --rose-subtle: #fce7f3;
+            --radius: 10px;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            color: var(--text);
+            background: var(--bg-alt);
+            line-height: 1.55;
+            font-size: 14px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        h1, h2, h3, h4 { font-family: 'Plus Jakarta Sans', sans-serif; line-height: 1.25; }
+        code, pre, .mono { font-family: 'JetBrains Mono', monospace; }
+
+        .container { max-width: 1320px; margin: 0 auto; padding: 0 24px; }
+
+        /* ===== SHELL BAR ===== */
+        .shell-bar {
+            background: var(--bg);
+            border-bottom: 1px solid var(--border);
+            padding: 8px 0;
+            font-size: 0.78rem;
+        }
+
+        .shell-inner {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            color: var(--text-muted);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .shell-inner .key { color: var(--text-muted); }
+        .shell-inner .val { color: var(--text); }
+
+        .live-dot {
+            display: inline-block;
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--ok);
+            box-shadow: 0 0 0 0 rgba(4, 120, 87, 0.4);
+            animation: pulse 2s infinite;
+            margin-right: 6px;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(4, 120, 87, 0.4); }
+            70% { box-shadow: 0 0 0 6px rgba(4, 120, 87, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(4, 120, 87, 0); }
+        }
+
+        .shell-inner .spacer { flex: 1; }
+
+        /* ===== GOAL BANNER ===== */
+        .goal-banner {
+            background: linear-gradient(135deg, var(--accent-strong) 0%, var(--accent) 100%);
+            color: white;
+            padding: 28px 0 24px;
+        }
+
+        .goal-eyebrow {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+            opacity: 0.7;
+            margin-bottom: 6px;
+        }
+
+        .goal-banner h1 {
+            font-size: 1.4rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            margin-bottom: 4px;
+            max-width: 920px;
+        }
+
+        .goal-banner .deliverable {
+            opacity: 0.85;
+            font-size: 0.92rem;
+            max-width: 920px;
+        }
+
+        .goal-meta {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 14px 28px;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.18);
+        }
+
+        .goal-meta-item .label {
+            font-size: 0.68rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            opacity: 0.65;
+            margin-bottom: 3px;
+        }
+
+        .goal-meta-item .value {
+            font-size: 0.85rem;
+            color: white;
+            line-height: 1.4;
+        }
+
+        /* ===== WORKFLOW STRIP ===== */
+        .workflow-strip {
+            background: var(--bg);
+            border-bottom: 1px solid var(--border);
+            padding: 14px 0;
+        }
+
+        .workflow-track {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            overflow-x: auto;
+            padding: 4px 0;
+        }
+
+        .strip-label {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.68rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            margin-right: 14px;
+            flex-shrink: 0;
+        }
+
+        .stage {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.76rem;
+            padding: 5px 12px;
+            border-radius: 999px;
+            background: var(--bg-code);
+            color: var(--text-secondary);
+            white-space: nowrap;
+            border: 1px solid transparent;
+            flex-shrink: 0;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+        }
+
+        .stage .stage-count {
+            font-weight: 700;
+            font-size: 0.72rem;
+            background: var(--bg);
+            padding: 1px 6px;
+            border-radius: 999px;
+            min-width: 18px;
+            text-align: center;
+        }
+
+        .stage.has-items {
+            background: var(--accent-subtle);
+            color: var(--accent);
+            border-color: rgba(55, 48, 163, 0.18);
+        }
+
+        .stage.has-items .stage-count {
+            background: var(--accent);
+            color: white;
+        }
+
+        .stage.empty .stage-count {
+            color: var(--text-muted);
+        }
+
+        .stage-arrow {
+            color: var(--border-strong);
+            flex-shrink: 0;
+            font-size: 0.85rem;
+        }
+
+        /* ===== MAIN ===== */
+        main { padding: 22px 0 60px; }
+
+        /* ===== WIDGET BASE ===== */
+        .widget {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            margin-bottom: 18px;
+            overflow: hidden;
+        }
+
+        .widget-header {
+            padding: 14px 20px 12px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: baseline;
+            gap: 12px;
+        }
+
+        .widget-title {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 700;
+        }
+
+        .widget-meta {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.72rem;
+            color: var(--text-muted);
+        }
+
+        .widget-tools {
+            margin-left: auto;
+            display: flex;
+            gap: 6px;
+        }
+
+        .widget-tool {
+            background: var(--bg-code);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.72rem;
+            font-family: 'JetBrains Mono', monospace;
+            cursor: pointer;
+        }
+
+        .widget-tool:hover { background: var(--accent-subtle); color: var(--accent); border-color: var(--accent); }
+
+        /* ===== TODAY SECTION ===== */
+        .today-section {
+            background: linear-gradient(135deg, #fefce8 0%, #fef9c3 100%);
+            border: 1px solid #fde68a;
+            border-radius: var(--radius);
+            padding: 18px 22px;
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+
+        .today-label {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #78350f;
+            flex-shrink: 0;
+        }
+
+        .today-task {
+            background: white;
+            border: 1px solid #fde68a;
+            border-radius: 6px;
+            padding: 8px 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.92rem;
+        }
+
+        .today-task .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent);
+        }
+
+        /* ===== GRID ===== */
+        .grid-main {
+            display: grid;
+            grid-template-columns: 2.4fr 1fr;
+            gap: 18px;
+        }
+
+        @media (max-width: 1024px) {
+            .grid-main { grid-template-columns: 1fr; }
+        }
+
+        /* ===== SMART TABLE ===== */
+        .smart-table-wrap {
+            overflow-x: auto;
+        }
+
+        .smart-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+
+        .smart-table thead {
+            background: var(--bg-alt);
+        }
+
+        .smart-table th {
+            text-align: left;
+            padding: 9px 12px;
+            font-weight: 600;
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .smart-table th .sort-ind {
+            color: var(--text-muted);
+            margin-left: 4px;
+            font-size: 0.7rem;
+        }
+
+        .smart-table th.sorted-asc .sort-ind { color: var(--accent); }
+
+        .smart-table th.computed-col {
+            background: rgba(79, 70, 229, 0.05);
+            color: var(--accent);
+        }
+
+        .smart-table th.computed-col::before {
+            content: 'ƒ';
+            font-style: italic;
+            font-weight: 700;
+            margin-right: 4px;
+        }
+
+        .smart-table th.add-col {
+            color: var(--text-muted);
+            font-weight: 500;
+            text-align: center;
+            border-left: 1px dashed var(--border);
+        }
+
+        .smart-table th.add-col:hover {
+            background: var(--accent-subtle);
+            color: var(--accent);
+        }
+
+        .smart-table td {
+            padding: 9px 12px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: top;
+        }
+
+        .smart-table tbody tr:hover {
+            background: var(--accent-subtle);
+        }
+
+        .smart-table .col-title { font-weight: 600; color: var(--text); min-width: 240px; }
+        .smart-table .col-title .detail {
+            display: block;
+            font-weight: 400;
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .smart-table td.computed-col {
+            background: rgba(79, 70, 229, 0.03);
+            color: var(--accent);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+        }
+
+        .smart-table td.add-col { border-left: 1px dashed var(--border); }
+
+        .smart-table .add-row {
+            color: var(--text-muted);
+            font-style: italic;
+            cursor: pointer;
+        }
+        .smart-table .add-row td { padding: 9px 12px; }
+        .smart-table .add-row:hover td { background: var(--accent-subtle); color: var(--accent); }
+
+        /* state pills */
+        .state-pill {
+            display: inline-block;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.72rem;
+            padding: 2px 9px;
+            border-radius: 999px;
+            font-weight: 500;
+        }
+        .state-inbox { background: var(--bg-code); color: var(--text-muted); }
+        .state-next { background: var(--info-subtle); color: var(--info); }
+        .state-doing { background: var(--accent); color: white; }
+        .state-waiting { background: var(--warn-subtle); color: var(--warn); }
+        .state-someday { background: #f3e8ff; color: #6b21a8; }
+        .state-done { background: var(--ok-subtle); color: var(--ok); }
+        .state-dropped { background: #f1f5f9; color: var(--text-muted); text-decoration: line-through; }
+
+        .priority-pill {
+            display: inline-block;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            padding: 1px 7px;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+        .priority-urgent { background: var(--rose-subtle); color: var(--rose); }
+        .priority-high { background: var(--warn-subtle); color: var(--warn); }
+        .priority-normal { background: var(--bg-code); color: var(--text-muted); }
+        .priority-low { background: var(--bg-code); color: var(--text-muted); opacity: 0.7; }
+
+        .ref-link {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.78rem;
+            color: var(--accent);
+            text-decoration: none;
+        }
+        .ref-link:hover { text-decoration: underline; }
+
+        .due-soon { color: var(--warn); font-weight: 600; }
+        .due-today { color: var(--rose); font-weight: 700; }
+
+        .filter-bar {
+            padding: 10px 20px;
+            background: var(--bg-alt);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            flex-wrap: wrap;
+        }
+
+        .filter-chip {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            padding: 3px 10px;
+            border-radius: 999px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.74rem;
+            color: var(--text);
+        }
+
+        .filter-chip strong { color: var(--accent); }
+
+        /* ===== SIDE PANELS ===== */
+        .side-panel {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px 18px;
+            margin-bottom: 16px;
+        }
+
+        .side-panel h2 {
+            font-size: 0.82rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+        }
+
+        .side-panel h2 .count {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.72rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            background: var(--bg-code);
+            padding: 1px 7px;
+            border-radius: 999px;
+        }
+
+        .area-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 7px 0;
+            border-top: 1px solid var(--border);
+            font-size: 0.85rem;
+        }
+        .area-row:first-of-type { border-top: none; }
+        .area-name { font-weight: 600; }
+        .area-cadence {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            background: var(--bg-code);
+            padding: 1px 7px;
+            border-radius: 4px;
+        }
+
+        .project-card {
+            border-top: 1px solid var(--border);
+            padding: 10px 0 8px;
+        }
+        .project-card:first-of-type { border-top: none; padding-top: 0; }
+
+        .project-title { font-weight: 600; font-size: 0.88rem; margin-bottom: 2px; }
+        .project-why { font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 5px; }
+        .project-meta {
+            display: flex;
+            gap: 8px;
+            font-size: 0.72rem;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-muted);
+        }
+
+        /* ===== KANBAN ===== */
+        .kanban-board {
+            padding: 16px 20px 20px;
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+            overflow-x: auto;
+        }
+
+        @media (max-width: 1024px) {
+            .kanban-board { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        .kanban-col {
+            background: var(--bg-alt);
+            border-radius: 8px;
+            padding: 10px;
+            min-height: 100px;
+        }
+
+        .kanban-col-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 8px;
+            margin-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .kanban-col-name {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.78rem;
+            font-weight: 600;
+        }
+
+        .kanban-col-count {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            background: var(--bg);
+            padding: 1px 7px;
+            border-radius: 999px;
+        }
+
+        .kanban-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 9px 11px;
+            margin-bottom: 7px;
+            font-size: 0.83rem;
+            cursor: grab;
+            position: relative;
+        }
+
+        .kanban-card:hover {
+            border-color: var(--accent);
+            box-shadow: 0 2px 8px rgba(55, 48, 163, 0.08);
+        }
+
+        .kanban-card .card-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+            line-height: 1.35;
+        }
+
+        .kanban-card .card-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            font-size: 0.7rem;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-muted);
+        }
+
+        .kanban-card .card-meta .ref {
+            background: var(--accent-subtle);
+            color: var(--accent);
+            padding: 1px 6px;
+            border-radius: 3px;
+        }
+
+        /* ===== META-SCHEMA REF ===== */
+        details.schema-ref {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 14px 20px;
+            margin-top: 20px;
+        }
+
+        details.schema-ref summary {
+            cursor: pointer;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 700;
+            font-size: 0.88rem;
+            list-style: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        details.schema-ref summary::before {
+            content: '▸';
+            color: var(--text-muted);
+            transition: transform 0.15s;
+        }
+
+        details.schema-ref[open] summary::before { transform: rotate(90deg); }
+        details.schema-ref summary::-webkit-details-marker { display: none; }
+
+        details.schema-ref .ref-tag {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-left: auto;
+        }
+
+        details.schema-ref .ref-body { margin-top: 14px; font-size: 0.85rem; color: var(--text-secondary); }
+
+        details.schema-ref pre {
+            background: var(--bg-code);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 12px 14px;
+            margin: 10px 0;
+            overflow-x: auto;
+            font-size: 0.78rem;
+            line-height: 1.5;
+        }
+
+        details.schema-ref ul { margin: 6px 0 12px 18px; }
+        details.schema-ref ul li { margin-bottom: 3px; }
+        details.schema-ref ul li strong { color: var(--text); }
+
+        details.schema-ref h3 {
+            font-size: 0.82rem;
+            font-weight: 700;
+            margin: 12px 0 6px;
+            color: var(--text);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ============================================================
+         SHELL BAR — workspace identity + live indicator
+         ============================================================ -->
+    <div class="shell-bar">
+        <div class="container shell-inner">
+            <span><span class="key">workspace:</span> <span class="val">master-todo</span></span>
+            <span><span class="key">substrate:</span> <span class="val">ongoing-system</span></span>
+            <span><span class="key">status:</span> <span class="val">operating</span></span>
+            <span class="spacer"></span>
+            <span><span class="live-dot"></span>live</span>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         GOAL BANNER — goal.json rendered
+         ============================================================ -->
+    <section class="goal-banner">
+        <div class="container">
+            <p class="goal-eyebrow">Goal</p>
+            <h1>Maintain a single, trustworthy source of truth for everything I need to do across all parts of my life.</h1>
+            <p class="deliverable">An ongoing system, used continuously. The deliverable is the system itself, not a one-shot artifact.</p>
+            <div class="goal-meta">
+                <div class="goal-meta-item">
+                    <div class="label">Audience</div>
+                    <div class="value">Just me</div>
+                </div>
+                <div class="goal-meta-item">
+                    <div class="label">Cadence</div>
+                    <div class="value">Continuous capture · weekly review</div>
+                </div>
+                <div class="goal-meta-item">
+                    <div class="label">Success</div>
+                    <div class="value">See what's <em>doing</em> and what's <em>next</em>; nothing falls through the cracks</div>
+                </div>
+                <div class="goal-meta-item">
+                    <div class="label">Out of scope</div>
+                    <div class="value">Calendar · time tracking · journaling · reference notes</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================
+         WORKFLOW STRIP — workflow.json rendered with live counts
+         ============================================================ -->
+    <section class="workflow-strip">
+        <div class="container">
+            <div class="workflow-track">
+                <span class="strip-label">Task lifecycle</span>
+                <span class="stage has-items">inbox <span class="stage-count">2</span></span>
+                <span class="stage-arrow">→</span>
+                <span class="stage has-items">next <span class="stage-count">2</span></span>
+                <span class="stage-arrow">→</span>
+                <span class="stage has-items">doing <span class="stage-count">1</span></span>
+                <span class="stage-arrow">→</span>
+                <span class="stage has-items">waiting <span class="stage-count">1</span></span>
+                <span class="stage-arrow">→</span>
+                <span class="stage has-items">someday <span class="stage-count">1</span></span>
+                <span class="stage-arrow">→</span>
+                <span class="stage empty">done <span class="stage-count">0</span></span>
+                <span class="stage-arrow">→</span>
+                <span class="stage empty">dropped <span class="stage-count">0</span></span>
+            </div>
+        </div>
+    </section>
+
+    <main>
+        <div class="container">
+
+            <!-- TODAY: doing tasks -->
+            <div class="today-section">
+                <span class="today-label">Today's focus</span>
+                <div class="today-task">
+                    <span class="dot"></span>
+                    <span><strong>Draft Q3 roadmap intro section</strong></span>
+                    <span style="color: var(--text-muted); font-size: 0.78rem;">due in 2 days · proj-001</span>
+                </div>
+            </div>
+
+            <!-- ============================================================
+                 MAIN GRID — smart table + side panels
+                 ============================================================ -->
+            <div class="grid-main">
+
+                <!-- LEFT: smart table widget -->
+                <div>
+                    <div class="widget">
+                        <div class="widget-header">
+                            <span class="widget-title">Open tasks</span>
+                            <span class="widget-meta">smart-table · view: open-tasks</span>
+                            <div class="widget-tools">
+                                <button class="widget-tool">+ task</button>
+                                <button class="widget-tool">filters</button>
+                                <button class="widget-tool">···</button>
+                            </div>
+                        </div>
+
+                        <div class="filter-bar">
+                            <span>Showing</span>
+                            <span class="filter-chip"><strong>state</strong> in inbox · next · doing · waiting</span>
+                            <span>sorted by</span>
+                            <span class="filter-chip"><strong>due</strong> ↑</span>
+                        </div>
+
+                        <div class="smart-table-wrap">
+                            <table class="smart-table">
+                                <thead>
+                                    <tr>
+                                        <th>title <span class="sort-ind">↕</span></th>
+                                        <th>state <span class="sort-ind">↕</span></th>
+                                        <th>area <span class="sort-ind">↕</span></th>
+                                        <th>project <span class="sort-ind">↕</span></th>
+                                        <th class="sorted-asc">due <span class="sort-ind">↑</span></th>
+                                        <th>priority <span class="sort-ind">↕</span></th>
+                                        <th class="computed-col" title="Computed: today − created_at">age_days</th>
+                                        <th class="add-col">+ column</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="col-title">
+                                            Email Sarah about Tuesday's review meeting
+                                            <span class="detail">Confirm agenda items; ask if she wants the deck pre-circulated.</span>
+                                        </td>
+                                        <td><span class="state-pill state-next">next</span></td>
+                                        <td><a class="ref-link">→ Work</a></td>
+                                        <td>—</td>
+                                        <td class="due-soon">tomorrow</td>
+                                        <td><span class="priority-pill priority-high">high</span></td>
+                                        <td class="computed-col">1</td>
+                                        <td class="add-col"></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="col-title">
+                                            Draft Q3 roadmap intro section
+                                            <span class="detail">Frame the year's themes and where Q3 lands. Aim for 1.5 pages.</span>
+                                        </td>
+                                        <td><span class="state-pill state-doing">doing</span></td>
+                                        <td><a class="ref-link">→ Work</a></td>
+                                        <td><a class="ref-link">→ Q3 roadmap</a></td>
+                                        <td class="due-soon">in 2d</td>
+                                        <td><span class="priority-pill priority-high">high</span></td>
+                                        <td class="computed-col">4</td>
+                                        <td class="add-col"></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="col-title">Order the squat rack</td>
+                                        <td><span class="state-pill state-next">next</span></td>
+                                        <td><a class="ref-link">→ Health</a></td>
+                                        <td><a class="ref-link">→ Home gym</a></td>
+                                        <td>—</td>
+                                        <td><span class="priority-pill priority-normal">normal</span></td>
+                                        <td class="computed-col">5</td>
+                                        <td class="add-col"></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="col-title">Schedule dentist appointment
+                                            <span class="detail">Last cleaning was October. Overdue.</span>
+                                        </td>
+                                        <td><span class="state-pill state-inbox">inbox</span></td>
+                                        <td><a class="ref-link">→ Health</a></td>
+                                        <td>—</td>
+                                        <td>—</td>
+                                        <td><span class="priority-pill priority-normal">normal</span></td>
+                                        <td class="computed-col">1</td>
+                                        <td class="add-col"></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="col-title">Wait for Tom's review of the contract draft
+                                            <span class="detail">Sent April 23. Follow up if nothing by April 30. <em>waiting on: Tom</em></span>
+                                        </td>
+                                        <td><span class="state-pill state-waiting">waiting</span></td>
+                                        <td><a class="ref-link">→ Work</a></td>
+                                        <td>—</td>
+                                        <td>—</td>
+                                        <td><span class="priority-pill priority-normal">normal</span></td>
+                                        <td class="computed-col">4</td>
+                                        <td class="add-col"></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="col-title">Reply to Mom's text about Memorial Day weekend</td>
+                                        <td><span class="state-pill state-inbox">inbox</span></td>
+                                        <td><a class="ref-link">→ Family</a></td>
+                                        <td>—</td>
+                                        <td>—</td>
+                                        <td><span class="priority-pill priority-normal">normal</span></td>
+                                        <td class="computed-col">1</td>
+                                        <td class="add-col"></td>
+                                    </tr>
+                                    <tr class="add-row">
+                                        <td colspan="8">+ add task</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RIGHT: side panels -->
+                <div>
+                    <!-- Areas -->
+                    <div class="side-panel">
+                        <h2>Areas <span class="count">4</span></h2>
+                        <div class="area-row">
+                            <span class="area-name">Health</span>
+                            <span class="area-cadence">weekly</span>
+                        </div>
+                        <div class="area-row">
+                            <span class="area-name">Work</span>
+                            <span class="area-cadence">daily</span>
+                        </div>
+                        <div class="area-row">
+                            <span class="area-name">Home</span>
+                            <span class="area-cadence">weekly</span>
+                        </div>
+                        <div class="area-row">
+                            <span class="area-name">Family</span>
+                            <span class="area-cadence">weekly</span>
+                        </div>
+                    </div>
+
+                    <!-- Projects -->
+                    <div class="side-panel">
+                        <h2>Active projects <span class="count">2</span></h2>
+                        <div class="project-card">
+                            <div class="project-title">Q3 product roadmap document</div>
+                            <div class="project-why">Leadership needs a single doc to align around for the next quarter.</div>
+                            <div class="project-meta">
+                                <span>area: Work</span>
+                                <span>·</span>
+                                <span>due 2026-05-15</span>
+                            </div>
+                        </div>
+                        <div class="project-card">
+                            <div class="project-title">Set up home gym in basement</div>
+                            <div class="project-why">Avoiding the trip to the gym is the main reason I skip workouts.</div>
+                            <div class="project-meta">
+                                <span>area: Health</span>
+                                <span>·</span>
+                                <span>due 2026-06-30</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================================
+                 KANBAN — alternative view of the same data
+                 ============================================================ -->
+            <div class="widget">
+                <div class="widget-header">
+                    <span class="widget-title">Tasks by state</span>
+                    <span class="widget-meta">kanban · drag to transition</span>
+                    <div class="widget-tools">
+                        <button class="widget-tool">+ task</button>
+                        <button class="widget-tool">···</button>
+                    </div>
+                </div>
+                <div class="kanban-board">
+                    <!-- inbox -->
+                    <div class="kanban-col">
+                        <div class="kanban-col-header">
+                            <span class="kanban-col-name">inbox</span>
+                            <span class="kanban-col-count">2</span>
+                        </div>
+                        <div class="kanban-card">
+                            <div class="card-title">Schedule dentist appointment</div>
+                            <div class="card-meta"><span class="ref">Health</span></div>
+                        </div>
+                        <div class="kanban-card">
+                            <div class="card-title">Reply to Mom's text about Memorial Day</div>
+                            <div class="card-meta"><span class="ref">Family</span></div>
+                        </div>
+                    </div>
+
+                    <!-- next -->
+                    <div class="kanban-col">
+                        <div class="kanban-col-header">
+                            <span class="kanban-col-name">next</span>
+                            <span class="kanban-col-count">2</span>
+                        </div>
+                        <div class="kanban-card">
+                            <div class="card-title">Email Sarah about Tuesday's review</div>
+                            <div class="card-meta"><span class="ref">Work</span> <span>· due tomorrow</span></div>
+                        </div>
+                        <div class="kanban-card">
+                            <div class="card-title">Order the squat rack</div>
+                            <div class="card-meta"><span class="ref">Health</span> <span class="ref">Home gym</span></div>
+                        </div>
+                    </div>
+
+                    <!-- doing -->
+                    <div class="kanban-col">
+                        <div class="kanban-col-header">
+                            <span class="kanban-col-name">doing</span>
+                            <span class="kanban-col-count">1</span>
+                        </div>
+                        <div class="kanban-card">
+                            <div class="card-title">Draft Q3 roadmap intro section</div>
+                            <div class="card-meta"><span class="ref">Work</span> <span class="ref">Q3 roadmap</span> <span>· due in 2d</span></div>
+                        </div>
+                    </div>
+
+                    <!-- waiting -->
+                    <div class="kanban-col">
+                        <div class="kanban-col-header">
+                            <span class="kanban-col-name">waiting</span>
+                            <span class="kanban-col-count">1</span>
+                        </div>
+                        <div class="kanban-card">
+                            <div class="card-title">Tom's review of contract draft</div>
+                            <div class="card-meta"><span class="ref">Work</span> <span>· on Tom</span></div>
+                        </div>
+                    </div>
+
+                    <!-- someday -->
+                    <div class="kanban-col">
+                        <div class="kanban-col-header">
+                            <span class="kanban-col-name">someday</span>
+                            <span class="kanban-col-count">1</span>
+                        </div>
+                        <div class="kanban-card">
+                            <div class="card-title">Read 'Working in Public'</div>
+                            <div class="card-meta"><span class="ref">Work</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================================
+                 META-SCHEMA REFERENCE (collapsed, dev-mode)
+                 ============================================================ -->
+            <details class="schema-ref">
+                <summary>Workspace internals <span class="ref-tag">dev mode</span></summary>
+                <div class="ref-body">
+                    <p>This panel shows what the plugin is reading from the file system to render the workspace. Hidden in production view.</p>
+
+                    <h3>Files in this workspace</h3>
+                    <pre>master-todo/
+├── meta.json                       (workspace_id: master-todo, status: operating)
+├── goal.json                       (purpose, deliverable, success criteria)
+├── workflow.json                   (7 stages, 12 transitions)
+├── process.md                      (decisions + spine candidates)
+├── contracts/
+│   ├── task.contract.json          (7 states, 12 transitions, 4 invariants)
+│   ├── project.contract.json       (4 states)
+│   └── area.contract.json          (no states; ongoing)
+├── data/
+│   ├── tasks/                      (7 instances)
+│   ├── projects/                   (2 instances)
+│   └── areas/                      (4 instances)
+├── views/
+│   └── open-tasks.view.json        (smart-table; the table above)
+└── escapes/                        (empty)</pre>
+
+                    <h3>Active view</h3>
+                    <pre>{
+  "name": "open-tasks",
+  "view_type": "smart-table",
+  "kind": "task",
+  "config": {
+    "columns": [
+      { "field": "title" },
+      { "field": "state" },
+      { "field": "area" },
+      { "field": "project" },
+      { "field": "due" },
+      { "field": "priority" },
+      { "field": "age_days", "mode": "computed",
+        "expression": "today - created_at" }
+    ],
+    "filters": { "state": ["inbox", "next", "doing", "waiting"] },
+    "sort": { "field": "due", "direction": "asc" }
+  }
+}</pre>
+
+                    <h3>Three column-add modes</h3>
+                    <ul>
+                        <li><strong>Computed</strong> — formula over existing fields. View-side, no data write. The <code>age_days</code> column above.</li>
+                        <li><strong>Enriched</strong> — Claude walks each instance and writes a value. Persistent. Example: <em>"add a topic column and classify each task"</em>.</li>
+                        <li><strong>Manual</strong> — empty new field; you fill in yourself. Becomes part of the contract.</li>
+                    </ul>
+                </div>
+            </details>
+
+        </div>
+    </main>
+
+</body>
+</html>

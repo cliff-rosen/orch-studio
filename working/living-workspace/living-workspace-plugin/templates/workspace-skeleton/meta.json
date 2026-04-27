@@ -1,0 +1,11 @@
+{
+  "workspace_id": "{{ generated_at_bootstrap }}",
+  "title": "{{ workspace_title }}",
+  "created_at": "{{ generated_at_bootstrap }}",
+  "last_modified": "{{ generated_at_bootstrap }}",
+  "status": "goal-defining",
+  "substrate_type": null,
+  "current_stage": null,
+  "domain_hint": "",
+  "meta_schema_version": "0.1"
+}
