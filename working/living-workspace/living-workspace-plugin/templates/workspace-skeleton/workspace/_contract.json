@@ -1,0 +1,23 @@
+{
+  "lifecycle": {
+    "states": [
+      { "name": "goal-defining", "description": "Eliciting the workspace goal. No stores or data yet." },
+      { "name": "contracts-drafting", "description": "Goal is set. Drafting workspace and store contracts." },
+      { "name": "operating", "description": "Doing the actual work. Long-running phase." },
+      { "name": "archived", "description": "Read-only record of completed work.", "terminal": true }
+    ],
+    "transitions": [
+      { "from": "goal-defining", "to": "contracts-drafting", "guard": "goal.json must validate against goal.schema.json" },
+      { "from": "contracts-drafting", "to": "goal-defining", "guard": "User wants to revise the goal." },
+      { "from": "contracts-drafting", "to": "operating", "guard": "User has approved workspace and store contracts." },
+      { "from": "operating", "to": "contracts-drafting", "guard": "User wants to revise contracts (structural change)." },
+      { "from": "operating", "to": "archived" }
+    ]
+  },
+  "initial_state": "goal-defining",
+  "required_stores": [
+    { "state": "operating", "stores": [] }
+  ],
+  "workflow": null,
+  "cross_store_invariants": []
+}

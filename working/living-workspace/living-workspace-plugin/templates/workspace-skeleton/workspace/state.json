@@ -4,8 +4,8 @@
   "created_at": "{{ generated_at_bootstrap }}",
   "last_modified": "{{ generated_at_bootstrap }}",
   "status": "goal-defining",
-  "substrate_type": null,
-  "current_stage": null,
+  "current_workflow_stage": null,
   "domain_hint": "",
+  "blueprint": null,
   "meta_schema_version": "0.1"
 }

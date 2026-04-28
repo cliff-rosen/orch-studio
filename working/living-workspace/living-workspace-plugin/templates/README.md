@@ -14,14 +14,17 @@ Things the plugin instantiates into a workspace. Distinct from `../schemas/`, wh
 
 ## Substrate-type starter pack contents
 
-Each starter pack has the same shape:
+Each starter pack mirrors what gets installed into a workspace's `workspace/` folder:
 
 ```
 <substrate-type>/
 ├── README.md            What this substrate is, when to use it.
 ├── workflow.json        Default workflow shape for this substrate.
-├── contracts/           Suggested contracts (kinds + states + transitions).
-└── views/               (optional) Default views for this substrate.
+├── contracts/           Suggested contracts (one file per kind).
+│   └── <kind>.json
+└── views/               (optional) Default view descriptors.
 ```
+
+Filename convention: drop redundant suffixes. A file in `contracts/` is a contract; folder location identifies type. So `task.json` not `task.contract.json`.
 
 Status: `ongoing-system` exists. Others are open work — see architecture.md "Open questions → Most consequential."

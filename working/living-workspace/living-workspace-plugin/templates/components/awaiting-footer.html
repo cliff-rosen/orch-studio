@@ -1,0 +1,20 @@
+<!--
+  COMPONENT: awaiting-footer
+  Renders: dashed-border footer indicating the user should act in the terminal.
+  Layouts: bootstrap phases (goal-defining, substrate-selecting, contracts-drafting).
+  Data:
+    awaiting.headline        string — bolded lead, e.g., "Awaiting selection."
+    awaiting.detail          string — instruction for what to do
+    awaiting.next_phase      string | null — what comes next once user acts (rendered as <span class="term">)
+    awaiting.icon            string | null — emoji/glyph (defaults to ⌨)
+-->
+<div class="awaiting">
+    <div class="icon">{{ awaiting.icon | default: "⌨" }}</div>
+    <div>
+        <strong>{{ awaiting.headline }}</strong>
+        {{{ awaiting.detail }}}
+        {{#if awaiting.next_phase}}
+            The browser will update once Claude moves on to <span class="term">{{ awaiting.next_phase }}</span>.
+        {{/if}}
+    </div>
+</div>

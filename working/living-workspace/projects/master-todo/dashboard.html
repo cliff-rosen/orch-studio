@@ -1023,21 +1023,23 @@
 
                     <h3>Files in this workspace</h3>
                     <pre>master-todo/
-├── meta.json                       (workspace_id: master-todo, status: operating)
-├── goal.json                       (purpose, deliverable, success criteria)
-├── workflow.json                   (7 stages, 12 transitions)
+├── workspace/
+│   ├── meta.json                   (workspace_id: master-todo, status: operating)
+│   ├── goal.json                   (purpose, deliverable, success criteria)
+│   ├── workflow.json               (7 stages, 12 transitions)
+│   ├── contracts/
+│   │   ├── task.json               (7 states, 12 transitions, 4 invariants)
+│   │   ├── project.json            (4 states)
+│   │   └── area.json               (no states; ongoing)
+│   ├── data/
+│   │   ├── tasks/                  (7 instances)
+│   │   ├── projects/               (2 instances)
+│   │   └── areas/                  (4 instances)
+│   ├── views/
+│   │   └── open-tasks.json         (smart-table; the table above)
+│   └── escapes/                    (empty)
 ├── process.md                      (decisions + spine candidates)
-├── contracts/
-│   ├── task.contract.json          (7 states, 12 transitions, 4 invariants)
-│   ├── project.contract.json       (4 states)
-│   └── area.contract.json          (no states; ongoing)
-├── data/
-│   ├── tasks/                      (7 instances)
-│   ├── projects/                   (2 instances)
-│   └── areas/                      (4 instances)
-├── views/
-│   └── open-tasks.view.json        (smart-table; the table above)
-└── escapes/                        (empty)</pre>
+└── dashboard.html                  (this file — rendered by the plugin)</pre>
 
                     <h3>Active view</h3>
                     <pre>{

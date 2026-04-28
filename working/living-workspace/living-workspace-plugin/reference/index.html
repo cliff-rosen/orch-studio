@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Living Workspace — Reference</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --accent: #3730a3;
+            --accent-light: #4f46e5;
+            --accent-subtle: #eef2ff;
+            --accent-strong: #312e81;
+            --text: #1e1b4b;
+            --text-secondary: #4b5563;
+            --text-muted: #6b7280;
+            --bg: #ffffff;
+            --bg-alt: #f8fafc;
+            --bg-code: #f1f5f9;
+            --border: #e2e8f0;
+            --border-strong: #cbd5e1;
+            --warn: #b45309;
+            --warn-subtle: #fef3c7;
+            --ok: #047857;
+            --ok-subtle: #d1fae5;
+            --info: #1d4ed8;
+            --info-subtle: #dbeafe;
+            --radius: 10px;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            color: var(--text);
+            background: var(--bg);
+            line-height: 1.7;
+            font-size: 16px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        h1, h2, h3, h4 {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            line-height: 1.25;
+            letter-spacing: -0.01em;
+        }
+
+        code, pre, .mono { font-family: 'JetBrains Mono', monospace; }
+
+        .layout {
+            display: grid;
+            grid-template-columns: 260px 1fr;
+            min-height: 100vh;
+            max-width: 1280px;
+            margin: 0 auto;
+        }
+
+        /* ===== SIDEBAR ===== */
+        aside.sidebar {
+            border-right: 1px solid var(--border);
+            padding: 32px 24px;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+            background: var(--bg-alt);
+        }
+
+        .sidebar-title {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 800;
+            font-size: 1rem;
+            color: var(--accent);
+            margin-bottom: 4px;
+            letter-spacing: -0.01em;
+        }
+
+        .sidebar-subtitle {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            margin-bottom: 24px;
+        }
+
+        .sidebar nav ul {
+            list-style: none;
+        }
+
+        .sidebar nav > ul > li {
+            margin-bottom: 6px;
+        }
+
+        .sidebar nav a {
+            display: block;
+            color: var(--text-secondary);
+            text-decoration: none;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.88rem;
+            transition: all 0.12s;
+        }
+
+        .sidebar nav a:hover { background: var(--accent-subtle); color: var(--accent); }
+
+        .sidebar nav a.section-head {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 700;
+            font-size: 0.74rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+            padding-top: 14px;
+            cursor: default;
+        }
+        .sidebar nav a.section-head:hover { background: transparent; color: var(--text-muted); }
+
+        .sidebar nav ul ul {
+            margin-top: 2px;
+            margin-bottom: 6px;
+            padding-left: 0;
+            border-left: 1px solid var(--border);
+            margin-left: 12px;
+        }
+
+        .sidebar nav ul ul a {
+            font-size: 0.84rem;
+            padding-left: 14px;
+        }
+
+        /* ===== MAIN ===== */
+        main {
+            padding: 56px 64px;
+            max-width: 880px;
+        }
+
+        @media (max-width: 900px) {
+            .layout { grid-template-columns: 1fr; }
+            aside.sidebar { position: static; height: auto; }
+            main { padding: 32px 24px; }
+        }
+
+        .doc-eyebrow {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--accent);
+            margin-bottom: 8px;
+        }
+
+        h1.doc-title {
+            font-size: 2.4rem;
+            font-weight: 800;
+            margin-bottom: 12px;
+            letter-spacing: -0.025em;
+        }
+
+        .lede {
+            font-size: 1.15rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 56px;
+            max-width: 720px;
+        }
+
+        section {
+            margin-bottom: 64px;
+            scroll-margin-top: 24px;
+        }
+
+        section > h2 {
+            font-size: 1.7rem;
+            font-weight: 800;
+            margin-bottom: 24px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--border);
+            letter-spacing: -0.02em;
+        }
+
+        article {
+            margin-bottom: 40px;
+            scroll-margin-top: 24px;
+        }
+
+        article > h3 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 14px;
+            color: var(--text);
+        }
+
+        article > h4, section > h3 {
+            font-size: 1.05rem;
+            font-weight: 700;
+            margin-top: 24px;
+            margin-bottom: 10px;
+        }
+
+        p {
+            margin-bottom: 14px;
+            color: var(--text);
+        }
+
+        p.muted { color: var(--text-secondary); }
+
+        ul.bullet, ol.numbered {
+            margin: 8px 0 16px 22px;
+            color: var(--text);
+        }
+
+        ul.bullet li, ol.numbered li { margin-bottom: 6px; }
+
+        ul.bullet li strong, ol.numbered li strong { color: var(--text); }
+
+        em { color: var(--text); }
+        strong { color: var(--text); font-weight: 700; }
+
+        code:not(pre code) {
+            background: var(--bg-code);
+            padding: 1px 7px;
+            border-radius: 4px;
+            font-size: 0.86em;
+            color: var(--accent);
+        }
+
+        pre {
+            background: var(--bg-code);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 16px 20px;
+            overflow-x: auto;
+            margin: 12px 0 20px;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            color: var(--text);
+        }
+
+        .callout {
+            background: var(--accent-subtle);
+            border-left: 4px solid var(--accent);
+            padding: 14px 20px;
+            border-radius: 4px;
+            margin: 18px 0;
+            font-size: 0.95rem;
+            color: var(--text);
+        }
+
+        .callout strong.callout-label {
+            color: var(--accent);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0 24px;
+            font-size: 0.92rem;
+        }
+
+        thead th {
+            background: var(--bg-alt);
+            text-align: left;
+            padding: 10px 14px;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border-strong);
+        }
+
+        tbody td {
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: top;
+        }
+
+        tbody tr:hover { background: var(--bg-alt); }
+
+        td code, td .mono {
+            font-size: 0.84em;
+            color: var(--accent);
+            background: var(--bg-code);
+            padding: 1px 6px;
+            border-radius: 3px;
+        }
+
+        /* ===== Visual blocks ===== */
+        .diagram {
+            background: var(--bg-alt);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 22px 24px;
+            margin: 18px 0;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            white-space: pre;
+            overflow-x: auto;
+            color: var(--text);
+        }
+
+        .primitive-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 14px;
+            margin: 18px 0 28px;
+        }
+
+        .primitive-card {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px 18px;
+        }
+
+        .primitive-card h4 {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.95rem;
+            color: var(--accent);
+            margin-bottom: 6px;
+            margin-top: 0;
+        }
+
+        .primitive-card p {
+            font-size: 0.86rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            margin-bottom: 0;
+        }
+
+        .stage-track {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin: 14px 0 22px;
+        }
+        .stage-track .stage {
+            background: var(--accent-subtle);
+            color: var(--accent);
+            padding: 6px 14px;
+            border-radius: 999px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.84rem;
+            font-weight: 600;
+        }
+        .stage-track .arrow { color: var(--text-muted); }
+
+        .use-case {
+            background: var(--bg-alt);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 18px 22px;
+            margin: 14px 0;
+        }
+        .use-case h4 {
+            font-size: 1.02rem;
+            margin-bottom: 6px;
+        }
+        .use-case .uc-stores {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            margin-top: 8px;
+        }
+
+        .glossary-list dt {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+            color: var(--accent);
+            margin-top: 14px;
+        }
+
+        .glossary-list dd {
+            margin-left: 0;
+            margin-top: 4px;
+            color: var(--text);
+            font-size: 0.94rem;
+        }
+
+        .footer-note {
+            margin-top: 80px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border);
+            color: var(--text-muted);
+            font-size: 0.82rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="layout">
+
+    <!-- ============================================================
+         SIDEBAR NAVIGATION
+         ============================================================ -->
+    <aside class="sidebar">
+        <div class="sidebar-title">Living Workspace</div>
+        <div class="sidebar-subtitle">Reference v0</div>
+
+        <nav>
+            <ul>
+                <li><a href="#overview">Overview</a></li>
+
+                <li><a class="section-head">Core concepts</a>
+                    <ul>
+                        <li><a href="#substrate">Substrate</a></li>
+                        <li><a href="#stores">Stores</a></li>
+                        <li><a href="#contracts">Contracts</a></li>
+                        <li><a href="#widgets">Widgets</a></li>
+                        <li><a href="#pages">Pages</a></li>
+                        <li><a href="#orchestration">Orchestration</a></li>
+                        <li><a href="#blueprints">Blueprints</a></li>
+                    </ul>
+                </li>
+
+                <li><a class="section-head">The system</a>
+                    <ul>
+                        <li><a href="#how-it-works">How it works</a></li>
+                        <li><a href="#lifecycle">Lifecycle</a></li>
+                        <li><a href="#operating-loop">Operating loop</a></li>
+                    </ul>
+                </li>
+
+                <li><a class="section-head">In practice</a>
+                    <ul>
+                        <li><a href="#use-cases">Typical use cases</a></li>
+                        <li><a href="#patterns">Working patterns</a></li>
+                    </ul>
+                </li>
+
+                <li><a class="section-head">Appendix</a>
+                    <ul>
+                        <li><a href="#glossary">Glossary</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </nav>
+    </aside>
+
+    <!-- ============================================================
+         MAIN CONTENT
+         ============================================================ -->
+    <main>
+
+        <p class="doc-eyebrow">Reference</p>
+        <h1 class="doc-title">Living Workspace</h1>
+        <p class="lede">
+            A Claude Code plugin for end-to-end knowledge work that needs structure but has no off-the-shelf tool. You chat in your terminal, a structured substrate fills in on disk, and a browser dashboard shows it live. The plumbing — contracts, validation, rendering — handles itself.
+        </p>
+
+        <!-- ============================================================
+             OVERVIEW
+             ============================================================ -->
+        <section id="overview">
+            <h2>Overview</h2>
+
+            <h3>Why this exists</h3>
+
+            <p>
+                Chat apps are great for parts of knowledge work — answering a question, drafting a paragraph, exploring an idea. But for <em>end-to-end</em> knowledge work — producing a research synthesis, revising a document deliberately, maintaining a system that grows over time — chat alone has nowhere to put the work. There's no substrate. Inputs, works-in-progress, derivatives, outputs all live in your head or scattered across files you have to manage yourself. Real orchestration isn't possible.
+            </p>
+
+            <p>
+                Claude Code solves the substrate problem at the lowest level: it reads and writes your file system. That's enough — every artifact, every relationship, every state can live in files. But the file system is too primitive for most knowledge workers. You end up with chat plus a folder of opaque JSON and markdown. No views, no validation, no methodology — just the user and a gazillion files, with all the burden of figuring out what to do with them.
+            </p>
+
+            <p>
+                This plugin is the layer in between. It overlays Claude Code with:
+            </p>
+
+            <ul class="bullet">
+                <li>A <strong>higher-level substrate</strong> — structured stores with contracts, validation, and references. Files mean something.</li>
+                <li>A <strong>live browser UI</strong> — a dashboard that shows your workspace as it grows. Read-only in v0.</li>
+                <li><strong>Methodology blueprints</strong> — packaged orchestration patterns for typical knowledge-work shapes. Optional starting points that come with both substrate and method.</li>
+                <li>A <strong>bootstrap conversation</strong> — Claude walks you through the goal and structure. You don't start from a blank workspace.</li>
+            </ul>
+
+            <p>
+                The result is turnkey: you sit at your terminal, run <code>claude</code>, open a browser. You describe what you're working on. As you work, the substrate fills in and the browser updates live. Accessible the way you'd use a chat app — but with structure underneath that supports real start-to-finish knowledge work.
+            </p>
+
+            <div class="callout">
+                <strong class="callout-label">The system in one sentence</strong>
+                The user chats with Claude in a terminal. Claude drives changes through a structured substrate of JSON files. The plugin renders the substrate live in a browser.
+            </div>
+
+            <h3>The pieces</h3>
+
+            <ul class="bullet">
+                <li><strong>Terminal</strong> — runs <code>claude</code>. This is where chat happens.</li>
+                <li><strong>Browser</strong> — shows the dashboard. Read-only in v0.</li>
+                <li><strong>Workspace folder</strong> — a directory on your disk holding all your work as structured files.</li>
+                <li><strong>Plugin</strong> — a local program that watches the workspace, validates changes, renders the browser view, and ships the rules and templates.</li>
+            </ul>
+
+            <h3>How you actually use it</h3>
+
+            <p>
+                You never edit JSON directly. You don't configure widgets or build forms. You describe what you want; Claude builds and maintains the structure. The browser shows the current state. The terminal is where you act.
+            </p>
+        </section>
+
+        <!-- ============================================================
+             CORE CONCEPTS
+             ============================================================ -->
+        <section id="concepts-section">
+            <h2>Core concepts</h2>
+
+            <article id="substrate">
+                <h3>Substrate</h3>
+                <p>
+                    The <strong>substrate</strong> is the structured layer of the workspace — the files and folders that hold your work in a way the system can read, validate, and render. Everything you create lives in the substrate. Everything the agent edits is in the substrate. Closing the browser doesn't lose anything; reopening it picks up exactly where you left off because the substrate is the source of truth.
+                </p>
+                <p>
+                    The substrate isn't a single shape. It's a composition of <em>stores</em> — independent containers, each with its own structure. A workspace might have a Tasks table, a Memo document, and a Schedule calendar — all sitting alongside each other, each with its own rules.
+                </p>
+                <div class="diagram"><project>/
+├── workspace/                      ← the substrate
+│   ├── _contract.json              workspace-level rules
+│   ├── state.json                  current lifecycle state
+│   ├── goal.json                   the workspace's purpose
+│   ├── manual.md                   universal operating manual
+│   ├── method.md                   blueprint methodology (when installed)
+│   ├── stores/                     all your data, organized by store
+│   ├── pages/                      saved page compositions
+│   └── escapes/                    things that don't fit yet
+├── log.md                          narrative log of decisions
+└── dashboard.html                  rendered output (the plugin emits this)</div>
+                <p class="muted">
+                    Anything narrative or rendered (log, dashboard) lives at the project root. Everything structured lives under <code>workspace/</code>.
+                </p>
+            </article>
+
+            <article id="stores">
+                <h3>Stores</h3>
+                <p>
+                    A <strong>store</strong> is a named container of one specific shape. You add stores to the workspace as you work. Each store has a name, a type (one of five primitives), and a contract describing what data is allowed inside.
+                </p>
+
+                <p>The five primitive types:</p>
+
+                <div class="primitive-grid">
+                    <div class="primitive-card">
+                        <h4>Table</h4>
+                        <p>Structured records as rows × columns. Optional state machine per row. Examples: tasks, contacts, sources, claims.</p>
+                    </div>
+                    <div class="primitive-card">
+                        <h4>Document</h4>
+                        <p>Prose body with optional structured front-matter. Markdown. Examples: memo, notes, spec, draft.</p>
+                    </div>
+                    <div class="primitive-card">
+                        <h4>Calendar</h4>
+                        <p>Time-scheduled events with start/end times, optional recurrence, conflict detection. Examples: schedule, deadlines, meetings.</p>
+                    </div>
+                    <div class="primitive-card">
+                        <h4>Tree</h4>
+                        <p>Hierarchical nodes with single-parent constraint. Acyclic. Examples: outline, organization chart, concept hierarchy.</p>
+                    </div>
+                    <div class="primitive-card">
+                        <h4>Graph</h4>
+                        <p>Nodes connected by directed, typed edges. Cycles allowed; multi-parent allowed. Examples: people network, decision graph, entity relationships.</p>
+                    </div>
+                </div>
+
+                <h4>Composition between stores</h4>
+
+                <p>Stores can compose into each other in two ways:</p>
+
+                <ul class="bullet">
+                    <li><strong>A Table can have a column whose type is Document.</strong> Each row owns its own document body. Useful when each record needs rich prose alongside structured fields — e.g., a Sources table where each row has structured metadata (title, url, date) plus a long Notes document.</li>
+                    <li><strong>A Document can embed other stores by reference.</strong> The document body has tagged regions that the renderer fills with a live store at view time — e.g., a Memo document that embeds the Sources table inline at one section and the Schedule calendar at another.</li>
+                </ul>
+
+                <h4>How a store is stored</h4>
+
+                <p>Each store is a folder under <code>workspace/stores/</code>. Inside the folder: a contract file describing the rules, plus the data files conforming to those rules.</p>
+
+                <div class="diagram">workspace/stores/tasks/
+├── _contract.json          declares: type=Table, row schema, states, transitions, invariants
+├── task-001.json           a row
+├── task-001.notes.md       sidecar file for a Document-typed column
+├── task-002.json
+└── ...</div>
+            </article>
+
+            <article id="contracts">
+                <h3>Contracts</h3>
+                <p>
+                    A <strong>contract</strong> is the rules of a store — what data is allowed, what shape it takes, what state machines apply, what invariants must hold. Contracts are <em>machine-checkable</em>: the plugin validates every change against the relevant contract. Bad data doesn't get written; bad contracts don't load.
+                </p>
+
+                <p>
+                    Contracts exist at two levels:
+                </p>
+
+                <ul class="bullet">
+                    <li><strong>Workspace contract</strong> (<code>workspace/_contract.json</code>) — declares the workspace's lifecycle, required stores, and cross-store rules.</li>
+                    <li><strong>Store contracts</strong> (<code>workspace/stores/&lt;name&gt;/_contract.json</code>) — declare each store's shape, state machine, references, and invariants.</li>
+                </ul>
+
+                <p>The shape of a store contract depends on the store's primitive type. A Table contract has rows, states, and transitions. A Document contract has a front-matter schema and embed rules. A Graph contract has node and edge schemas plus an edge type catalog.</p>
+
+                <div class="callout">
+                    <strong class="callout-label">Why "contract"</strong>
+                    The word emphasizes that this is an <em>enforced agreement</em> — between you, Claude, and the plugin. Claude can't write data that violates the contract. You can change the contract, but doing so is recognized as a structural change (not a casual edit).
+                </div>
+
+                <h4>Invariants</h4>
+                <p>
+                    Beyond shape (handled by JSON Schema), contracts can declare conditional rules — "if state == done, completed_at must be set," for example. These are written in JSON Schema's <code>if/then/else</code> form so the plugin can enforce them automatically.
+                </p>
+            </article>
+
+            <article id="widgets">
+                <h3>Widgets</h3>
+                <p>
+                    A <strong>widget</strong> is a generic, reusable component that knows how to render a specific shape of data. The plugin ships a catalog of widgets; you don't author them.
+                </p>
+
+                <p>The v0 widget catalog:</p>
+
+                <table>
+                    <thead>
+                        <tr><th>Widget</th><th>Renders</th><th>Behavior</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><code>smart-table</code></td><td>Table</td><td>Sortable, filterable, hideable columns. Inline edit. Bulk actions. Computed/enriched columns.</td></tr>
+                        <tr><td><code>kanban</code></td><td>Table with state field</td><td>Columns are states; cards are rows. Drag = state transition (validated against contract).</td></tr>
+                        <tr><td><code>cards</code></td><td>Table</td><td>Visual grid of preview cards.</td></tr>
+                        <tr><td><code>list</code></td><td>Table</td><td>Compact single-line rows. Good for narrow panels.</td></tr>
+                        <tr><td><code>detail</code></td><td>Table (one row)</td><td>Full record view with all fields. State transition buttons.</td></tr>
+                        <tr><td><code>calendar</code></td><td>Calendar (or Table with date+duration)</td><td>Time-grid. Drag to reschedule.</td></tr>
+                        <tr><td><code>timeline</code></td><td>Table with date field</td><td>Items positioned by time, zoom levels.</td></tr>
+                        <tr><td><code>document</code></td><td>Document</td><td>Rendered prose. Outline navigation.</td></tr>
+                        <tr><td><code>outline</code></td><td>Tree or Document</td><td>Collapsible hierarchy with drag-reparent.</td></tr>
+                        <tr><td><code>tree</code></td><td>Tree</td><td>Tree visualization, expand/collapse.</td></tr>
+                        <tr><td><code>graph</code></td><td>Graph</td><td>Node-link visualization. Force-directed or hierarchical layout.</td></tr>
+                    </tbody>
+                </table>
+
+                <p>
+                    The same store can be rendered by multiple widgets — a Table of Tasks can appear as a smart-table on one page, a kanban on another, a calendar on a third (if it has a due-date field). Widgets compose; primitives stay the same.
+                </p>
+            </article>
+
+            <article id="pages">
+                <h3>Pages</h3>
+                <p>
+                    A <strong>page</strong> is a composition of widgets. Pages are how you organize what you see. Each page descriptor declares: a title, a series of rows, and which widgets render in each row against which stores.
+                </p>
+
+                <p>The dashboard is just one page — the default landing. A workspace can have many pages, each with its own composition.</p>
+
+                <p>A page descriptor (lives in <code>workspace/pages/&lt;name&gt;.json</code>):</p>
+
+                <pre>{
+  "name": "dashboard",
+  "title": "Dashboard",
+  "rows": [
+    {
+      "widgets": [
+        { "widget": "smart-table", "store": "stores/tasks",
+          "config": { "filters": { "state": ["next", "doing"] } } }
+      ]
+    },
+    {
+      "widgets": [
+        { "widget": "kanban", "store": "stores/tasks" },
+        { "widget": "list", "store": "stores/projects" }
+      ]
+    }
+  ]
+}</pre>
+
+                <p>
+                    Multi-widget rows render side-by-side. Each widget references exactly one store. The plugin validates compatibility — if you ask for a kanban of a Table without a state field, the widget shows an error tile rather than rendering broken.
+                </p>
+
+                <h4>Page chrome vs page body</h4>
+
+                <p>The dashboard composes from two layers:</p>
+                <ul class="bullet">
+                    <li><strong>Chrome</strong> — automatic, lifecycle-aware. Shell bar, phase strip, goal banner, "what's happening" callouts. Plugin-driven.</li>
+                    <li><strong>Body</strong> — your page composition. Workspace-driven, per page.</li>
+                </ul>
+            </article>
+
+            <article id="orchestration">
+                <h3>Orchestration</h3>
+                <p>
+                    The substrate is the storage. <strong>Orchestration</strong> is the work pattern — the methodology that turns inputs into outputs through a sequence of structured stages.
+                </p>
+
+                <p>
+                    A typical orchestration looks like:
+                </p>
+
+                <ol class="numbered">
+                    <li>You start with <em>inputs</em> — raw documents, source materials, ideas.</li>
+                    <li>You <em>extract</em> — pull out what matters into structured records.</li>
+                    <li>You <em>distill</em> — boil down to the essentials.</li>
+                    <li>You <em>structure</em> — organize and connect.</li>
+                    <li>You <em>compose</em> — produce the output, drawing on everything above.</li>
+                </ol>
+
+                <p>
+                    Each stage might use different stores — inputs in a Documents store, extractions in a Table, distillations in another Table or Tree, output in a Document. The orchestration is the flow between them.
+                </p>
+
+                <div class="callout">
+                    <strong class="callout-label">Why orchestration matters</strong>
+                    Without an orchestration pattern, the substrate is just storage with no shape of work. Methodology gives storage a direction. Adding a "key-points" Table is structure; <em>knowing when to extract key-points from highlights and how to use them in the draft</em> is orchestration.
+                </div>
+
+                <p>
+                    Orchestrations come baked into <em>blueprints</em>.
+                </p>
+            </article>
+
+            <article id="blueprints">
+                <h3>Blueprints</h3>
+                <p>
+                    A <strong>blueprint</strong> is a packaged methodology + the substrate that supports it. Blueprints turn typical knowledge-work patterns into one-click starting points. When you install a blueprint, your workspace fills with the right stores, the right initial pages, and a methodology document the agent reads.
+                </p>
+
+                <p>A blueprint contains:</p>
+                <ul class="bullet">
+                    <li><strong>README</strong> — the methodology in human terms. What this is for, when to use it.</li>
+                    <li><strong>method.md</strong> — the orchestration pattern. The agent reads this to make method-aware suggestions and stay consistent with the methodology.</li>
+                    <li><strong>Workspace contract</strong> — the lifecycle and required stores for this kind of work.</li>
+                    <li><strong>Initial stores</strong> — the kinds you start with, with their contracts pre-set.</li>
+                    <li><strong>Initial pages</strong> — the dashboards that surface progress.</li>
+                </ul>
+
+                <p>Blueprints are optional. You can start blank. But for typical knowledge work, picking a blueprint saves a long bootstrap conversation and gives you a methodology that's worked elsewhere.</p>
+
+                <h4>How blueprints surface</h4>
+
+                <ul class="bullet">
+                    <li><strong>To you</strong> — during bootstrap, after your goal is defined, the dashboard shows blueprint candidates with their methodology summary. Even if you don't pick one, browsing them helps you see how others have structured similar work.</li>
+                    <li><strong>To Claude</strong> — once installed, <code>method.md</code> is part of the workspace's operating context. Claude consults it to suggest the next step in the methodology, push back on out-of-method moves, and surface stage transitions.</li>
+                </ul>
+
+                <p>
+                    Examples below in <a href="#use-cases">Typical use cases</a>.
+                </p>
+            </article>
+        </section>
+
+        <!-- ============================================================
+             THE SYSTEM
+             ============================================================ -->
+        <section id="how-it-works">
+            <h2>How it works</h2>
+
+            <article>
+                <h3>The two-window experience</h3>
+                <p>
+                    You have one input channel (the terminal, where you type to Claude) and one output channel (the browser, where you see the workspace). They're separate windows but a single experience.
+                </p>
+
+                <ul class="bullet">
+                    <li><strong>Terminal</strong> — Claude is here. You describe what you want; Claude does it. The terminal is where you write the workspace.</li>
+                    <li><strong>Browser</strong> — the dashboard is here. As Claude writes files, the browser updates live. You watch the workspace come into being. (Read-only in v0.)</li>
+                </ul>
+
+                <p>You don't manage state. The system does. Closing either window doesn't lose anything; the substrate is on disk.</p>
+            </article>
+
+            <article>
+                <h3>The plugin's role</h3>
+                <p>
+                    The plugin is a small local program. It does four things:
+                </p>
+                <ol class="numbered">
+                    <li><strong>Bootstrap.</strong> A slash command starts a new workspace from the universal skeleton or a blueprint.</li>
+                    <li><strong>Validate.</strong> Every file change is checked against the relevant contract before it's committed.</li>
+                    <li><strong>Render.</strong> The workspace state is rendered to a live HTML dashboard, updated as files change.</li>
+                    <li><strong>Watch.</strong> The plugin watches the workspace folder for file changes and pushes updates to the browser.</li>
+                </ol>
+                <p class="muted">
+                    The plugin understands no domain. It doesn't know what a CRM is or what a competitive analysis looks like. All domain knowledge — what kinds you have, how they relate, what views you want — comes from the workspace itself, fabricated by Claude during use.
+                </p>
+            </article>
+        </section>
+
+        <section id="lifecycle">
+            <h2>Lifecycle</h2>
+
+            <p>Every workspace moves through a small set of named states. The default lifecycle:</p>
+
+            <div class="stage-track">
+                <span class="stage">goal-defining</span>
+                <span class="arrow">→</span>
+                <span class="stage">contracts-drafting</span>
+                <span class="arrow">→</span>
+                <span class="stage">operating</span>
+                <span class="arrow">→</span>
+                <span class="stage">archived</span>
+            </div>
+
+            <ul class="bullet">
+                <li><strong>goal-defining</strong> — you've just scaffolded a workspace. The agent walks you through articulating the goal: purpose, deliverable, audience, success criteria. Until the goal is filled in, no contracts or data can be added.</li>
+                <li><strong>contracts-drafting</strong> — with goal in hand, you choose a blueprint (or start blank). Contracts get drafted; the agent customizes them based on your goal.</li>
+                <li><strong>operating</strong> — the long phase. You're doing the actual work. Capture, extract, distill, restructure. Most of a workspace's life is here.</li>
+                <li><strong>archived</strong> — terminal state. Read-only record.</li>
+            </ul>
+
+            <p>The lifecycle is declared in the workspace contract; workspaces can extend with custom states (e.g., a single-deliverable workspace adding a <code>wrapping-up</code> state before archived). Backward transitions are explicit and allowed: you can pivot from <code>contracts-drafting</code> back to <code>goal-defining</code> if the goal needs revision, or from <code>operating</code> back to <code>contracts-drafting</code> if the rules need to change.</p>
+        </section>
+
+        <section id="operating-loop">
+            <h2>Operating loop</h2>
+
+            <p>Once your workspace is in the <code>operating</code> state, the rhythm is the same on every user message:</p>
+
+            <ol class="numbered">
+                <li>You say something.</li>
+                <li>Claude understands the request.</li>
+                <li>Claude considers: would satisfying this change the rules?
+                    <ul class="bullet" style="margin-top: 6px;">
+                        <li><strong>No</strong> — Claude acts. Validates the change. Renders.</li>
+                        <li><strong>Yes</strong> — Claude pauses, surfaces what would change, asks for confirmation, then acts.</li>
+                    </ul>
+                </li>
+                <li>If a structural change happened, Claude logs it to <code>log.md</code>.</li>
+            </ol>
+
+            <p>That's the entire operating discipline. Most user messages don't change rules — they're queries, data operations, view tweaks. The agent just acts. The structural-change gate is the one moment of explicit ceremony, and it's there because rule changes have downstream consequences.</p>
+
+            <div class="callout">
+                <strong class="callout-label">Why the gate</strong>
+                Adding a column to a Table contract means existing rows might not have that column. Changing a state machine might invalidate existing rows. Editing the goal might make the whole workspace's structure suspect. These need a deliberate moment, not an accidental drift.
+            </div>
+        </section>
+
+        <!-- ============================================================
+             USE CASES
+             ============================================================ -->
+        <section id="use-cases">
+            <h2>Typical use cases</h2>
+
+            <p>What kinds of work fit a Living Workspace? Anything that needs structure but doesn't have an off-the-shelf tool. Examples:</p>
+
+            <div class="use-case">
+                <h4>Document revision</h4>
+                <p>You have an input document and want to revise it deliberately — not just edit in place, but extract what matters, decide what to change, write the revised output with intention.</p>
+                <p><strong>Orchestration:</strong> inputs → highlights → key-points → changes → tone → output.</p>
+                <div class="uc-stores">stores: inputs (Document), highlights (Table), key-points (Table), changes (Table), tone (Document), output (Document)</div>
+            </div>
+
+            <div class="use-case">
+                <h4>Research synthesis</h4>
+                <p>You're reading a body of sources and need to produce a synthesized memo. The workflow is too involved for ad-hoc note-taking but doesn't justify a dedicated app.</p>
+                <p><strong>Orchestration:</strong> sources → claims → themes → outline → memo.</p>
+                <div class="uc-stores">stores: sources (Table), claims (Table, refs source), themes (Tree), outline (Tree), memo (Document, embeds claims)</div>
+            </div>
+
+            <div class="use-case">
+                <h4>Personal task management</h4>
+                <p>A trustworthy single source of truth for everything you need to do. Captures fast, surfaces what's active, defers what's not ready.</p>
+                <p><strong>Orchestration:</strong> capture → process → engage → review.</p>
+                <div class="uc-stores">stores: tasks (Table), projects (Table), areas (Table)</div>
+            </div>
+
+            <div class="use-case">
+                <h4>Decision log</h4>
+                <p>Make consequential decisions deliberately and keep a record of why. The workflow surfaces options, criteria, and rationale rather than just an outcome.</p>
+                <p><strong>Orchestration:</strong> decision → options → criteria → analysis → resolution.</p>
+                <div class="uc-stores">stores: decisions (Table), options (Table, refs decision), criteria (Table), analyses (Document store)</div>
+            </div>
+
+            <div class="use-case">
+                <h4>Competitive landscape</h4>
+                <p>Survey competitors and produce a memo for a strategy meeting. Citation-disciplined; structured comparison.</p>
+                <p><strong>Orchestration:</strong> competitors → features → comparison matrix → insights → memo.</p>
+                <div class="uc-stores">stores: competitors (Table), features (Table), comparison (Table, refs both), insights (Table), memo (Document)</div>
+            </div>
+
+            <div class="use-case">
+                <h4>Reading review</h4>
+                <p>Capture quotes, notes, and insights from books or papers in a way that compounds over time.</p>
+                <p><strong>Orchestration:</strong> book → quotes → notes → insights → summary.</p>
+                <div class="uc-stores">stores: books (Table), quotes (Table, refs book), notes (Document per book or shared), insights (Table)</div>
+            </div>
+
+            <p class="muted">
+                These aren't built into the system. They're documented patterns that map to specific blueprints. Picking a blueprint installs the substrate plus the methodology. Skipping the blueprint and starting blank is also fine — the system supports both.
+            </p>
+        </section>
+
+        <section id="patterns">
+            <h2>Working patterns</h2>
+
+            <article>
+                <h3>Capture is fast</h3>
+                <p>When you're in capture mode — dropping new tasks, sources, ideas — the agent shouldn't interrogate. It accepts the capture, lands the record at its initial state, and moves on. Clarification happens later, in process mode.</p>
+            </article>
+
+            <article>
+                <h3>Process happens deliberately</h3>
+                <p>Periodically (or when prompted), you go through what's been captured and clarify each item — set its state, attach it to a project, decide whether to do it. This is process mode. The agent's job here is to surface what's pending and ask focused questions.</p>
+            </article>
+
+            <article>
+                <h3>Engage moves things forward</h3>
+                <p>Most of operating life is engaging — actually working items: marking them done, advancing states, capturing notes inline. The agent supports the work; you do it.</p>
+            </article>
+
+            <article>
+                <h3>Review surfaces patterns</h3>
+                <p>Cadenced review (weekly, monthly) brings out:</p>
+                <ul class="bullet">
+                    <li><strong>Stuck items</strong> — things that have been in the same state for too long.</li>
+                    <li><strong>Spine candidates</strong> — patterns that recur enough to warrant promotion to a contract field.</li>
+                    <li><strong>Escapes</strong> — things that don't fit the contracts and need to be resolved (force-fit is wrong; evolve the contract or leave as escape).</li>
+                </ul>
+            </article>
+
+            <article>
+                <h3>Structural changes are explicit</h3>
+                <p>The agent doesn't quietly evolve contracts. When you ask for something that would change the rules, the agent surfaces what would change and confirms before acting. This keeps the substrate trustworthy across long sessions.</p>
+            </article>
+        </section>
+
+        <!-- ============================================================
+             GLOSSARY
+             ============================================================ -->
+        <section id="glossary">
+            <h2>Glossary</h2>
+
+            <dl class="glossary-list">
+                <dt>Blueprint</dt>
+                <dd>A packaged methodology plus the substrate that supports it. Optional starting points for typical knowledge work.</dd>
+
+                <dt>Contract</dt>
+                <dd>The rules of a store (or the workspace as a whole). Machine-checkable. Lives in <code>_contract.json</code>.</dd>
+
+                <dt>Embed</dt>
+                <dd>Inline reference from a Document to another store. Renders the embedded store at view time.</dd>
+
+                <dt>Escape</dt>
+                <dd>A piece of data that doesn't fit any current contract. Captured raw with a why-not note instead of force-fit.</dd>
+
+                <dt>Goal</dt>
+                <dd>The workspace's anchor — why it exists. Captured in <code>goal.json</code>. Reread when orientation drifts.</dd>
+
+                <dt>Manual</dt>
+                <dd>The universal operating discipline. Lives in <code>workspace/manual.md</code>. Same content for every workspace.</dd>
+
+                <dt>Method</dt>
+                <dd>The blueprint-specific orchestration pattern. Lives in <code>workspace/method.md</code> when a blueprint is installed.</dd>
+
+                <dt>Orchestration</dt>
+                <dd>The flow of work — inputs to derivatives to outputs. The methodology that gives the substrate direction.</dd>
+
+                <dt>Page</dt>
+                <dd>A composition of widgets that renders some slice of the workspace. The dashboard is the default page.</dd>
+
+                <dt>Plugin</dt>
+                <dd>The local program that bootstraps, validates, and renders the workspace. Watches files; pushes updates to the browser.</dd>
+
+                <dt>Primitive</dt>
+                <dd>One of the five basic store types: Table, Document, Calendar, Tree, Graph.</dd>
+
+                <dt>Sidecar</dt>
+                <dd>A file alongside the main data file for a row, holding extra content. Used for Document-typed columns: <code>task-001.notes.md</code> alongside <code>task-001.json</code>.</dd>
+
+                <dt>Spine</dt>
+                <dd>Load-bearing patterns in the substrate. Recurring fields, frequent relationships — candidates for promotion to formal contract.</dd>
+
+                <dt>State (workspace)</dt>
+                <dd>The workspace's current runtime status. Lives in <code>state.json</code>. Conforms to the lifecycle in the workspace contract.</dd>
+
+                <dt>Store</dt>
+                <dd>A named container of one specific shape (Table, Document, Calendar, Tree, or Graph). Holds data plus its contract.</dd>
+
+                <dt>Substrate</dt>
+                <dd>The structured layer of the workspace — the files and folders that hold work in a way the system can read and validate. Source of truth.</dd>
+
+                <dt>Widget</dt>
+                <dd>A reusable component that renders a specific shape of data. Plugin-shipped; not user-authored.</dd>
+
+                <dt>Workspace</dt>
+                <dd>One project, one folder. Contains the substrate plus rendered output and narrative log.</dd>
+            </dl>
+        </section>
+
+        <p class="footer-note">
+            Reference v0 — written alongside the design. Sections will tighten as concepts settle. Edit anything that doesn't read clean.
+        </p>
+
+    </main>
+</div>
+
+</body>
+</html>

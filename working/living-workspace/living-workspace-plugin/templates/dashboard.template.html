@@ -6,15 +6,15 @@
   This is the default workspace render. The plugin substitutes
   workspace data into the {{placeholders}} below.
 
-  Data sources (per workspace):
-    {{ meta.* }}      ← meta.json
-    {{ goal.* }}      ← goal.json
-    {{ workflow.* }}  ← workflow.json
+  Data sources (paths relative to project's workspace/ folder):
+    {{ meta.* }}      ← workspace/meta.json
+    {{ goal.* }}      ← workspace/goal.json
+    {{ workflow.* }}  ← workspace/workflow.json
     {{ counts.* }}    ← computed: instance counts per state
-    {{ today.* }}     ← computed: tasks in 'doing' state (or kind's equivalent)
-    {{ tasks }}       ← derived from view: open-tasks (or default)
-    {{ areas }}       ← data/areas/*.json
-    {{ projects }}    ← data/projects/*.json (filtered to active)
+    {{ today.* }}     ← computed: instances in 'doing' state (or kind's equivalent)
+    {{ primary }}     ← derived from a view in workspace/views/ (or default)
+    {{ areas }}       ← workspace/data/areas/*.json
+    {{ projects }}    ← workspace/data/projects/*.json (filtered to active)
 
   For a fully populated reference, see:
     projects/master-todo/dashboard.html

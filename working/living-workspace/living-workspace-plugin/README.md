@@ -1,26 +1,35 @@
 # Living Workspace Plugin
 
-A Claude Code plugin that turns the file system into a browser-native workspace UX. The user runs `claude` in a terminal, opens a browser tab, and works there — no code editor required. Chat stays in the terminal where Claude Code already lives. The plugin is the *browser half* of a two-window experience.
+A Claude Code plugin for end-to-end knowledge work that needs structure but has no off-the-shelf tool. You chat in your terminal, a structured substrate fills in on disk, and a browser dashboard shows it live. The plumbing — contracts, validation, rendering — handles itself.
+
+## Why this exists
+
+Chat apps are great for parts of knowledge work — answering a question, drafting a paragraph, exploring an idea. But for *end-to-end* knowledge work — producing a research synthesis, revising a document deliberately, maintaining a system that grows over time — chat alone has nowhere to put the work. There's no substrate. Inputs, works-in-progress, derivatives, outputs all live in your head or scattered across files you have to manage yourself. Real orchestration isn't possible.
+
+Claude Code solves the substrate problem at the lowest level: it reads and writes your file system. That's enough — every artifact, every relationship, every state can live in files. But the file system is too primitive for most knowledge workers. You end up with chat plus a folder of opaque JSON and markdown. No views, no validation, no methodology — just the user and a gazillion files, with all the burden of figuring out what to do with them.
+
+This plugin is the layer in between. It overlays Claude Code with:
+
+- A **higher-level substrate** — structured stores (Tables, Documents, Calendars, Trees, Graphs) with contracts, validation, and references. Files mean something.
+- A **live browser UI** — a dashboard that shows your workspace as it grows. Read-only in v0.
+- **Methodology blueprints** — packaged orchestration patterns for typical knowledge-work shapes (document revision, research synthesis, decision logs, etc.). Optional starting points that come with both substrate and method.
+- **A bootstrap conversation** — Claude walks you through articulating the goal and choosing the substrate. You don't start from a blank workspace and have to figure out the structure yourself.
+
+The result is turnkey: you sit at your terminal, run `claude`, open a browser. You describe what you're working on. The plugin and Claude work out the structure together. As you work, the substrate fills in and the browser updates live. Everything is accessible the way you'd use a chat app — but with structure underneath that supports real start-to-finish knowledge work.
 
 ## What it does
 
-1. **Bootstrap.** Slash command spins up a local server, opens a browser tab. The tab is the workspace.
-2. **Live render.** Watches the workspace folder; renders schemas, data, and views as Claude edits files.
-3. **Contract enforcement.** Reads machine-readable contracts (schemas + state machine rules) and enforces them — only valid transitions appear, writes get validated, the substrate stays trustworthy across long sessions.
+1. **Bootstraps a workspace.** A slash command sets up the folder with initial structure — workspace contract, state, manual, and either a blank skeleton or a methodology-laden blueprint.
+2. **Renders live.** A local server watches the workspace folder and renders a browser dashboard that updates as Claude edits files.
+3. **Enforces contracts.** Every file change is validated against machine-readable contracts. Bad data doesn't get written; bad contracts don't load.
 
-## What it isn't
-
-- **Not a wrapped chat.** No chat panel in the browser, no relay of prompts. Wrapping chat turns this from a plugin into an application and absorbs Claude Code's distinctive feature.
-- **Not a code editor replacement.** This is for knowledge workers whose substrate is documents, records, and views — not source code.
-- **Not domain-specific.** The plugin knows nothing about competitive analyses, CRMs, or to-do lists. Domain shape is fabricated by Claude per workspace.
-
-## The pattern
-
-In the modes-of-chat-and-substrate framework, this is the **Chat-Driven App** pattern: chat handles writes, UI handles reads. Because the substrate is the file system — low-level enough that chat can fabricate higher-level structure on top of it — the same configuration is also a **Living Workspace**: building, using, and enhancing happen in one continuous session.
+Chat stays in the terminal where Claude Code already lives. The plugin is the *browser half* of a two-window experience.
 
 ## Where to look next
 
-- [`architecture.md`](./architecture.md) — design reference: components, storage, widgets, substrate types, lifecycle, process flows, open questions.
-- [`schemas/`](./schemas/) — the plugin's canonical meta-schemas (`meta`, `goal`, `workflow`, `contract`, `view`) — JSON Schemas the plugin uses to validate any workspace.
-- [`templates/`](./templates/) — what the plugin instantiates into a workspace (dashboard render template, workspace skeleton, substrate-type starter packs, contract patterns, view descriptor templates).
-- [`../projects/master-todo/`](../projects/master-todo/) — worked example: a personal task-management workspace with populated goal, workflow, contracts, data, and a rendered dashboard.
+- [`reference/index.html`](./reference/index.html) — user-facing reference covering the whole system. **Best place to start.**
+- [`operating-model.md`](./operating-model.md) — top-down conceptual design.
+- [`architecture.md`](./architecture.md) — detailed implementation reference.
+- [`schemas/`](./schemas/) — the plugin's meta-schemas (validators).
+- [`templates/`](./templates/) — what the plugin instantiates: workspace skeleton, blueprints, contract templates, components.
+- [`../projects/`](../projects/) — worked examples.

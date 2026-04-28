@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "lws://meta-schema/contracts/document",
+  "title": "Document Store Contract",
+  "description": "Validates the _contract.json file for a Document store. A Document holds prose with optional structured front-matter.",
+  "type": "object",
+  "required": ["type"],
+  "properties": {
+    "type": { "const": "Document" },
+    "description": { "type": "string" },
+    "front_matter_schema": {
+      "type": "object",
+      "description": "JSON Schema for the document's front-matter / metadata. Optional."
+    },
+    "body_type": {
+      "type": "string",
+      "enum": ["markdown", "html"],
+      "default": "markdown"
+    },
+    "embeds": {
+      "type": "array",
+      "description": "Other stores this document is allowed to embed inline.",
+      "items": {
+        "type": "object",
+        "required": ["target_store"],
+        "properties": {
+          "target_store": { "type": "string" },
+          "syntax": {
+            "type": "string",
+            "description": "How embedded references are written in the body, e.g. {{ embed: stores/sources }}."
+          }
+        }
+      }
+    },
+    "invariants": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["description"],
+        "properties": {
+          "description": { "type": "string" },
+          "rule": { "type": "object" }
+        }
+      }
+    }
+  }
+}

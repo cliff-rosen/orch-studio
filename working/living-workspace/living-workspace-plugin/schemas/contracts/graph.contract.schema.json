@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "lws://meta-schema/contracts/graph",
+  "title": "Graph Store Contract",
+  "description": "Validates the _contract.json file for a Graph store. A Graph holds nodes connected by directed, typed edges. Cycles allowed; multi-parent allowed.",
+  "type": "object",
+  "required": ["type", "node_schema", "edge_schema"],
+  "properties": {
+    "type": { "const": "Graph" },
+    "description": { "type": "string" },
+    "node_schema": {
+      "type": "object",
+      "description": "JSON Schema for a node."
+    },
+    "edge_schema": {
+      "type": "object",
+      "description": "JSON Schema for an edge. Must include from, to, and type fields."
+    },
+    "edge_types": {
+      "type": "array",
+      "description": "Catalog of allowed edge types. Each edge's 'type' field must be one of these.",
+      "items": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "directed": {
+            "type": "boolean",
+            "default": true
+          },
+          "constraints": {
+            "type": "object",
+            "description": "JSON Schema fragment for additional rules on edges of this type."
+          }
+        }
+      }
+    },
+    "invariants": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["description"],
+        "properties": {
+          "description": { "type": "string" },
+          "rule": { "type": "object" }
+        }
+      }
+    },
+    "node_id_field": {
+      "type": "string",
+      "default": "id"
+    },
+    "node_title_field": {
+      "type": "string"
+    }
+  }
+}

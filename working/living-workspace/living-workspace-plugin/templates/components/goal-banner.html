@@ -1,0 +1,44 @@
+<!--
+  COMPONENT: goal-banner
+  Renders: the workspace's goal as a prominent header band.
+  Layouts: all phases (with goal). During goal-defining, fields may be partially populated.
+  Data:
+    goal.purpose             string, required
+    goal.deliverable         string
+    goal.audience            string
+    goal.timeframe           string
+    goal.success_criteria    string[] (first one displayed)
+    goal.scope_out           string[]
+    locked                   bool — adds "locked in" tag (true once status >= substrate-selecting)
+
+  Rendering:
+    Empty fields show as "— not yet" with .empty class. Don't hide them; hidden fields hide progress.
+-->
+<section class="goal-banner">
+    <div class="container">
+        <p class="goal-eyebrow">
+            Goal
+            {{#if locked}}<span class="lock-tag">locked in</span>{{/if}}
+        </p>
+        <h1>{{ goal.purpose | default: "— purpose not yet defined" }}</h1>
+        <p class="deliverable">{{ goal.deliverable | default: "— deliverable not yet defined" }}</p>
+        <div class="goal-meta">
+            <div class="goal-meta-item">
+                <div class="label">Audience</div>
+                <div class="value{{#unless goal.audience}} empty{{/unless}}">{{ goal.audience | default: "— not yet" }}</div>
+            </div>
+            <div class="goal-meta-item">
+                <div class="label">Cadence</div>
+                <div class="value{{#unless goal.timeframe}} empty{{/unless}}">{{ goal.timeframe | default: "— not yet" }}</div>
+            </div>
+            <div class="goal-meta-item">
+                <div class="label">Success</div>
+                <div class="value{{#unless goal.success_criteria}} empty{{/unless}}">{{ goal.success_criteria | first | default: "— not yet" }}</div>
+            </div>
+            <div class="goal-meta-item">
+                <div class="label">Out of scope</div>
+                <div class="value{{#unless goal.scope_out}} empty{{/unless}}">{{ goal.scope_out | join: " · " | default: "— not yet" }}</div>
+            </div>
+        </div>
+    </div>
+</section>

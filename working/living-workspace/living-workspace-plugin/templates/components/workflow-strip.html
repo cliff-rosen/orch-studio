@@ -1,0 +1,28 @@
+<!--
+  COMPONENT: workflow-strip
+  Renders: workspace's workflow stages as a horizontal track with live counts per stage.
+  Layouts: operating, wrapping-up.
+           Replaced by phase-strip during bootstrap.
+  Data:
+    workflow.stages          object[] — { name, description }
+    workflow.items           object[] — kinds flowing through stages (used for the label)
+    counts                   object — { stage_name: count } from instance scan
+    workflow.current_stage   string | null — highlights the active stage if set
+-->
+<section class="workflow-strip">
+    <div class="container">
+        <div class="workflow-track">
+            <span class="strip-label">{{ workflow.items.0.kind | default: "items" }} lifecycle</span>
+            {{#each workflow.stages}}
+                {{#if (eq this.name ../workflow.current_stage)}}
+                    <span class="stage current">{{ this.name }} <span class="stage-count">{{ lookup ../counts this.name | default: 0 }}</span></span>
+                {{else if (gt (lookup ../counts this.name) 0)}}
+                    <span class="stage has-items">{{ this.name }} <span class="stage-count">{{ lookup ../counts this.name }}</span></span>
+                {{else}}
+                    <span class="stage">{{ this.name }} <span class="stage-count">0</span></span>
+                {{/if}}
+                {{#unless @last}}<span class="stage-arrow">→</span>{{/unless}}
+            {{/each}}
+        </div>
+    </div>
+</section>

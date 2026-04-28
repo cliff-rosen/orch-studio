@@ -21,7 +21,17 @@
       "Bash(sed -i 's|/staging/six-modes-of-chat-and-substrate.html|/staging/modes-of-chat-and-substrate.html|g' index.html)",
       "Bash(sed -i 's|/staging/six-modes-of-chat-and-substrate.html|/staging/modes-of-chat-and-substrate.html|g' building-the-tool-while-doing-the-work.html)",
       "Bash(mkdir -p examples/master-todo/contracts examples/master-todo/data/tasks examples/master-todo/data/projects examples/master-todo/data/areas examples/master-todo/views examples/master-todo/escapes)",
-      "Read(//c/c/code/orch-studio/working/living-workspace/examples/**)"
+      "Read(//c/c/code/orch-studio/working/living-workspace/examples/**)",
+      "Bash(mkdir workspace *)",
+      "Bash(mv meta.json goal.json workflow.json contracts data views escapes workspace/)",
+      "Read(//c/c/code/orch-studio/working/living-workspace/projects/**)",
+      "Read(//c/c/code/orch-studio/working/living-workspace/projects/master-todo/**)",
+      "Bash(mv contracts/task.contract.json contracts/task.json)",
+      "Bash(mv contracts/project.contract.json contracts/project.json)",
+      "Bash(mv contracts/area.contract.json contracts/area.json)",
+      "Bash(mv views/open-tasks.view.json views/open-tasks.json)",
+      "Read(//c/c/code/orch-studio/working/living-workspace/living-workspace-plugin/templates/**)",
+      "Read(//c/c/code/orch-studio/working/living-workspace/living-workspace-plugin/templates/workspace-skeleton/**)"
     ]
   }
 }

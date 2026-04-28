@@ -1,0 +1,78 @@
+{
+  "$comment": "Per-phase composition manifest. The plugin reads meta.status, looks up the matching layout, and assembles the listed components in order. See components/README.md for the component contract.",
+
+  "goal-defining": {
+    "components": [
+      "shell-bar",
+      "phase-strip",
+      "goal-banner",
+      "happening-now",
+      "goal-form",
+      "awaiting-footer"
+    ],
+    "notes": "Goal banner shows partial fields with empty markers. Goal-form component prompts for missing fields."
+  },
+
+  "substrate-selecting": {
+    "components": [
+      "shell-bar",
+      "phase-strip",
+      "goal-banner",
+      "happening-now",
+      "substrate-options",
+      "awaiting-footer"
+    ],
+    "notes": "Goal is locked in. substrate-options shows the six substrate cards with fit indicators."
+  },
+
+  "contracts-drafting": {
+    "components": [
+      "shell-bar",
+      "phase-strip",
+      "goal-banner",
+      "happening-now",
+      "contracts-preview",
+      "awaiting-footer"
+    ],
+    "notes": "Goal + substrate locked. contracts-preview shows the contracts being drafted."
+  },
+
+  "operating": {
+    "components": [
+      "shell-bar",
+      "workflow-strip",
+      "goal-banner",
+      "today-focus",
+      "smart-table",
+      "side-panels",
+      "kanban",
+      "workspace-internals"
+    ],
+    "notes": "Default operating layout. Substrate manuals may override or extend (e.g., tracker substitutes timeline for kanban)."
+  },
+
+  "wrapping-up": {
+    "components": [
+      "shell-bar",
+      "wrap-banner",
+      "workflow-strip",
+      "goal-banner",
+      "today-focus",
+      "smart-table",
+      "side-panels",
+      "workspace-internals"
+    ],
+    "notes": "Operating layout + a top wrap-banner indicating refusal of structural changes. Kanban often dropped to focus on remaining items."
+  },
+
+  "archived": {
+    "components": [
+      "shell-bar",
+      "archive-banner",
+      "goal-banner",
+      "smart-table-readonly",
+      "workspace-internals"
+    ],
+    "notes": "Read-only snapshot. archive-banner shows the archive timestamp. All action affordances disabled."
+  }
+}

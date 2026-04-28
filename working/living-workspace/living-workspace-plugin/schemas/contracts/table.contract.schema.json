@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "lws://meta-schema/contracts/table",
+  "title": "Table Store Contract",
+  "description": "Validates the _contract.json file for a Table store. A Table holds structured records (rows × columns) with optional state machine and references.",
+  "type": "object",
+  "required": ["type", "schema"],
+  "properties": {
+    "type": { "const": "Table" },
+    "description": { "type": "string" },
+    "schema": {
+      "type": "object",
+      "description": "JSON Schema for a single row. Each row's data file conforms to this."
+    },
+    "states": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "If rows have a state machine, list the states."
+    },
+    "initial_state": { "type": "string" },
+    "transitions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["from", "to"],
+        "properties": {
+          "from": { "type": "string" },
+          "to": { "type": "string" },
+          "guard": {
+            "type": "string",
+            "description": "Prose; mirror in row-level invariants for machine enforcement."
+          }
+        }
+      }
+    },
+    "invariants": {
+      "type": "array",
+      "description": "JSON Schema if/then/else fragments for conditional row-level rules.",
+      "items": {
+        "type": "object",
+        "required": ["description"],
+        "properties": {
+          "description": { "type": "string" },
+          "rule": {
+            "type": "object",
+            "description": "JSON Schema fragment applied to each row on write."
+          }
+        }
+      }
+    },
+    "id_field": {
+      "type": "string",
+      "default": "id"
+    },
+    "title_field": {
+      "type": "string",
+      "description": "Which field to use as the display title in widgets."
+    },
+    "references": {
+      "type": "array",
+      "description": "Foreign-key-like links to other stores.",
+      "items": {
+        "type": "object",
+        "required": ["field", "target_store"],
+        "properties": {
+          "field": { "type": "string" },
+          "target_store": {
+            "type": "string",
+            "description": "Path to the target store, e.g. 'stores/areas'."
+          }
+        }
+      }
+    },
+    "document_columns": {
+      "type": "array",
+      "description": "Columns whose value is a Document (sidecar markdown file).",
+      "items": {
+        "type": "object",
+        "required": ["field"],
+        "properties": {
+          "field": { "type": "string" },
+          "description": { "type": "string" }
+        }
+      }
+    }
+  }
+}

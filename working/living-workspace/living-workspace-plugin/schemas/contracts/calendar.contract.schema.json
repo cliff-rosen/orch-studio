@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "lws://meta-schema/contracts/calendar",
+  "title": "Calendar Store Contract",
+  "description": "Validates the _contract.json file for a Calendar store. A Calendar holds time-scheduled events with start/end times and optional recurrence.",
+  "type": "object",
+  "required": ["type", "event_schema"],
+  "properties": {
+    "type": { "const": "Calendar" },
+    "description": { "type": "string" },
+    "event_schema": {
+      "type": "object",
+      "description": "JSON Schema for an event. Must include start time. Should support end time, duration, recurrence."
+    },
+    "recurrence_rules": {
+      "type": "object",
+      "description": "Supported recurrence patterns (daily, weekly, monthly, custom RRULE)."
+    },
+    "conflict_policy": {
+      "enum": ["allow", "warn", "forbid"],
+      "default": "warn",
+      "description": "What happens when events overlap in time."
+    },
+    "invariants": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["description"],
+        "properties": {
+          "description": { "type": "string" },
+          "rule": { "type": "object" }
+        }
+      }
+    },
+    "id_field": {
+      "type": "string",
+      "default": "id"
+    },
+    "title_field": {
+      "type": "string"
+    }
+  }
+}

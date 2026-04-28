@@ -1,0 +1,52 @@
+<!--
+  COMPONENT: substrate-options
+  Renders: six substrate-type cards with fit indicators and Claude's reasoning.
+  Layouts: substrate-selecting only.
+  Data:
+    substrates               object[] — one entry per substrate type, in display order
+        .name                string — e.g., "ongoing-system"
+        .summary             string — what this substrate is, one paragraph
+        .fit                 enum — "recommended" | "could-fit" | "poor-fit" | "escape-hatch"
+        .reasoning           string — Claude's why-this-fit (or why-not)
+        .preview             object
+            .workflow        string — one-line workflow shape
+            .kinds           string — typical contract pattern
+            .views           string — default view layout
+
+  Notes:
+    - The plugin computes `substrates` by reading goal.json and asking Claude to score each substrate.
+    - The "recommended" entry should be visually first or distinguished; this template puts it wherever it lands in the array.
+    - Cards with fit="poor-fit" get a faded treatment via .poor-fit class.
+-->
+<div class="section-header">
+    <h2>Substrate options</h2>
+    <span class="reasoning">Six archetypes. One determines workflow, contract patterns, and the operating manual.</span>
+</div>
+
+<div class="substrate-grid">
+    {{#each substrates}}
+        <div class="substrate-card{{#if (eq this.fit "recommended")}} recommended{{/if}}{{#if (eq this.fit "poor-fit")}} poor-fit{{/if}}">
+            <div class="substrate-card-header">
+                <span class="substrate-name">{{ this.name }}</span>
+                {{#if (eq this.fit "recommended")}}
+                    <span class="fit-pill fit-recommended">★ recommended</span>
+                {{else if (eq this.fit "could-fit")}}
+                    <span class="fit-pill fit-could-fit">could fit</span>
+                {{else if (eq this.fit "poor-fit")}}
+                    <span class="fit-pill fit-poor">poor fit</span>
+                {{else if (eq this.fit "escape-hatch")}}
+                    <span class="fit-pill fit-escape">escape hatch</span>
+                {{/if}}
+            </div>
+            <p class="substrate-summary">{{ this.summary }}</p>
+            <div class="substrate-reasoning">
+                {{{ this.reasoning }}}
+            </div>
+            <dl class="substrate-preview">
+                <dt>workflow</dt><dd>{{ this.preview.workflow }}</dd>
+                <dt>kinds</dt><dd>{{ this.preview.kinds }}</dd>
+                <dt>views</dt><dd>{{ this.preview.views }}</dd>
+            </dl>
+        </div>
+    {{/each}}
+</div>

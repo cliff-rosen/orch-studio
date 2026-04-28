@@ -1,0 +1,24 @@
+<!--
+  COMPONENT: shell-bar
+  Renders: workspace identity bar at the top of every page.
+  Layouts: all phases.
+  Data:
+    meta.workspace_id        string
+    meta.substrate_type      string | null  (renders as "— not yet selected" when null)
+    meta.status              string
+-->
+<div class="shell-bar">
+    <div class="container shell-inner">
+        <span>workspace: <span class="val">{{ meta.workspace_id }}</span></span>
+        <span>substrate:
+            {{#if meta.substrate_type}}
+              <span class="val">{{ meta.substrate_type }}</span>
+            {{else}}
+              <span class="val pending">— not yet selected</span>
+            {{/if}}
+        </span>
+        <span>status: <span class="val">{{ meta.status }}</span></span>
+        <span style="flex:1"></span>
+        <span><span class="live-dot"></span>live</span>
+    </div>
+</div>

@@ -1,0 +1,32 @@
+<!--
+  COMPONENT: phase-strip
+  Renders: lifecycle progress as a horizontal track of named phases.
+  Layouts: bootstrap phases (goal-defining, substrate-selecting, contracts-drafting).
+           Replaced by workflow-strip during operating.
+  Data:
+    meta.status              string — current lifecycle state
+    phases                   string[] — ordered list, e.g.
+                             ["goal-defining", "substrate-selecting", "contracts-drafting", "operating", "archived"]
+
+  Rendering rules:
+    - Phases before current → .done (with ✓)
+    - Current phase → .current
+    - Phases after current → .upcoming (dashed border, muted)
+-->
+<section class="phase-strip">
+    <div class="container">
+        <div class="phase-track">
+            <span class="strip-label">Lifecycle</span>
+            {{#each phases}}
+                {{#if (lt @index currentIndex)}}
+                    <span class="phase done">{{ this }}</span>
+                {{else if (eq @index currentIndex)}}
+                    <span class="phase current">{{ this }}</span>
+                {{else}}
+                    <span class="phase upcoming">{{ this }}</span>
+                {{/if}}
+                {{#unless @last}}<span class="phase-arrow">→</span>{{/unless}}
+            {{/each}}
+        </div>
+    </div>
+</section>

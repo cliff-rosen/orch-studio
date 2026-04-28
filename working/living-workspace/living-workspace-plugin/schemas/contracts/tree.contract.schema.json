@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "lws://meta-schema/contracts/tree",
+  "title": "Tree Store Contract",
+  "description": "Validates the _contract.json file for a Tree store. A Tree holds hierarchical nodes with single-parent constraint (acyclic).",
+  "type": "object",
+  "required": ["type", "node_schema"],
+  "properties": {
+    "type": { "const": "Tree" },
+    "description": { "type": "string" },
+    "node_schema": {
+      "type": "object",
+      "description": "JSON Schema for a single node. Must declare a parent reference field."
+    },
+    "parent_field": {
+      "type": "string",
+      "default": "parent",
+      "description": "Field name on the node that references its parent. Null = root."
+    },
+    "max_depth": {
+      "type": "integer",
+      "description": "Optional cap on tree depth."
+    },
+    "max_branching": {
+      "type": "integer",
+      "description": "Optional cap on children per node."
+    },
+    "invariants": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["description"],
+        "properties": {
+          "description": { "type": "string" },
+          "rule": { "type": "object" }
+        }
+      }
+    },
+    "id_field": {
+      "type": "string",
+      "default": "id"
+    },
+    "title_field": {
+      "type": "string"
+    },
+    "ordered": {
+      "type": "boolean",
+      "default": false,
+      "description": "If true, siblings have explicit ordering (via an order field)."
+    }
+  }
+}

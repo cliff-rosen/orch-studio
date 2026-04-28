@@ -7,7 +7,7 @@ For workspaces where the system itself is the deliverable, used continuously. No
 ## What this pack provides
 
 - `workflow.json` — a generic capture → process → done lifecycle that fits most ongoing-system patterns
-- `contracts/item.contract.json` — a starter contract with a state machine matching the workflow
+- `contracts/item.json` — a starter contract with a state machine matching the workflow
 
 Claude is expected to customize both during the `contracts-drafting` phase: rename `item` to a domain-specific kind (`task`, `contact`, `note`), add fields, refine states, add references. The pack is a *starting point*, not a constraint.
 

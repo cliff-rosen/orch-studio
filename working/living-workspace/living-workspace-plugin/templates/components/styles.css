@@ -1,0 +1,143 @@
+/* ============================================================
+   Living Workspace — shared dashboard styles
+   All components draw from this stylesheet.
+   ============================================================ */
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+    --accent: #3730a3;
+    --accent-light: #4f46e5;
+    --accent-subtle: #eef2ff;
+    --accent-strong: #312e81;
+    --text: #1e1b4b;
+    --text-secondary: #4b5563;
+    --text-muted: #6b7280;
+    --bg: #ffffff;
+    --bg-alt: #f8fafc;
+    --bg-code: #f1f5f9;
+    --border: #e2e8f0;
+    --border-strong: #cbd5e1;
+    --warn: #b45309;
+    --warn-subtle: #fef3c7;
+    --ok: #047857;
+    --ok-subtle: #d1fae5;
+    --info: #1d4ed8;
+    --info-subtle: #dbeafe;
+    --rose: #be185d;
+    --rose-subtle: #fce7f3;
+    --radius: 10px;
+}
+
+body {
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text);
+    background: var(--bg-alt);
+    line-height: 1.55;
+    font-size: 14px;
+    -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4 { font-family: 'Plus Jakarta Sans', sans-serif; line-height: 1.25; }
+code, .mono { font-family: 'JetBrains Mono', monospace; }
+
+.container { max-width: 1320px; margin: 0 auto; padding: 0 24px; }
+
+/* === SHELL BAR === */
+.shell-bar { background: var(--bg); border-bottom: 1px solid var(--border); padding: 8px 0; font-size: 0.78rem; }
+.shell-inner { display: flex; align-items: center; gap: 16px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
+.shell-inner .val { color: var(--text); }
+.shell-inner .val.pending { color: var(--text-muted); font-style: italic; }
+.live-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--ok); margin-right: 6px; animation: pulse 2s infinite; }
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(4, 120, 87, 0.4); }
+    70% { box-shadow: 0 0 0 6px rgba(4, 120, 87, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(4, 120, 87, 0); }
+}
+
+/* === PHASE STRIP & WORKFLOW STRIP (share base styles) === */
+.phase-strip, .workflow-strip { background: var(--bg); border-bottom: 1px solid var(--border); padding: 14px 0; }
+.phase-track, .workflow-track { display: flex; align-items: center; gap: 6px; overflow-x: auto; }
+.strip-label { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); margin-right: 14px; }
+
+.phase, .stage {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.76rem;
+    padding: 5px 14px;
+    border-radius: 999px;
+    background: var(--bg-code);
+    color: var(--text-secondary);
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    border: 1px solid transparent;
+}
+.phase.done { background: var(--ok-subtle); color: var(--ok); }
+.phase.done::before { content: '✓'; font-weight: 700; }
+.phase.current, .stage.current { background: var(--accent); color: white; border-color: var(--accent-strong); font-weight: 600; }
+.phase.upcoming { color: var(--text-muted); border: 1px dashed var(--border-strong); background: transparent; }
+.stage.has-items { background: var(--accent-subtle); color: var(--accent); border-color: rgba(55,48,163,0.18); }
+.stage .stage-count { font-weight: 700; font-size: 0.72rem; background: var(--bg); padding: 1px 6px; border-radius: 999px; min-width: 18px; text-align: center; }
+.stage.has-items .stage-count { background: var(--accent); color: white; }
+.phase-arrow, .stage-arrow { color: var(--border-strong); font-size: 0.85rem; }
+
+/* === GOAL BANNER === */
+.goal-banner { background: linear-gradient(135deg, var(--accent-strong) 0%, var(--accent) 100%); color: white; padding: 28px 0 24px; }
+.goal-eyebrow { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; opacity: 0.7; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+.goal-eyebrow .lock-tag { font-size: 0.65rem; padding: 2px 7px; background: rgba(255,255,255,0.18); border-radius: 999px; opacity: 0.95; letter-spacing: 0.06em; }
+.goal-banner h1 { font-size: 1.4rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 4px; max-width: 920px; }
+.goal-banner .deliverable { opacity: 0.85; font-size: 0.92rem; max-width: 920px; }
+.goal-meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px 28px; margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.18); }
+.goal-meta-item .label { font-size: 0.68rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; opacity: 0.65; margin-bottom: 3px; }
+.goal-meta-item .value { font-size: 0.85rem; line-height: 1.4; }
+.goal-meta-item .value.empty { opacity: 0.55; font-style: italic; }
+
+/* === HAPPENING-NOW CALLOUT === */
+.happening { background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%); border-bottom: 1px solid #c7d2fe; padding: 14px 0; }
+.happening-inner { display: flex; align-items: center; gap: 14px; }
+.happening-eyebrow { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: var(--accent); background: white; padding: 4px 10px; border-radius: 999px; border: 1px solid #c7d2fe; flex-shrink: 0; }
+.happening-text { color: var(--text); font-size: 0.92rem; }
+.happening-text strong { color: var(--accent-strong); }
+.happening-text .term { font-family: 'JetBrains Mono', monospace; font-size: 0.86em; background: white; padding: 1px 7px; border-radius: 4px; border: 1px solid #c7d2fe; }
+
+/* === SUBSTRATE OPTIONS === */
+.substrate-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+@media (max-width: 768px) { .substrate-grid { grid-template-columns: 1fr; } }
+.substrate-card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 22px; }
+.substrate-card.recommended { border: 2px solid var(--accent); box-shadow: 0 4px 16px rgba(55, 48, 163, 0.1); }
+.substrate-card.poor-fit { opacity: 0.55; }
+.substrate-card-header { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
+.substrate-name { font-family: 'JetBrains Mono', monospace; font-size: 0.95rem; font-weight: 700; }
+.fit-pill { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; padding: 3px 10px; border-radius: 999px; white-space: nowrap; flex-shrink: 0; }
+.fit-recommended { background: var(--accent); color: white; }
+.fit-could-fit { background: var(--info-subtle); color: var(--info); }
+.fit-poor { background: var(--bg-code); color: var(--text-muted); }
+.fit-escape { background: var(--warn-subtle); color: var(--warn); }
+.substrate-summary { font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 10px; line-height: 1.5; }
+.substrate-reasoning { background: var(--bg-alt); border-left: 3px solid var(--border-strong); padding: 8px 12px; font-size: 0.84rem; color: var(--text-secondary); margin: 10px 0 12px; border-radius: 0 4px 4px 0; }
+.substrate-card.recommended .substrate-reasoning { border-left-color: var(--accent); background: var(--accent-subtle); color: var(--accent-strong); }
+.substrate-preview { font-size: 0.78rem; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; border-top: 1px solid var(--border); padding-top: 10px; display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; }
+.substrate-preview dt { color: var(--text-muted); font-weight: 500; }
+.substrate-preview dd { color: var(--text); }
+
+/* === AWAITING FOOTER === */
+.awaiting { margin-top: 26px; background: var(--bg); border: 1px dashed var(--border-strong); border-radius: var(--radius); padding: 18px 22px; display: flex; align-items: center; gap: 14px; color: var(--text-secondary); font-size: 0.9rem; }
+.awaiting .icon { width: 32px; height: 32px; border-radius: 50%; background: var(--bg-code); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 1.1rem; }
+.awaiting strong { color: var(--text); }
+.awaiting .term { font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; background: var(--bg-code); padding: 2px 8px; border-radius: 4px; color: var(--text); }
+
+/* === MAIN / WIDGET BASE === */
+main { padding: 22px 0 60px; }
+.widget { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 18px; overflow: hidden; }
+.widget-header { padding: 14px 20px 12px; border-bottom: 1px solid var(--border); display: flex; align-items: baseline; gap: 12px; }
+.widget-title { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.95rem; font-weight: 700; }
+.widget-meta { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: var(--text-muted); }
+.widget-tools { margin-left: auto; display: flex; gap: 6px; }
+.widget-tool { background: var(--bg-code); border: 1px solid var(--border); color: var(--text-secondary); padding: 4px 10px; border-radius: 6px; font-size: 0.72rem; font-family: 'JetBrains Mono', monospace; cursor: pointer; }
+.widget-tool:hover { background: var(--accent-subtle); color: var(--accent); border-color: var(--accent); }
+
+/* (Smart-table, kanban, side-panels, today-focus, workspace-internals styles
+    omitted here for brevity — see the full operating dashboard render at
+    projects/master-todo/dashboard.html and templates/dashboard.template.html.
+    They can be lifted into this file as components are formally extracted.) */

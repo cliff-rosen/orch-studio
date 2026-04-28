@@ -125,27 +125,29 @@ For ongoing-system and tracker workspaces, `wrapping-up` is rarely used — they
 ## Storage layout
 
 ```
-<workspace>/
-├── meta.json                       Workspace identity + lifecycle state.
-├── goal.json                       The anchor.
-├── workflow.json                   Stages + transitions.
-├── process.md                      Narrative log: decisions, pivots, spine candidates.
-├── contracts/
-│   ├── <kind>.contract.json        One file per kind.
-│   └── ...
-├── data/
-│   ├── <kind-plural>/
-│   │   ├── <id>.json               One file per instance.
+<project>/
+├── workspace/                      All structured JSON lives under here.
+│   ├── meta.json                   Workspace identity + lifecycle state.
+│   ├── goal.json                   The anchor.
+│   ├── workflow.json               Stages + transitions.
+│   ├── contracts/
+│   │   ├── <kind>.json             One file per kind.
 │   │   └── ...
-│   └── ...
-├── views/
-│   ├── <name>.view.json            View descriptor.
-│   └── <name>.view.html            Custom HTML (when generic doesn't suffice).
-└── escapes/
-    └── escape-<id>.json            Objects that resist the current contract.
+│   ├── data/
+│   │   ├── <kind-plural>/
+│   │   │   ├── <id>.json           One file per instance.
+│   │   │   └── ...
+│   │   └── ...
+│   ├── views/
+│   │   ├── <name>.json             View descriptor.
+│   │   └── <name>.html             Custom HTML view (when generic doesn't suffice).
+│   └── escapes/
+│       └── escape-<id>.json        Objects that resist the current contract.
+├── process.md                      Narrative log: decisions, pivots, spine candidates.
+└── dashboard.html                  Rendered output (the plugin emits this).
 ```
 
-**Rule of thumb.** Anything the plugin enforces is JSON. Anything narrative is markdown. Only `process.md` is markdown today; everything else is structured.
+**Rule of thumb.** Structured JSON lives under `workspace/`. Narrative (`process.md`) and rendered output (`dashboard.html`) live at the project root. Folder location identifies file type, so filenames don't need redundant suffixes (`contracts/task.json`, not `contracts/task.contract.json`).
 
 ---
 

@@ -1,0 +1,27 @@
+<!--
+  COMPONENT: happening-now
+  Renders: a callout describing what Claude is currently doing or awaiting.
+  Layouts: bootstrap phases — goal-defining, substrate-selecting, contracts-drafting.
+           Optional in operating during structural-change confirmations.
+  Data:
+    happening.message        string — domain language, what Claude is doing now
+    happening.action         string | null — what the user should do (e.g., "answer in your terminal")
+    happening.terminal_hint  string | null — terminal command to surface (e.g., "claude")
+
+  Composition examples by phase:
+    goal-defining:    "Claude is asking about success criteria — answer in your terminal."
+    substrate-selecting: "Claude proposed ongoing-system. Confirm or pick a different one."
+    contracts-drafting: "Three contracts drafted. Review and approve in your terminal."
+-->
+<section class="happening">
+    <div class="container happening-inner">
+        <span class="happening-eyebrow">What's happening</span>
+        <span class="happening-text">
+            {{{ happening.message }}}
+            {{#if happening.action}} {{ happening.action }}{{/if}}
+            {{#if happening.terminal_hint}}
+                <span class="term">{{ happening.terminal_hint }}</span>
+            {{/if}}
+        </span>
+    </div>
+</section>

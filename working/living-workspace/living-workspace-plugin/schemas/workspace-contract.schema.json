@@ -1,0 +1,112 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "lws://meta-schema/workspace-contract",
+  "title": "Workspace Contract",
+  "description": "Declares the workspace's lifecycle, required structure, and cross-store invariants. Lives at workspace/_contract.json.",
+  "type": "object",
+  "required": ["lifecycle", "initial_state"],
+  "properties": {
+    "lifecycle": {
+      "type": "object",
+      "required": ["states", "transitions"],
+      "properties": {
+        "states": {
+          "type": "array",
+          "minItems": 1,
+          "description": "States the workspace can be in.",
+          "items": {
+            "type": "object",
+            "required": ["name"],
+            "properties": {
+              "name": { "type": "string" },
+              "description": { "type": "string" },
+              "terminal": {
+                "type": "boolean",
+                "default": false,
+                "description": "If true, this is a terminal state — no further transitions allowed."
+              }
+            }
+          }
+        },
+        "transitions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["from", "to"],
+            "properties": {
+              "from": { "type": "string" },
+              "to": { "type": "string" },
+              "guard": {
+                "type": "string",
+                "description": "Condition that must be true to make this transition. Prose for humans; mirrored in machine-checkable form when possible."
+              }
+            }
+          }
+        }
+      }
+    },
+    "initial_state": {
+      "type": "string",
+      "description": "Which lifecycle state every new workspace starts in. Plugin-default is 'goal-defining'."
+    },
+    "required_stores": {
+      "type": "array",
+      "description": "Stores that must exist before the workspace can enter a given state.",
+      "items": {
+        "type": "object",
+        "required": ["state", "stores"],
+        "properties": {
+          "state": { "type": "string" },
+          "stores": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Names of required stores."
+          }
+        }
+      }
+    },
+    "workflow": {
+      "type": "object",
+      "description": "Optional workflow stages for the work itself, layered onto the lifecycle.",
+      "properties": {
+        "stages": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name"],
+            "properties": {
+              "name": { "type": "string" },
+              "description": { "type": "string" }
+            }
+          }
+        },
+        "transitions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["from", "to"],
+            "properties": {
+              "from": { "type": "string" },
+              "to": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "cross_store_invariants": {
+      "type": "array",
+      "description": "Rules spanning multiple stores. Use JSON Schema if/then/else for machine-checkable conditional rules.",
+      "items": {
+        "type": "object",
+        "required": ["description"],
+        "properties": {
+          "description": { "type": "string" },
+          "rule": {
+            "type": "object",
+            "description": "A JSON Schema fragment using if/then/else applied across stores."
+          }
+        }
+      }
+    }
+  }
+}
