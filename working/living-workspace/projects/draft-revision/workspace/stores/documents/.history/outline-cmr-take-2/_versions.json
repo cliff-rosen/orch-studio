@@ -8,10 +8,16 @@
       "note": "First-pass outline. §3 only carries the decomposition argument; §4 not yet detailed."
     },
     {
-      "version": "latest",
+      "version": "2026-04-29T09-00-00Z",
       "captured_at": "2026-04-29T09:00:00Z",
       "note": "Expanded §3 with library-retrieval and the six-things synthesis. Detailed §4 subsections. Added 'Observations from making this outline' section.",
       "parent_version": "2026-04-28T16-00-00Z"
+    },
+    {
+      "version": "latest",
+      "captured_at": "2026-04-29T18:00:00Z",
+      "note": "§1 reframe: 'well-written prompt' → 'well-written prompt with the image each time'; dropped 'observes the image as it evolves' bullet (subsumed and obvious).",
+      "parent_version": "2026-04-29T09-00-00Z"
     }
   ]
 }

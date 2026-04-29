@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anatomy of a Chat Agent Session — Orchestrator Studios</title>
+    <meta name="description" content="The structure surrounding the LLM — sessions, turns, iterations — and the architectural decision that shapes how a chat agent behaves: the LLM never sees the full session state.">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-9RJRR593J6"></script>
+    <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-9RJRR593J6');</script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --accent: #3730a3;
+            --accent-light: #4f46e5;
+            --accent-subtle: #eef2ff;
+            --text: #1e1b4b;
+            --text-secondary: #4b5563;
+            --bg: #ffffff;
+            --bg-alt: #f8fafc;
+            --border: #e2e8f0;
+            --radius: 12px;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            color: var(--text);
+            background: var(--bg);
+            line-height: 1.7;
+            font-size: 17px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        h1, h2, h3, h4 { font-family: 'Plus Jakarta Sans', sans-serif; line-height: 1.2; }
+
+        nav {
+            position: sticky; top: 0; z-index: 100;
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .nav-inner {
+            max-width: 1120px; margin: 0 auto; padding: 0 24px;
+            display: flex; align-items: center; justify-content: space-between;
+            height: 64px;
+        }
+
+        .nav-logo {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 800; font-size: 1.15rem;
+            color: var(--accent);
+            text-decoration: none;
+            letter-spacing: -0.02em;
+        }
+
+        .nav-back {
+            text-decoration: none;
+            color: var(--text-secondary);
+            font-size: 0.9rem; font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .nav-back:hover { color: var(--accent); }
+
+        .article-container {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 60px 24px 80px;
+        }
+
+        .article-meta { margin-bottom: 48px; }
+
+        .article-title {
+            font-size: clamp(2rem, 4vw, 2.75rem);
+            font-weight: 800;
+            color: var(--text);
+            letter-spacing: -0.03em;
+            margin-bottom: 20px;
+            line-height: 1.15;
+        }
+
+        .article-author {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .article-author strong { color: var(--text); font-weight: 600; }
+
+        .article-date {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .article-body h2 {
+            font-size: 1.6rem; font-weight: 700;
+            color: var(--text);
+            margin-top: 56px; margin-bottom: 20px;
+            letter-spacing: -0.02em;
+        }
+
+        .article-body h3 {
+            font-size: 1.25rem; font-weight: 700;
+            color: var(--text);
+            margin-top: 40px; margin-bottom: 14px;
+            letter-spacing: -0.01em;
+        }
+
+        .article-body p {
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+            line-height: 1.8;
+        }
+
+        .article-body p strong { color: var(--text); font-weight: 600; }
+
+        .article-body ul, .article-body ol {
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+            padding-left: 24px;
+            line-height: 1.8;
+        }
+
+        .article-body li { margin-bottom: 8px; }
+
+        .article-body em { font-style: italic; }
+
+        .download-btn {
+            display: inline-block;
+            margin-top: 24px;
+            padding: 12px 28px;
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 600; font-size: 0.9rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.15s;
+        }
+
+        .download-btn:hover { background: var(--accent-light); transform: translateY(-1px); }
+
+        footer {
+            border-top: 1px solid var(--border);
+            padding: 48px 24px;
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        @media (max-width: 768px) {
+            .article-container { padding: 40px 20px 60px; }
+            .article-body h2 { margin-top: 40px; }
+        }
+
+        /* Diagram lightbox */
+        .diagram-wrap { cursor: zoom-in; }
+        .lightbox {
+            display: none; position: fixed; inset: 0; z-index: 9999;
+            background: rgba(0,0,0,0.92); align-items: center; justify-content: center;
+            cursor: zoom-out; padding: 24px;
+        }
+        .lightbox.open { display: flex; }
+        .lightbox svg { max-width: 100%; max-height: 100%; }
+
+        @media print {
+            nav, .download-btn { display: none !important; }
+            body { font-family: Georgia, 'Times New Roman', serif; font-size: 11pt; line-height: 1.6; color: #000; }
+            h1, h2, h3, h4 { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #000; }
+            .article-container { max-width: 100%; padding: 0; margin: 0; }
+            .article-title { font-size: 24pt; margin-bottom: 12pt; }
+            .article-body h2 { font-size: 16pt; margin-top: 24pt; margin-bottom: 8pt; page-break-after: avoid; }
+            .article-body h3 { font-size: 13pt; margin-top: 16pt; margin-bottom: 6pt; page-break-after: avoid; }
+            .article-body p { color: #000; margin-bottom: 8pt; orphans: 3; widows: 3; }
+            footer { border-top: 1px solid #ccc; padding: 16pt 0; font-size: 9pt; }
+            a { color: #000; text-decoration: none; }
+            @page { margin: 0.75in; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="nav-inner">
+            <a href="/" class="nav-logo">Orchestrator Studios</a>
+            <a href="/" class="nav-back">&larr; Back to Orchestrator Studios</a>
+        </div>
+    </nav>
+
+    <article class="article-container">
+        <header class="article-meta">
+            <h1 class="article-title">Anatomy of a Chat Agent Session</h1>
+            <p class="article-author">By <strong>Cliff Rosen</strong>, Founder &amp; CTO, Orchestrator Studios</p>
+            <p class="article-date">April 2026</p>
+            <button class="download-btn" onclick="window.print()">Download PDF</button>
+        </header>
+
+        <div class="article-body">
+
+            <p>This article describes a specific canonical architecture for chat agent sessions — what we, at Orchestrator Studios, see as the core levers for orchestration in chat agent systems that get performance beyond what a monolithic prompt delivers.</p>
+
+            <p>Four levels of nesting, a small number of moving parts, and one architectural decision that shapes everything: the LLM never sees the full session state.</p>
+
+            <h2>The Hierarchy</h2>
+
+            <p>A <strong>session</strong> is the full lifespan of a user's interaction with the agent. It is identified by a session ID, and all accumulated state hangs off that ID. A session contains one or more <strong>turns</strong>. Each turn contains one or more <strong>iterations</strong>. The final iteration of every turn produces a final answer; all earlier iterations within that turn are tool calls.</p>
+
+            <div id="anatomy-diagram" class="diagram-wrap" onclick="document.getElementById('diagram-lightbox').classList.add('open')" style="background: #060a10; border-radius: 12px; padding: 28px 16px 24px; margin: 36px -24px; overflow: hidden;">
+                <div style="text-align: center; margin-bottom: 14px;">
+                    <div style="color: #374151; font-size: 10px; letter-spacing: 4px; font-family: 'Courier New', monospace;">ANATOMY OF A CHAT AGENT SESSION</div>
+                    <div style="color: #f1f5f9; font-size: 17px; font-weight: 700; font-family: Georgia, serif; margin-top: 4px;">Session &rarr; Turn &rarr; Iteration</div>
+                    <div style="color: #374151; font-size: 10px; letter-spacing: 1px; font-family: 'Courier New', monospace; margin-top: 4px;">state grows · the LLM sees only a curated projection · final answer splits two ways</div>
+                </div>
+                <svg viewBox="0 0 1000 760" style="max-width: 100%; display: block; margin: 0 auto; overflow: visible;" xmlns="http://www.w3.org/2000/svg">
+
+                    <!-- ==================================================== -->
+                    <!-- PANEL A: SESSION VIEW (top) -->
+                    <!-- ==================================================== -->
+
+                    <text x="40" y="22" font-size="9" fill="#6b7280" font-family="'Courier New', monospace" letter-spacing="4">PANEL A &mdash; THE SESSION</text>
+                    <text x="40" y="40" font-size="10" fill="#9ca3af" font-family="'Courier New', monospace">turns in sequence &middot; state grows monotonically</text>
+
+                    <!-- Outer session container -->
+                    <rect x="40" y="56" width="920" height="180" rx="10" fill="#0a0e16" stroke="#1f2937" stroke-width="1.5"/>
+                    <text x="56" y="76" font-size="9" fill="#818cf8" font-family="'Courier New', monospace" letter-spacing="2" font-weight="700">SESSION</text>
+                    <text x="118" y="76" font-size="9" fill="#4b5563" font-family="'Courier New', monospace">session_id: 7f2a&hellip;</text>
+
+                    <!-- Turn pills row -->
+                    <!-- T1 -->
+                    <rect x="80" y="92" width="140" height="44" rx="8" fill="#0d1424" stroke="#3b5a8a" stroke-width="1.5"/>
+                    <text x="150" y="113" text-anchor="middle" font-size="11" fill="#60A5FA" font-family="'Courier New', monospace" font-weight="700">TURN 1</text>
+                    <text x="150" y="127" text-anchor="middle" font-size="8" fill="#60A5FA" font-family="'Courier New', monospace" opacity="0.6">2 iterations</text>
+
+                    <!-- arrow T1 -> T2 -->
+                    <line x1="222" y1="114" x2="245" y2="114" stroke="#3b5a8a" stroke-width="1.5" opacity="0.55"/>
+                    <polygon points="252,114 245,110 245,118" fill="#3b5a8a" opacity="0.55"/>
+
+                    <!-- T2 -->
+                    <rect x="258" y="92" width="140" height="44" rx="8" fill="#0d1424" stroke="#3b5a8a" stroke-width="1.5"/>
+                    <text x="328" y="113" text-anchor="middle" font-size="11" fill="#60A5FA" font-family="'Courier New', monospace" font-weight="700">TURN 2</text>
+                    <text x="328" y="127" text-anchor="middle" font-size="8" fill="#60A5FA" font-family="'Courier New', monospace" opacity="0.6">5 iterations</text>
+
+                    <!-- arrow T2 -> T3 -->
+                    <line x1="400" y1="114" x2="423" y2="114" stroke="#3b5a8a" stroke-width="1.5" opacity="0.55"/>
+                    <polygon points="430,114 423,110 423,118" fill="#3b5a8a" opacity="0.55"/>
+
+                    <!-- T3 highlighted (zoomed below) -->
+                    <rect x="436" y="86" width="148" height="56" rx="9" fill="#1a1604" stroke="#fbbf24" stroke-width="2"/>
+                    <text x="510" y="107" text-anchor="middle" font-size="11" fill="#fbbf24" font-family="'Courier New', monospace" font-weight="700">TURN 3</text>
+                    <text x="510" y="121" text-anchor="middle" font-size="8" fill="#fbbf24" font-family="'Courier New', monospace" opacity="0.85">3 iterations</text>
+                    <text x="510" y="134" text-anchor="middle" font-size="7.5" fill="#fbbf24" font-family="'Courier New', monospace" opacity="0.6">expanded below</text>
+
+                    <!-- arrow T3 -> T4 -->
+                    <line x1="586" y1="114" x2="609" y2="114" stroke="#3b5a8a" stroke-width="1.5" opacity="0.55"/>
+                    <polygon points="616,114 609,110 609,118" fill="#3b5a8a" opacity="0.55"/>
+
+                    <!-- T4 -->
+                    <rect x="622" y="92" width="140" height="44" rx="8" fill="#0d1424" stroke="#3b5a8a" stroke-width="1.5" opacity="0.7"/>
+                    <text x="692" y="113" text-anchor="middle" font-size="11" fill="#60A5FA" font-family="'Courier New', monospace" font-weight="700" opacity="0.7">TURN 4</text>
+                    <text x="692" y="127" text-anchor="middle" font-size="8" fill="#60A5FA" font-family="'Courier New', monospace" opacity="0.45">1 iteration</text>
+
+                    <!-- arrow T4 -> ... -->
+                    <line x1="764" y1="114" x2="787" y2="114" stroke="#3b5a8a" stroke-width="1.5" opacity="0.4"/>
+                    <polygon points="794,114 787,110 787,118" fill="#3b5a8a" opacity="0.4"/>
+
+                    <!-- ... -->
+                    <text x="830" y="119" text-anchor="middle" font-size="14" fill="#4a5568" font-family="'Courier New', monospace" letter-spacing="3">&hellip;</text>
+                    <text x="900" y="119" text-anchor="middle" font-size="11" fill="#4a5568" font-family="'Courier New', monospace" font-weight="700" opacity="0.5">TURN n</text>
+
+                    <!-- read/write arrows from turns to state ribbon -->
+                    <!-- T1 -->
+                    <line x1="135" y1="148" x2="135" y2="172" stroke="#34d399" stroke-width="1" opacity="0.55"/>
+                    <polygon points="135,178 131,170 139,170" fill="#34d399" opacity="0.55"/>
+                    <line x1="165" y1="172" x2="165" y2="148" stroke="#818cf8" stroke-width="1" stroke-dasharray="3,2" opacity="0.55"/>
+                    <polygon points="165,142 161,150 169,150" fill="#818cf8" opacity="0.55"/>
+
+                    <!-- T2 -->
+                    <line x1="313" y1="148" x2="313" y2="172" stroke="#34d399" stroke-width="1" opacity="0.55"/>
+                    <polygon points="313,178 309,170 317,170" fill="#34d399" opacity="0.55"/>
+                    <line x1="343" y1="172" x2="343" y2="148" stroke="#818cf8" stroke-width="1" stroke-dasharray="3,2" opacity="0.55"/>
+                    <polygon points="343,142 339,150 347,150" fill="#818cf8" opacity="0.55"/>
+
+                    <!-- T3 (emphasized) -->
+                    <line x1="495" y1="154" x2="495" y2="172" stroke="#34d399" stroke-width="1.5" opacity="0.85"/>
+                    <polygon points="495,178 491,170 499,170" fill="#34d399" opacity="0.85"/>
+                    <line x1="525" y1="172" x2="525" y2="154" stroke="#818cf8" stroke-width="1.5" stroke-dasharray="3,2" opacity="0.85"/>
+                    <polygon points="525,148 521,156 529,156" fill="#818cf8" opacity="0.85"/>
+
+                    <!-- T4 -->
+                    <line x1="677" y1="148" x2="677" y2="172" stroke="#34d399" stroke-width="1" opacity="0.4"/>
+                    <polygon points="677,178 673,170 681,170" fill="#34d399" opacity="0.4"/>
+                    <line x1="707" y1="172" x2="707" y2="148" stroke="#818cf8" stroke-width="1" stroke-dasharray="3,2" opacity="0.4"/>
+                    <polygon points="707,142 703,150 711,150" fill="#818cf8" opacity="0.4"/>
+
+                    <!-- mini legend for read/write -->
+                    <text x="220" y="158" font-size="7" fill="#34d399" font-family="'Courier New', monospace" opacity="0.7">writes &darr;</text>
+                    <text x="220" y="168" font-size="7" fill="#818cf8" font-family="'Courier New', monospace" opacity="0.7">reads &uarr;</text>
+
+                    <!-- Session state ribbon -->
+                    <text x="56" y="194" font-size="9" fill="#818cf8" font-family="'Courier New', monospace" letter-spacing="2" font-weight="700">SESSION STATE</text>
+                    <rect x="60" y="198" width="884" height="28" rx="6" fill="#0d1126" stroke="#312e81" stroke-width="1"/>
+
+                    <!-- growing state bands inside ribbon -->
+                    <rect x="64" y="202" width="180" height="20" rx="3" fill="#312e81" opacity="0.5"/>
+                    <rect x="64" y="202" width="360" height="20" rx="3" fill="#312e81" opacity="0.35"/>
+                    <rect x="64" y="202" width="540" height="20" rx="3" fill="#312e81" opacity="0.25"/>
+                    <rect x="64" y="202" width="720" height="20" rx="3" fill="#312e81" opacity="0.18"/>
+                    <rect x="64" y="202" width="876" height="20" rx="3" fill="#312e81" opacity="0.12"/>
+
+                    <text x="68" y="216" font-size="8" fill="#a5b4fc" font-family="'Courier New', monospace" opacity="0.85">history &middot; tool results &middot; artifacts &middot; decisions &middot; scratchpad &middot; state outputs</text>
+                    <text x="942" y="216" text-anchor="end" font-size="8" fill="#818cf8" font-family="'Courier New', monospace" opacity="0.6">grows &rarr;</text>
+
+
+                    <!-- ==================================================== -->
+                    <!-- PANEL B: INSIDE A TURN (bottom, zoom of T3) -->
+                    <!-- ==================================================== -->
+
+                    <text x="40" y="276" font-size="9" fill="#6b7280" font-family="'Courier New', monospace" letter-spacing="4">PANEL B &mdash; INSIDE A TURN</text>
+                    <text x="40" y="294" font-size="10" fill="#9ca3af" font-family="'Courier New', monospace">what the LLM actually sees on TURN 3 &mdash; a curated projection of session state</text>
+
+                    <!-- Outer turn container -->
+                    <rect x="40" y="310" width="920" height="430" rx="10" fill="#0a0e16" stroke="#fbbf24" stroke-width="1.5" stroke-opacity="0.5"/>
+
+                    <!-- Stage 1: INTAKE -->
+                    <text x="56" y="336" font-size="9" fill="#fbbf24" font-family="'Courier New', monospace" letter-spacing="2" font-weight="700">1 &middot; INTAKE</text>
+                    <text x="56" y="350" font-size="8" fill="#9ca3af" font-family="'Courier New', monospace">arrives with the new turn</text>
+
+                    <!-- intake pills -->
+                    <rect x="200" y="324" width="180" height="36" rx="6" fill="#0d1424" stroke="#4b5563" stroke-width="1"/>
+                    <text x="290" y="340" text-anchor="middle" font-size="9" fill="#e5e7eb" font-family="'Courier New', monospace" font-weight="700">user instruction</text>
+                    <text x="290" y="352" text-anchor="middle" font-size="7.5" fill="#9ca3af" font-family="'Courier New', monospace">"the user's message"</text>
+
+                    <rect x="400" y="324" width="180" height="36" rx="6" fill="#0d1424" stroke="#4b5563" stroke-width="1"/>
+                    <text x="490" y="340" text-anchor="middle" font-size="9" fill="#e5e7eb" font-family="'Courier New', monospace" font-weight="700">fresh context</text>
+                    <text x="490" y="352" text-anchor="middle" font-size="7.5" fill="#9ca3af" font-family="'Courier New', monospace">UI delta since last turn</text>
+
+                    <rect x="600" y="324" width="140" height="36" rx="6" fill="#0d1424" stroke="#4b5563" stroke-width="1"/>
+                    <text x="670" y="340" text-anchor="middle" font-size="9" fill="#e5e7eb" font-family="'Courier New', monospace" font-weight="700">session id</text>
+                    <text x="670" y="352" text-anchor="middle" font-size="7.5" fill="#9ca3af" font-family="'Courier New', monospace">handle for state</text>
+
+                    <!-- divider arrow down -->
+                    <line x1="500" y1="368" x2="500" y2="386" stroke="#4b5563" stroke-width="1"/>
+                    <polygon points="500,392 496,384 504,384" fill="#4b5563"/>
+
+                    <!-- Stage 2: ORCHESTRATOR ASSEMBLY -->
+                    <text x="56" y="412" font-size="9" fill="#34d399" font-family="'Courier New', monospace" letter-spacing="2" font-weight="700">2 &middot; ASSEMBLY</text>
+                    <text x="56" y="426" font-size="8" fill="#9ca3af" font-family="'Courier New', monospace">orchestrator curates from</text>
+                    <text x="56" y="437" font-size="8" fill="#9ca3af" font-family="'Courier New', monospace">session state</text>
+
+                    <!-- assembly pills -->
+                    <rect x="200" y="400" width="160" height="44" rx="6" fill="#081410" stroke="#34d399" stroke-width="1.2"/>
+                    <text x="280" y="418" text-anchor="middle" font-size="9" fill="#4ade80" font-family="'Courier New', monospace" font-weight="700">system prompt</text>
+                    <text x="280" y="431" text-anchor="middle" font-size="7.5" fill="#4ade80" font-family="'Courier New', monospace" opacity="0.7">turn-specific</text>
+
+                    <rect x="380" y="400" width="160" height="44" rx="6" fill="#081410" stroke="#34d399" stroke-width="1.2"/>
+                    <text x="460" y="418" text-anchor="middle" font-size="9" fill="#4ade80" font-family="'Courier New', monospace" font-weight="700">tool list</text>
+                    <text x="460" y="431" text-anchor="middle" font-size="7.5" fill="#4ade80" font-family="'Courier New', monospace" opacity="0.7">dynamic subset</text>
+
+                    <rect x="560" y="400" width="180" height="44" rx="6" fill="#081410" stroke="#34d399" stroke-width="1.2"/>
+                    <text x="650" y="418" text-anchor="middle" font-size="9" fill="#4ade80" font-family="'Courier New', monospace" font-weight="700">history</text>
+                    <text x="650" y="431" text-anchor="middle" font-size="7.5" fill="#4ade80" font-family="'Courier New', monospace" opacity="0.7">shaped slice of past</text>
+
+                    <!-- assembly: ghost arrow up to session state ribbon -->
+                    <line x1="800" y1="422" x2="870" y2="422" stroke="#34d399" stroke-width="1" stroke-dasharray="3,3" opacity="0.5"/>
+                    <line x1="870" y1="422" x2="870" y2="218" stroke="#34d399" stroke-width="1" stroke-dasharray="3,3" opacity="0.5"/>
+                    <polygon points="870,212 866,220 874,220" fill="#34d399" opacity="0.5"/>
+                    <text x="880" y="426" font-size="7.5" fill="#34d399" font-family="'Courier New', monospace" opacity="0.7">looked up</text>
+                    <text x="880" y="436" font-size="7.5" fill="#34d399" font-family="'Courier New', monospace" opacity="0.7">via session id</text>
+
+                    <!-- divider arrow down -->
+                    <line x1="500" y1="452" x2="500" y2="470" stroke="#4b5563" stroke-width="1"/>
+                    <polygon points="500,476 496,468 504,468" fill="#4b5563"/>
+
+                    <!-- Stage 3: ITERATION LOOP -->
+                    <text x="56" y="496" font-size="9" fill="#fbbf24" font-family="'Courier New', monospace" letter-spacing="2" font-weight="700">3 &middot; ITERATION</text>
+                    <text x="56" y="508" font-size="9" fill="#fbbf24" font-family="'Courier New', monospace" letter-spacing="2" font-weight="700">LOOP</text>
+                    <text x="56" y="524" font-size="8" fill="#9ca3af" font-family="'Courier New', monospace">tool calls until</text>
+                    <text x="56" y="535" font-size="8" fill="#9ca3af" font-family="'Courier New', monospace">final answer</text>
+
+                    <!-- LLM core -->
+                    <circle cx="380" cy="540" r="46" fill="#100c00" stroke="#fbbf24" stroke-width="2"/>
+                    <text x="380" y="535" text-anchor="middle" font-size="11" fill="#fbbf24" font-family="'Courier New', monospace" font-weight="700">LLM</text>
+                    <text x="380" y="552" text-anchor="middle" font-size="7.5" fill="#fbbf24" font-family="'Courier New', monospace" opacity="0.7">iter k</text>
+
+                    <!-- loop arc: LLM -> tool call -->
+                    <path d="M 410 510 Q 480 470 540 510" fill="none" stroke="#fbbf24" stroke-width="1.5" opacity="0.8"/>
+                    <polygon points="540,510 533,506 533,514" fill="#fbbf24" opacity="0.8"/>
+                    <text x="475" y="478" text-anchor="middle" font-size="8" fill="#fbbf24" font-family="'Courier New', monospace" opacity="0.85">tool call</text>
+
+                    <!-- tool box -->
+                    <rect x="540" y="500" width="120" height="40" rx="6" fill="#0d1424" stroke="#60A5FA" stroke-width="1.5"/>
+                    <text x="600" y="517" text-anchor="middle" font-size="9" fill="#60A5FA" font-family="'Courier New', monospace" font-weight="700">tool</text>
+                    <text x="600" y="530" text-anchor="middle" font-size="7.5" fill="#60A5FA" font-family="'Courier New', monospace" opacity="0.7">executes</text>
+
+                    <!-- loop arc: tool -> LLM (back) -->
+                    <path d="M 540 565 Q 480 605 410 575" fill="none" stroke="#60A5FA" stroke-width="1.5" opacity="0.8"/>
+                    <polygon points="410,575 418,572 414,580" fill="#60A5FA" opacity="0.8"/>
+                    <text x="475" y="610" text-anchor="middle" font-size="8" fill="#60A5FA" font-family="'Courier New', monospace" opacity="0.85">result &rarr; appended to context</text>
+
+                    <!-- iteration count label below -->
+                    <text x="380" y="608" text-anchor="middle" font-size="7.5" fill="#fbbf24" font-family="'Courier New', monospace" opacity="0.55">loop until final answer</text>
+
+                    <!-- final answer exit arrow (to the left) -->
+                    <line x1="334" y1="540" x2="280" y2="540" stroke="#f6c90e" stroke-width="2"/>
+                    <polygon points="274,540 282,536 282,544" fill="#f6c90e"/>
+                    <text x="307" y="532" text-anchor="middle" font-size="8" fill="#f6c90e" font-family="'Courier New', monospace" font-weight="700">final answer</text>
+                    <text x="307" y="555" text-anchor="middle" font-size="7" fill="#f6c90e" font-family="'Courier New', monospace" opacity="0.7">(exit loop)</text>
+
+                    <!-- Stage 4: FINAL ANSWER (split) -->
+                    <text x="56" y="654" font-size="9" fill="#f6c90e" font-family="'Courier New', monospace" letter-spacing="2" font-weight="700">4 &middot; FINAL</text>
+                    <text x="56" y="666" font-size="9" fill="#f6c90e" font-family="'Courier New', monospace" letter-spacing="2" font-weight="700">ANSWER</text>
+                    <text x="56" y="682" font-size="8" fill="#9ca3af" font-family="'Courier New', monospace">two outputs</text>
+                    <text x="56" y="693" font-size="8" fill="#9ca3af" font-family="'Courier New', monospace">on every turn</text>
+
+                    <!-- Final answer central node -->
+                    <rect x="200" y="660" width="160" height="50" rx="8" fill="#1a1604" stroke="#f6c90e" stroke-width="1.5"/>
+                    <text x="280" y="680" text-anchor="middle" font-size="10" fill="#f6c90e" font-family="'Courier New', monospace" font-weight="700">FINAL ANSWER</text>
+                    <text x="280" y="694" text-anchor="middle" font-size="7.5" fill="#f6c90e" font-family="'Courier New', monospace" opacity="0.7">two-component</text>
+
+                    <!-- Branch -> user message -->
+                    <line x1="362" y1="675" x2="540" y2="675" stroke="#a78bfa" stroke-width="1.5"/>
+                    <polygon points="546,675 538,671 538,679" fill="#a78bfa"/>
+                    <rect x="548" y="660" width="200" height="32" rx="6" fill="#140d24" stroke="#a78bfa" stroke-width="1.2"/>
+                    <text x="648" y="675" text-anchor="middle" font-size="9" fill="#c4b5fd" font-family="'Courier New', monospace" font-weight="700">user message</text>
+                    <text x="648" y="687" text-anchor="middle" font-size="7.5" fill="#c4b5fd" font-family="'Courier New', monospace" opacity="0.7">&rarr; rendered to user</text>
+
+                    <!-- Branch -> state output -->
+                    <line x1="362" y1="695" x2="540" y2="695" stroke="#34d399" stroke-width="1.5"/>
+                    <polygon points="546,695 538,691 538,699" fill="#34d399"/>
+                    <rect x="548" y="697" width="200" height="32" rx="6" fill="#081410" stroke="#34d399" stroke-width="1.2"/>
+                    <text x="648" y="712" text-anchor="middle" font-size="9" fill="#4ade80" font-family="'Courier New', monospace" font-weight="700">state output</text>
+                    <text x="648" y="724" text-anchor="middle" font-size="7.5" fill="#4ade80" font-family="'Courier New', monospace" opacity="0.7">&rarr; written to session state</text>
+
+                    <!-- arrow from state output back up to session state ribbon -->
+                    <line x1="748" y1="713" x2="900" y2="713" stroke="#34d399" stroke-width="1" stroke-dasharray="3,3" opacity="0.6"/>
+                    <line x1="900" y1="713" x2="900" y2="218" stroke="#34d399" stroke-width="1" stroke-dasharray="3,3" opacity="0.6"/>
+                    <polygon points="900,212 896,220 904,220" fill="#34d399" opacity="0.6"/>
+                    <text x="908" y="490" font-size="7.5" fill="#34d399" font-family="'Courier New', monospace" opacity="0.6">writes</text>
+                    <text x="908" y="502" font-size="7.5" fill="#34d399" font-family="'Courier New', monospace" opacity="0.6">back</text>
+
+                </svg>
+            </div>
+
+            <h2>What a Turn Receives</h2>
+
+            <p>Every turn begins when the user sends a new instruction. The orchestration layer receives three things on the way in:</p>
+
+            <ul>
+                <li><strong>The session ID</strong> — the handle the orchestrator uses to reach session state. All prior exchanges, tool results, artifacts, decisions, and scratchpad are indexed against this ID, so passing it in is what gives the orchestrator access to everything the session has accumulated. Without the ID, the orchestrator has no path to the state.</li>
+                <li><strong>The new instruction</strong> — the user's message for this turn.</li>
+                <li><strong>Fresh context</strong> — anything that has changed in the environment since the last turn. The user may have switched screens, toggled a setting, selected a different document, or otherwise altered the surrounding UI state. This delta is passed alongside the instruction, not buried inside it.</li>
+            </ul>
+
+            <h2>What the Orchestrator Assembles</h2>
+
+            <p>Once the turn is in flight, the orchestrator uses the session ID to look up the session state, and combines that state with the fresh context to compose the turn's working materials:</p>
+
+            <ul>
+                <li><strong>A custom system prompt</strong> — assembled once per turn, conditioned on where the session is and what just changed. It is not a static template; it is a turn-specific composition.</li>
+                <li><strong>A tool list</strong> — the subset of available tools that makes sense given the current session state and context. Tool availability is dynamic across the session.</li>
+                <li><strong>The conversation history</strong> — the relevant prior exchange, drawn from session state and shaped to fit the turn.</li>
+            </ul>
+
+            <p>These three artifacts — system prompt, tools, history — plus the new user instruction define the LLM's working context for this turn.</p>
+
+            <h2>The LLM Does Not See the Full Session State</h2>
+
+            <p>This is the crucial design point. The LLM is never handed the raw session state. The orchestrator deliberately curates what reaches the model: the right instructions in the system prompt, the right slice of history, the right subset of tools, the right context fragments — all selected based on the current state of the session.</p>
+
+            <p>This curation is where the LLM's degrees of freedom are intentionally reduced. An LLM given everything will use everything, often in ways that drift from what the situation calls for. By narrowing what the model sees to what the situation actually requires, the orchestrator constrains the space of possible behaviors and makes the desired outcome the path of least resistance. The system prompt tells the model who it is for this turn. The tool list tells it what it can do. The curated history tells it what matters from the past. Everything outside that frame is held back by the orchestrator — available to inform the composition of the turn, but not exposed to the model directly.</p>
+
+            <h2>The Iteration Loop</h2>
+
+            <p>With the turn's materials assembled, the orchestrator enters an iteration loop. Each iteration is a single call to the LLM, which returns one of two things:</p>
+
+            <ul>
+                <li><strong>A tool choice</strong> — the orchestrator executes the tool, appends the call and its result to the working context, and loops back.</li>
+                <li><strong>A final answer</strong> — the loop exits and the turn completes.</li>
+            </ul>
+
+            <p>A turn may resolve in a single iteration (the LLM answers immediately) or take many (the LLM calls several tools first). The defining property of the final iteration is that it produces a final answer, not a tool call.</p>
+
+            <h3>The Final Answer Has Two Components</h3>
+
+            <p>The final answer is not a single thing. It has two components:</p>
+
+            <ul>
+                <li><strong>A user-facing message</strong> — the response shown back to the user.</li>
+                <li><strong>A state output</strong> — a structured artifact written into session state, available to future turns through the orchestrator's curation.</li>
+            </ul>
+
+            <p>Both are produced on every turn. They have different consumers, different formats, and often different content. The user-facing message is a presentation concern — what should the human see? The state output is a design decision — what does this turn need to record so that the next one starts well?</p>
+
+            <p>The split matters. Treating "the answer" as just the text returned to the user collapses two distinct outputs into one and makes the system harder to reason about. Designing them as one is what makes systems brittle.</p>
+
+            <h2>Turn Output Flows into Session State</h2>
+
+            <p>Every turn can generate output that is written back to session state — not just the state output of the final answer, but intermediate artifacts as well: tool results, derived facts, summaries, decisions, scratchpad reasoning the agent wants to preserve. All of it is captured and indexed against the session ID.</p>
+
+            <p>Subsequent turns then have access to this accumulated output, but again only through the orchestrator's curation. When preparing the LLM's working context for a later turn, the orchestrator decides what prior output to surface, in whole or in part, and in what form. A long tool result from turn three might appear verbatim in turn four, summarized in turn seven, and not at all in turn twelve — that decision sits with the orchestrator, conditioned on what the new turn needs. The session state is the durable record. What reaches the LLM on any given turn is a deliberately shaped projection of it.</p>
+
+            <h2>Session State as the Through-Line</h2>
+
+            <p>Session state accumulates from the first turn to the last. Every turn reads from it (to assemble system prompt, tools, and history) and writes back to it (the new exchange, tool results, intermediate artifacts, the final answer's state output, and any state changes the agent makes on the user's behalf). State is not refreshed per turn — it grows. This is what makes a session a session rather than a sequence of independent requests: the agent's understanding of the user, the task, and the environment compounds across turns, while the LLM itself only ever sees the slice the orchestrator chooses to show it.</p>
+
+            <h2>The Design Lever</h2>
+
+            <p>The LLM is doing what LLMs do — completing text, calling tools, producing answers. The behavior of the agent as a whole is determined by what the orchestrator chooses to put in front of the model on each turn, what it captures from each turn's output, and how it shapes that captured state into the next turn's view.</p>
+
+            <p>Build a careful orchestrator and you get a coherent agent. Skip that work and you get an unpredictable one — even with the best model behind it. The model is not the lever. The orchestrator is.</p>
+
+        </div>
+    </article>
+
+    <footer>
+        &copy; 2026 Orchestrator Studios
+    </footer>
+
+    <!-- Lightbox: enlarged copy of the diagram -->
+    <div id="diagram-lightbox" class="lightbox" onclick="this.classList.remove('open')">
+        <svg viewBox="0 0 1000 760" style="max-width: 1400px;" xmlns="http://www.w3.org/2000/svg">
+            <rect width="1000" height="760" fill="#060a10"/>
+
+            <!-- Re-render of the diagram (identical contents, with background) -->
+            <text x="40" y="22" font-size="9" fill="#6b7280" font-family="'Courier New', monospace" letter-spacing="4">PANEL A &mdash; THE SESSION</text>
+            <text x="40" y="40" font-size="10" fill="#9ca3af" font-family="'Courier New', monospace">turns in sequence &middot; state grows monotonically</text>
+            <rect x="40" y="56" width="920" height="180" rx="10" fill="#0a0e16" stroke="#1f2937" stroke-width="1.5"/>
+            <text x="56" y="76" font-size="9" fill="#818cf8" font-family="'Courier New', monospace" letter-spacing="2" font-weight="700">SESSION</text>
+            <text x="118" y="76" font-size="9" fill="#4b5563" font-family="'Courier New', monospace">session_id: 7f2a&hellip;</text>
+            <rect x="80" y="92" width="140" height="44" rx="8" fill="#0d1424" stroke="#3b5a8a" stroke-width="1.5"/>
+            <text x="150" y="113" text-anchor="middle" font-size="11" fill="#60A5FA" font-family="'Courier New', monospace" font-weight="700">TURN 1</text>
+            <text x="150" y="127" text-anchor="middle" font-size="8" fill="#60A5FA" font-family="'Courier New', monospace" opacity="0.6">2 iterations</text>
+            <line x1="222" y1="114" x2="245" y2="114" stroke="#3b5a8a" stroke-width="1.5" opacity="0.55"/>
+            <polygon points="252,114 245,110 245,118" fill="#3b5a8a" opacity="0.55"/>
+            <rect x="258" y="92" width="140" height="44" rx="8" fill="#0d1424" stroke="#3b5a8a" stroke-width="1.5"/>
+            <text x="328" y="113" text-anchor="middle" font-size="11" fill="#60A5FA" font-family="'Courier New', monospace" font-weight="700">TURN 2</text>
+            <text x="328" y="127" text-anchor="middle" font-size="8" fill="#60A5FA" font-family="'Courier New', monospace" opacity="0.6">5 iterations</text>
+            <line x1="400" y1="114" x2="423" y2="114" stroke="#3b5a8a" stroke-width="1.5" opacity="0.55"/>
+            <polygon points="430,114 423,110 423,118" fill="#3b5a8a" opacity="0.55"/>
+            <rect x="436" y="86" width="148" height="56" rx="9" fill="#1a1604" stroke="#fbbf24" stroke-width="2"/>
+            <text x="510" y="107" text-anchor="middle" font-size="11" fill="#fbbf24" font-family="'Courier New', monospace" font-weight="700">TURN 3</text>
+            <text x="510" y="121" text-anchor="middle" font-size="8" fill="#fbbf24" font-family="'Courier New', monospace" opacity="0.85">3 iterations</text>
+            <text x="510" y="134" text-anchor="middle" font-size="7.5" fill="#fbbf24" font-family="'Courier New', monospace" opacity="0.6">expanded below</text>
+            <line x1="586" y1="114" x2="609" y2="114" stroke="#3b5a8a" stroke-width="1.5" opacity="0.55"/>
+            <polygon points="616,114 609,110 609,118" fill="#3b5a8a" opacity="0.55"/>
+            <rect x="622" y="92" width="140" height="44" rx="8" fill="#0d1424" stroke="#3b5a8a" stroke-width="1.5" opacity="0.7"/>
+            <text x="692" y="113" text-anchor="middle" font-size="11" fill="#60A5FA" font-family="'Courier New', monospace" font-weight="700" opacity="0.7">TURN 4</text>
+            <text x="692" y="127" text-anchor="middle" font-size="8" fill="#60A5FA" font-family="'Courier New', monospace" opacity="0.45">1 iteration</text>
+            <line x1="764" y1="114" x2="787" y2="114" stroke="#3b5a8a" stroke-width="1.5" opacity="0.4"/>
+            <polygon points="794,114 787,110 787,118" fill="#3b5a8a" opacity="0.4"/>
+            <text x="830" y="119" text-anchor="middle" font-size="14" fill="#4a5568" font-family="'Courier New', monospace" letter-spacing="3">&hellip;</text>
+            <text x="900" y="119" text-anchor="middle" font-size="11" fill="#4a5568" font-family="'Courier New', monospace" font-weight="700" opacity="0.5">TURN n</text>
+            <line x1="135" y1="148" x2="135" y2="172" stroke="#34d399" stroke-width="1" opacity="0.55"/>
+            <polygon points="135,178 131,170 139,170" fill="#34d399" opacity="0.55"/>
+            <line x1="165" y1="172" x2="165" y2="148" stroke="#818cf8" stroke-width="1" stroke-dasharray="3,2" opacity="0.55"/>
+            <polygon points="165,142 161,150 169,150" fill="#818cf8" opacity="0.55"/>
+            <line x1="313" y1="148" x2="313" y2="172" stroke="#34d399" stroke-width="1" opacity="0.55"/>
+            <polygon points="313,178 309,170 317,170" fill="#34d399" opacity="0.55"/>
+            <line x1="343" y1="172" x2="343" y2="148" stroke="#818cf8" stroke-width="1" stroke-dasharray="3,2" opacity="0.55"/>
+            <polygon points="343,142 339,150 347,150" fill="#818cf8" opacity="0.55"/>
+            <line x1="495" y1="154" x2="495" y2="172" stroke="#34d399" stroke-width="1.5" opacity="0.85"/>
+            <polygon points="495,178 491,170 499,170" fill="#34d399" opacity="0.85"/>
+            <line x1="525" y1="172" x2="525" y2="154" stroke="#818cf8" stroke-width="1.5" stroke-dasharray="3,2" opacity="0.85"/>
+            <polygon points="525,148 521,156 529,156" fill="#818cf8" opacity="0.85"/>
+            <line x1="677" y1="148" x2="677" y2="172" stroke="#34d399" stroke-width="1" opacity="0.4"/>
+            <polygon points="677,178 673,170 681,170" fill="#34d399" opacity="0.4"/>
+            <line x1="707" y1="172" x2="707" y2="148" stroke="#818cf8" stroke-width="1" stroke-dasharray="3,2" opacity="0.4"/>
+            <polygon points="707,142 703,150 711,150" fill="#818cf8" opacity="0.4"/>
+            <text x="220" y="158" font-size="7" fill="#34d399" font-family="'Courier New', monospace" opacity="0.7">writes &darr;</text>
+            <text x="220" y="168" font-size="7" fill="#818cf8" font-family="'Courier New', monospace" opacity="0.7">reads &uarr;</text>
+            <text x="56" y="194" font-size="9" fill="#818cf8" font-family="'Courier New', monospace" letter-spacing="2" font-weight="700">SESSION STATE</text>
+            <rect x="60" y="198" width="884" height="28" rx="6" fill="#0d1126" stroke="#312e81" stroke-width="1"/>
+            <rect x="64" y="202" width="180" height="20" rx="3" fill="#312e81" opacity="0.5"/>
+            <rect x="64" y="202" width="360" height="20" rx="3" fill="#312e81" opacity="0.35"/>
+            <rect x="64" y="202" width="540" height="20" rx="3" fill="#312e81" opacity="0.25"/>
+            <rect x="64" y="202" width="720" height="20" rx="3" fill="#312e81" opacity="0.18"/>
+            <rect x="64" y="202" width="876" height="20" rx="3" fill="#312e81" opacity="0.12"/>
+            <text x="68" y="216" font-size="8" fill="#a5b4fc" font-family="'Courier New', monospace" opacity="0.85">history &middot; tool results &middot; artifacts &middot; decisions &middot; scratchpad &middot; state outputs</text>
+            <text x="942" y="216" text-anchor="end" font-size="8" fill="#818cf8" font-family="'Courier New', monospace" opacity="0.6">grows &rarr;</text>
+
+            <text x="40" y="276" font-size="9" fill="#6b7280" font-family="'Courier New', monospace" letter-spacing="4">PANEL B &mdash; INSIDE A TURN</text>
+            <text x="40" y="294" font-size="10" fill="#9ca3af" font-family="'Courier New', monospace">what the LLM actually sees on TURN 3 &mdash; a curated projection of session state</text>
+            <rect x="40" y="310" width="920" height="430" rx="10" fill="#0a0e16" stroke="#fbbf24" stroke-width="1.5" stroke-opacity="0.5"/>
+            <text x="56" y="336" font-size="9" fill="#fbbf24" font-family="'Courier New', monospace" letter-spacing="2" font-weight="700">1 &middot; INTAKE</text>
+            <text x="56" y="350" font-size="8" fill="#9ca3af" font-family="'Courier New', monospace">arrives with the new turn</text>
+            <rect x="200" y="324" width="180" height="36" rx="6" fill="#0d1424" stroke="#4b5563" stroke-width="1"/>
+            <text x="290" y="340" text-anchor="middle" font-size="9" fill="#e5e7eb" font-family="'Courier New', monospace" font-weight="700">user instruction</text>
+            <text x="290" y="352" text-anchor="middle" font-size="7.5" fill="#9ca3af" font-family="'Courier New', monospace">"the user's message"</text>
+            <rect x="400" y="324" width="180" height="36" rx="6" fill="#0d1424" stroke="#4b5563" stroke-width="1"/>
+            <text x="490" y="340" text-anchor="middle" font-size="9" fill="#e5e7eb" font-family="'Courier New', monospace" font-weight="700">fresh context</text>
+            <text x="490" y="352" text-anchor="middle" font-size="7.5" fill="#9ca3af" font-family="'Courier New', monospace">UI delta since last turn</text>
+            <rect x="600" y="324" width="140" height="36" rx="6" fill="#0d1424" stroke="#4b5563" stroke-width="1"/>
+            <text x="670" y="340" text-anchor="middle" font-size="9" fill="#e5e7eb" font-family="'Courier New', monospace" font-weight="700">session id</text>
+            <text x="670" y="352" text-anchor="middle" font-size="7.5" fill="#9ca3af" font-family="'Courier New', monospace">handle for state</text>
+            <line x1="500" y1="368" x2="500" y2="386" stroke="#4b5563" stroke-width="1"/>
+            <polygon points="500,392 496,384 504,384" fill="#4b5563"/>
+            <text x="56" y="412" font-size="9" fill="#34d399" font-family="'Courier New', monospace" letter-spacing="2" font-weight="700">2 &middot; ASSEMBLY</text>
+            <text x="56" y="426" font-size="8" fill="#9ca3af" font-family="'Courier New', monospace">orchestrator curates from</text>
+            <text x="56" y="437" font-size="8" fill="#9ca3af" font-family="'Courier New', monospace">session state</text>
+            <rect x="200" y="400" width="160" height="44" rx="6" fill="#081410" stroke="#34d399" stroke-width="1.2"/>
+            <text x="280" y="418" text-anchor="middle" font-size="9" fill="#4ade80" font-family="'Courier New', monospace" font-weight="700">system prompt</text>
+            <text x="280" y="431" text-anchor="middle" font-size="7.5" fill="#4ade80" font-family="'Courier New', monospace" opacity="0.7">turn-specific</text>
+            <rect x="380" y="400" width="160" height="44" rx="6" fill="#081410" stroke="#34d399" stroke-width="1.2"/>
+            <text x="460" y="418" text-anchor="middle" font-size="9" fill="#4ade80" font-family="'Courier New', monospace" font-weight="700">tool list</text>
+            <text x="460" y="431" text-anchor="middle" font-size="7.5" fill="#4ade80" font-family="'Courier New', monospace" opacity="0.7">dynamic subset</text>
+            <rect x="560" y="400" width="180" height="44" rx="6" fill="#081410" stroke="#34d399" stroke-width="1.2"/>
+            <text x="650" y="418" text-anchor="middle" font-size="9" fill="#4ade80" font-family="'Courier New', monospace" font-weight="700">history</text>
+            <text x="650" y="431" text-anchor="middle" font-size="7.5" fill="#4ade80" font-family="'Courier New', monospace" opacity="0.7">shaped slice of past</text>
+            <line x1="800" y1="422" x2="870" y2="422" stroke="#34d399" stroke-width="1" stroke-dasharray="3,3" opacity="0.5"/>
+            <line x1="870" y1="422" x2="870" y2="218" stroke="#34d399" stroke-width="1" stroke-dasharray="3,3" opacity="0.5"/>
+            <polygon points="870,212 866,220 874,220" fill="#34d399" opacity="0.5"/>
+            <text x="880" y="426" font-size="7.5" fill="#34d399" font-family="'Courier New', monospace" opacity="0.7">looked up</text>
+            <text x="880" y="436" font-size="7.5" fill="#34d399" font-family="'Courier New', monospace" opacity="0.7">via session id</text>
+            <line x1="500" y1="452" x2="500" y2="470" stroke="#4b5563" stroke-width="1"/>
+            <polygon points="500,476 496,468 504,468" fill="#4b5563"/>
+            <text x="56" y="496" font-size="9" fill="#fbbf24" font-family="'Courier New', monospace" letter-spacing="2" font-weight="700">3 &middot; ITERATION</text>
+            <text x="56" y="508" font-size="9" fill="#fbbf24" font-family="'Courier New', monospace" letter-spacing="2" font-weight="700">LOOP</text>
+            <text x="56" y="524" font-size="8" fill="#9ca3af" font-family="'Courier New', monospace">tool calls until</text>
+            <text x="56" y="535" font-size="8" fill="#9ca3af" font-family="'Courier New', monospace">final answer</text>
+            <circle cx="380" cy="540" r="46" fill="#100c00" stroke="#fbbf24" stroke-width="2"/>
+            <text x="380" y="535" text-anchor="middle" font-size="11" fill="#fbbf24" font-family="'Courier New', monospace" font-weight="700">LLM</text>
+            <text x="380" y="552" text-anchor="middle" font-size="7.5" fill="#fbbf24" font-family="'Courier New', monospace" opacity="0.7">iter k</text>
+            <path d="M 410 510 Q 480 470 540 510" fill="none" stroke="#fbbf24" stroke-width="1.5" opacity="0.8"/>
+            <polygon points="540,510 533,506 533,514" fill="#fbbf24" opacity="0.8"/>
+            <text x="475" y="478" text-anchor="middle" font-size="8" fill="#fbbf24" font-family="'Courier New', monospace" opacity="0.85">tool call</text>
+            <rect x="540" y="500" width="120" height="40" rx="6" fill="#0d1424" stroke="#60A5FA" stroke-width="1.5"/>
+            <text x="600" y="517" text-anchor="middle" font-size="9" fill="#60A5FA" font-family="'Courier New', monospace" font-weight="700">tool</text>
+            <text x="600" y="530" text-anchor="middle" font-size="7.5" fill="#60A5FA" font-family="'Courier New', monospace" opacity="0.7">executes</text>
+            <path d="M 540 565 Q 480 605 410 575" fill="none" stroke="#60A5FA" stroke-width="1.5" opacity="0.8"/>
+            <polygon points="410,575 418,572 414,580" fill="#60A5FA" opacity="0.8"/>
+            <text x="475" y="610" text-anchor="middle" font-size="8" fill="#60A5FA" font-family="'Courier New', monospace" opacity="0.85">result &rarr; appended to context</text>
+            <text x="380" y="608" text-anchor="middle" font-size="7.5" fill="#fbbf24" font-family="'Courier New', monospace" opacity="0.55">loop until final answer</text>
+            <line x1="334" y1="540" x2="280" y2="540" stroke="#f6c90e" stroke-width="2"/>
+            <polygon points="274,540 282,536 282,544" fill="#f6c90e"/>
+            <text x="307" y="532" text-anchor="middle" font-size="8" fill="#f6c90e" font-family="'Courier New', monospace" font-weight="700">final answer</text>
+            <text x="307" y="555" text-anchor="middle" font-size="7" fill="#f6c90e" font-family="'Courier New', monospace" opacity="0.7">(exit loop)</text>
+            <text x="56" y="654" font-size="9" fill="#f6c90e" font-family="'Courier New', monospace" letter-spacing="2" font-weight="700">4 &middot; FINAL</text>
+            <text x="56" y="666" font-size="9" fill="#f6c90e" font-family="'Courier New', monospace" letter-spacing="2" font-weight="700">ANSWER</text>
+            <text x="56" y="682" font-size="8" fill="#9ca3af" font-family="'Courier New', monospace">two outputs</text>
+            <text x="56" y="693" font-size="8" fill="#9ca3af" font-family="'Courier New', monospace">on every turn</text>
+            <rect x="200" y="660" width="160" height="50" rx="8" fill="#1a1604" stroke="#f6c90e" stroke-width="1.5"/>
+            <text x="280" y="680" text-anchor="middle" font-size="10" fill="#f6c90e" font-family="'Courier New', monospace" font-weight="700">FINAL ANSWER</text>
+            <text x="280" y="694" text-anchor="middle" font-size="7.5" fill="#f6c90e" font-family="'Courier New', monospace" opacity="0.7">two-component</text>
+            <line x1="362" y1="675" x2="540" y2="675" stroke="#a78bfa" stroke-width="1.5"/>
+            <polygon points="546,675 538,671 538,679" fill="#a78bfa"/>
+            <rect x="548" y="660" width="200" height="32" rx="6" fill="#140d24" stroke="#a78bfa" stroke-width="1.2"/>
+            <text x="648" y="675" text-anchor="middle" font-size="9" fill="#c4b5fd" font-family="'Courier New', monospace" font-weight="700">user message</text>
+            <text x="648" y="687" text-anchor="middle" font-size="7.5" fill="#c4b5fd" font-family="'Courier New', monospace" opacity="0.7">&rarr; rendered to user</text>
+            <line x1="362" y1="695" x2="540" y2="695" stroke="#34d399" stroke-width="1.5"/>
+            <polygon points="546,695 538,691 538,699" fill="#34d399"/>
+            <rect x="548" y="697" width="200" height="32" rx="6" fill="#081410" stroke="#34d399" stroke-width="1.2"/>
+            <text x="648" y="712" text-anchor="middle" font-size="9" fill="#4ade80" font-family="'Courier New', monospace" font-weight="700">state output</text>
+            <text x="648" y="724" text-anchor="middle" font-size="7.5" fill="#4ade80" font-family="'Courier New', monospace" opacity="0.7">&rarr; written to session state</text>
+            <line x1="748" y1="713" x2="900" y2="713" stroke="#34d399" stroke-width="1" stroke-dasharray="3,3" opacity="0.6"/>
+            <line x1="900" y1="713" x2="900" y2="218" stroke="#34d399" stroke-width="1" stroke-dasharray="3,3" opacity="0.6"/>
+            <polygon points="900,212 896,220 904,220" fill="#34d399" opacity="0.6"/>
+            <text x="908" y="490" font-size="7.5" fill="#34d399" font-family="'Courier New', monospace" opacity="0.6">writes</text>
+            <text x="908" y="502" font-size="7.5" fill="#34d399" font-family="'Courier New', monospace" opacity="0.6">back</text>
+        </svg>
+    </div>
+
+</body>
+</html>

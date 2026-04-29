@@ -14,6 +14,9 @@ intake → harvesting → drafting → iterating → finalizing. (Removed the st
 ### 2026-04-28 — Lifecycle advanced: goal-defining → operating
 Status flipped to operating at 15:00. current_workflow_stage: harvesting.
 
+### 2026-04-29 — Snapshot-before-edit rule encoded in manual.md
+Edited `outline-cmr-take-2.md` without first snapshotting the prior `latest` (captured 2026-04-29T09:00:00Z), losing it from the version chain. Recovered the prior content from git HEAD into `.history/outline-cmr-take-2/2026-04-29T09-00-00Z.md`, promoted the old `latest` entry to a frozen snapshot, and added a new `latest` entry covering today's §1 reframe. Added an "Editing files that have history" section to `workspace/manual.md` so the rule is read on every operating turn.
+
 ## Pivots
 
 (none yet)
