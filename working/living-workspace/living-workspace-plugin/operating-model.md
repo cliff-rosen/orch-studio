@@ -259,7 +259,7 @@ On every interaction:
 
 The dashboard is composed at render time from **widgets** that render **stores**.
 
-- **Widgets** are reusable HTML+CSS components (smart-table, kanban, cards, list, detail, calendar, timeline, document, outline, tree, graph, file-browser). Each widget knows what primitive(s) it can render. The `file-browser` widget is special — it can render any store as a file-system view, surfacing the actual files on disk (data files, sidecar attachments).
+- **Widgets** are reusable HTML+CSS components (smart-table, kanban, cards, list, detail, calendar, timeline, document, document-pair, outline, tree, graph, file-browser, diff). Each widget knows what primitive(s) it can render. The `file-browser` widget can render any store as a file-system view; `document-pair` renders two documents side-by-side; `diff` renders changes between two documents.
 - **Pages** are compositions of widgets. A page descriptor in `workspace/pages/<name>.json` declares which widgets to render, in what order, against which stores.
 - **The dashboard** is just the default page (`workspace/pages/dashboard.json`).
 

@@ -1,44 +1,39 @@
-# Method — Harvest then Rebuild
+# Method — Document-Intensive, Emergent
 
-Simple method. Two acts.
+This workspace doesn't have a prescribed pipeline. The work is emergent: think about the next move, do it, look at the result, decide what's next. The substrate is a folder of documents that grows as the work progresses.
 
-## Act 1 — Harvest
+## The rhythm
 
-Read the source carefully, section by section. For each piece of content:
+Each turn, ask:
+- **What's the next extraction, summarization, review, or rewrite I want to do?**
+- That decision results in **editing an existing document** or **creating a new one**.
+- Repeat.
 
-- Is it strong? → capture as a harvest item with `state: raw`, note why it works
-- Is it weak / filler / repeating? → don't harvest. Implicitly cut.
-- Is it good but underdeveloped? → harvest with `strength: good-but-needs-development`, note what's missing
+No stages. No state machine for the work. Just deliberate next-moves and the documents they produce.
 
-Categories to watch for:
-- **argument** — substantive logical moves
-- **framing** — how something is set up / introduced
-- **phrase** — specific sentences or wordings worth preserving
-- **definition** — crisp explanations of a concept
-- **structural-move** — how something is sequenced or organized
-- **metaphor** — comparisons that land
-- **example** — concrete instances that illuminate
-- **summary** — compressions that work
+## Document kinds
 
-Capture everything that's worth preserving, including stuff we may end up dropping later. Better to over-harvest now and prune at draft time than to lose something good.
+Front-matter on each file declares its `kind`. Available kinds:
 
-## Act 2 — Rebuild
+- **source** — the original draft material (read-only; we work *from* these)
+- **extraction** — pulled-out content (insights, key passages, structural moves)
+- **note** — observations, working thoughts, side analyses
+- **draft** — versions of the rebuilt document
+- **deliverable** — the final
+- **comparison** — diffs or side-by-side analyses captured as artifacts
 
-Once harvest is rich enough, write v1 of the new document:
+## Conventions
 
-- Decide the structure (probably close to cmr take 2's, but reorganize where the harvest suggests a better order)
-- Use harvested items wherever they fit. Update each used item's state to `preserved` or `developed` (and `relocated` if it moved sections)
-- Write transitions / connective tissue between harvested pieces. New writing happens in the gaps.
-- Cut everything from cmr take 2 that wasn't harvested
+- **Free-named files.** Pick names that read well in the nav: `extraction-section-3-arguments.md`, `draft-v1.md`, `note-on-tone.md`.
+- **Use `parent` front-matter** when a document derives from another. E.g., `draft-v2.md` has `parent: draft-v1`. Lets the dashboard surface lineage.
+- **Use `focus: true`** on the documents you want surfaced prominently in nav.
+- **Don't try to be exhaustive in extractions.** It's fine to make multiple extraction documents over time, each focused on something specific.
+- **Don't track structure separately.** Structural decisions happen in drafts; if you want to think about structure before drafting, write a `note-` document about it.
 
-Iterate v2, v3 as needed. Each version is a new row in `stores/versions` with a sidecar body.
+## Render protocol
+
+After every meaningful change to documents (creating a new one, editing an existing one), re-render the dashboard so the nav reflects the new state. Don't accumulate silently.
 
 ## Stopping rule
 
-When the draft reads tighter and lands harder than cmr take 2, mark the latest version `final`. Move to `wrapping-up`, then `archived`.
-
-## Discipline
-
-- **Don't add new sections.** We're refining, not expanding. If something seems to belong but isn't in cmr take 2, flag as escape and decide deliberately.
-- **Don't synthesize across versions.** Earlier versions in `inputs` are context, not material. If a phrase from v1 deserves rescue, that's a deliberate decision; default is no.
-- **Cut hard.** The point is "out with the bad." Don't sentimentally preserve.
+When a `draft` reads as final, change its kind to `deliverable`. Move workspace `state.status` to `archived`.

@@ -171,6 +171,7 @@ A view isn't just rendering — it's an interactive surface. The plugin ships a 
 | `calendar` | Calendar (or Table with date+duration) | start, end | Time-grid; drag to reschedule |
 | `timeline` | Table with date field, or Calendar | date field | Items positioned by time, zoom levels |
 | `document` | Document | — | Rendered prose with outline navigation |
+| `document-pair` | Two Documents (same store or cross-store) | left + right files | Side-by-side reading. Independent scroll per column. Optional `sync_scroll`. Use when holding two contexts simultaneously is the work. |
 | `outline` | Tree or Document | — | Collapsible hierarchy; drag-reparent |
 | `tree` | Tree | — | Tree visualization, expand/collapse |
 | `graph` | Graph | — | Node-link visualization (force-directed or hierarchical) |

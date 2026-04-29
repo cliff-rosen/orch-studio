@@ -6,7 +6,7 @@
     <title>Aftershoot Methodology — Draft Revision</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Source+Serif+4:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
         *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -17,317 +17,1451 @@
             --link: #1e40af;
             --bg: #ffffff;
             --bg-soft: #fafaf9;
-            --border: #e2e8f0;
+            --bg-nav: #f8fafc;
+            --border: #e5e7eb;
             --border-strong: #cbd5e1;
-            --warn: #b45309;
-            --warn-soft: #fef3c7;
-            --ok: #166534;
-            --ok-soft: #dcfce7;
-            --info: #1e40af;
-            --info-soft: #dbeafe;
-            --neutral-soft: #f1f5f9;
+            --select: #dbeafe;
+            --select-text: #1e40af;
+            --kind-source: #1e40af;
+            --kind-extraction: #166534;
+            --kind-note: #b45309;
+            --kind-draft: #6d28d9;
+            --kind-deliverable: #be185d;
+            --kind-comparison: #475569;
         }
+
+        html, body { height: 100%; }
 
         body {
             font-family: 'Inter', sans-serif;
             color: var(--text);
             background: var(--bg);
-            line-height: 1.65;
+            line-height: 1.55;
             font-size: 14.5px;
             -webkit-font-smoothing: antialiased;
         }
 
-        h1, h2, h3 { font-family: 'Inter', sans-serif; line-height: 1.3; font-weight: 700; letter-spacing: -0.015em; }
-        code, pre, .mono { font-family: 'JetBrains Mono', monospace; }
-
+        h1, h2, h3, h4 { font-family: 'Inter', sans-serif; line-height: 1.3; font-weight: 700; letter-spacing: -0.015em; }
         a { color: var(--link); text-decoration: none; }
         a:hover { text-decoration: underline; }
+        code, .mono { font-family: 'JetBrains Mono', monospace; }
 
-        .container { max-width: 1080px; margin: 0 auto; padding: 0 32px; }
-
-        /* SHELL */
-        .shell-bar { border-bottom: 1px solid var(--border); padding: 10px 0; font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; color: var(--text-muted); }
-        .shell-inner { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
-        .shell-inner .val { color: var(--text); }
-        .shell-inner .spacer { flex: 1; }
-        .shell-inner a.shell-link { color: var(--link); font-family: 'Inter', sans-serif; font-size: 0.82rem; }
-        .live-pulse { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--ok); margin-right: 6px; }
-
-        /* GOAL */
-        section.goal { padding: 48px 0 36px; border-bottom: 1px solid var(--border); }
-        .section-eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 10px; }
-        section.goal h1 { font-size: 1.6rem; font-weight: 700; margin-bottom: 8px; max-width: 760px; }
-        section.goal .deliverable { color: var(--text-secondary); font-size: 0.96rem; max-width: 760px; margin-bottom: 20px; }
-        .goal-meta { display: grid; grid-template-columns: 110px 1fr; row-gap: 6px; column-gap: 16px; font-size: 0.86rem; max-width: 760px; }
-        .goal-meta dt { color: var(--text-muted); font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; padding-top: 2px; }
-        .goal-meta dd { color: var(--text); }
-
-        /* LIFECYCLE */
-        section.lifecycle { padding: 18px 0; border-bottom: 1px solid var(--border); }
-        .lifecycle-row { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; font-size: 0.84rem; margin-bottom: 8px; }
-        .lifecycle-row:last-child { margin-bottom: 0; }
-        .lifecycle-label { font-family: 'JetBrains Mono', monospace; font-size: 0.74rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; min-width: 140px; }
-        .stage { font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; color: var(--text-secondary); cursor: help; border-bottom: 1px dotted var(--border-strong); }
-        .stage.empty { color: var(--text-muted); }
-        .stage.current { color: var(--text); border-bottom: 1px solid var(--text); font-weight: 600; }
-        .lifecycle-row .arrow { color: var(--text-muted); font-size: 0.78rem; }
-
-        /* WIDGETS */
-        section.widget { padding: 36px 0; border-bottom: 1px solid var(--border); }
-        section.widget:last-of-type { border-bottom: none; }
-        .widget-header { display: flex; align-items: baseline; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
-        .widget-header h2 { font-size: 1.05rem; font-weight: 700; }
-        .widget-source { font-family: 'JetBrains Mono', monospace; font-size: 0.74rem; color: var(--text-muted); }
-        .widget-source .arrow { color: var(--text-muted); margin: 0 4px; }
-        .terminal-hint { margin-left: auto; font-size: 0.78rem; color: var(--text-muted); font-style: italic; }
-        .terminal-hint::before { content: '⌨ '; font-style: normal; }
-
-        /* DOCUMENT */
-        details.document-widget { background: var(--bg); }
-        details.document-widget summary { cursor: pointer; list-style: none; }
-        details.document-widget summary::-webkit-details-marker { display: none; }
-
-        .document-frontmatter { background: var(--bg-soft); border: 1px solid var(--border); border-radius: 4px; padding: 10px 14px; font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 10px; }
-        .document-frontmatter dt { color: var(--text-muted); display: inline; }
-        .document-frontmatter dd { display: inline; margin-right: 14px; }
-        .document-frontmatter dt::after { content: ': '; }
-
-        .document-toc { font-size: 0.88rem; }
-        .document-toc h3 { font-size: 0.86rem; font-weight: 600; margin-bottom: 8px; color: var(--text); display: flex; align-items: center; gap: 8px; }
-        .document-toc h3::before { content: '▸'; color: var(--text-muted); transition: transform 0.15s; font-size: 0.7rem; }
-        details[open] .document-toc h3::before { transform: rotate(90deg); }
-        .document-toc ul { margin-left: 22px; color: var(--text-secondary); }
-        .document-toc li { margin: 2px 0; }
-        .document-toc li.focused { color: var(--text); font-weight: 500; }
-        .document-toc li .meta { font-family: 'JetBrains Mono', monospace; font-size: 0.74rem; color: var(--text-muted); margin-left: 6px; }
-
-        .document-body { font-size: 0.95rem; line-height: 1.7; max-width: 760px; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
-        .document-body h1 { font-size: 1.3rem; margin: 24px 0 8px; }
-        .document-body h2 { font-size: 1.1rem; margin: 20px 0 8px; }
-        .document-body h3 { font-size: 0.98rem; font-weight: 600; margin: 16px 0 6px; }
-        .document-body p { margin-bottom: 10px; }
-        .document-body ul { margin: 8px 0 12px 22px; }
-
-        /* TABLE */
-        .smart-table-wrap { overflow-x: auto; }
-        table.smart-table { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
-        table.smart-table thead th { text-align: left; padding: 8px 12px; font-weight: 600; font-size: 0.74rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; border-bottom: 1px solid var(--border); white-space: nowrap; }
-        table.smart-table thead th .sort-ind { color: var(--text-muted); margin-left: 4px; opacity: 0.5; }
-
-        .empty-state {
-            border: 1px dashed var(--border-strong);
-            border-radius: 4px;
-            padding: 24px 28px;
-            text-align: center;
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-            background: var(--bg-soft);
-        }
-
-        .empty-state .empty-icon {
+        .shell-bar {
+            border-bottom: 1px solid var(--border);
+            padding: 9px 24px;
             font-family: 'JetBrains Mono', monospace;
-            color: var(--text-muted);
             font-size: 0.78rem;
-            margin-bottom: 6px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            background: var(--bg);
+        }
+        .shell-bar .val { color: var(--text); }
+        .shell-bar .spacer { flex: 1; }
+        .shell-bar a { color: var(--link); font-family: 'Inter', sans-serif; font-size: 0.82rem; }
+        .live-pulse { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #166534; margin-right: 6px; }
+
+        .app {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            height: calc(100vh - 38px);
+            min-height: 0;
         }
 
-        .empty-state strong { color: var(--text); font-weight: 600; }
+        @media (max-width: 768px) {
+            .app { grid-template-columns: 1fr; height: auto; }
+        }
 
-        /* INSPECTOR */
-        details.inspector { border-top: 1px solid var(--border); padding: 18px 0 32px; }
-        details.inspector summary { cursor: pointer; font-family: 'JetBrains Mono', monospace; font-size: 0.84rem; color: var(--text-secondary); list-style: none; display: flex; align-items: center; gap: 8px; }
-        details.inspector summary::-webkit-details-marker { display: none; }
-        details.inspector summary::before { content: '▸'; color: var(--text-muted); transition: transform 0.15s; font-size: 0.7rem; }
-        details.inspector[open] summary::before { transform: rotate(90deg); }
-        details.inspector summary .inspector-tag { color: var(--text-muted); font-size: 0.74rem; margin-left: 4px; }
-        details.inspector .inspector-body { margin-top: 14px; font-size: 0.85rem; color: var(--text-secondary); }
-        details.inspector h3 { font-size: 0.86rem; font-weight: 600; margin: 16px 0 8px; color: var(--text); }
-        details.inspector pre { background: var(--bg-soft); border: 1px solid var(--border); border-radius: 3px; padding: 12px 14px; margin: 8px 0 14px; overflow-x: auto; font-size: 0.78rem; line-height: 1.55; color: var(--text); }
-        details.inspector p { margin-bottom: 10px; }
+        nav.file-browser {
+            background: var(--bg-nav);
+            border-right: 1px solid var(--border);
+            overflow-y: auto;
+            padding: 14px 0 0;
+            display: flex;
+            flex-direction: column;
+        }
 
-        .muted { color: var(--text-muted); }
-        .focus-tag {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.72rem;
-            background: var(--info-soft);
-            color: var(--info);
-            padding: 1px 7px;
+        .nav-header {
+            padding: 0 16px 12px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: baseline;
+            gap: 10px;
+        }
+
+        .nav-title { font-size: 0.82rem; font-weight: 700; flex: 1; }
+
+        .nav-tools {
+            display: flex;
+            gap: 4px;
+        }
+
+        .sort-btn {
+            background: transparent;
+            border: 1px solid var(--border);
             border-radius: 3px;
-            margin-left: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            padding: 2px 7px;
+            cursor: pointer;
+        }
+        .sort-btn:hover { background: var(--bg); border-color: var(--border-strong); }
+
+        .file-tree {
+            flex: 1;
+            padding: 0 8px;
+            font-size: 0.86rem;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .folder-row {
+            display: flex;
+            align-items: baseline;
+            gap: 4px;
+            padding: 3px 8px;
+            cursor: pointer;
+            color: var(--text-secondary);
+            border-radius: 3px;
+            user-select: none;
+        }
+        .folder-row:hover { background: var(--bg); }
+
+        .folder-row .caret {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            width: 10px;
+            display: inline-block;
+            transition: transform 0.12s;
+        }
+        .folder.collapsed > .folder-row .caret { transform: rotate(-90deg); }
+
+        .folder-row .folder-name {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.82rem;
+            color: var(--text);
+        }
+
+        .folder-children {
+            margin-left: 14px;
+            border-left: 1px solid var(--border);
+            padding-left: 4px;
+        }
+        .folder.collapsed > .folder-children { display: none; }
+
+        .file-row {
+            display: flex;
+            align-items: baseline;
+            gap: 7px;
+            padding: 4px 8px;
+            border-radius: 3px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.86rem;
+            line-height: 1.4;
+            cursor: pointer;
+        }
+        .file-row:hover { background: var(--bg); text-decoration: none; }
+        .file-row.active {
+            background: var(--select);
+            color: var(--select-text);
             font-weight: 500;
         }
+
+        .file-row .file-name { flex: 1; min-width: 0; }
+        .file-row .focus-marker { color: var(--kind-source); font-size: 0.7rem; font-weight: 600; }
+
+        .kind-dot {
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            position: relative;
+            top: 6px;
+        }
+        .kind-dot.k-source { background: var(--kind-source); }
+        .kind-dot.k-extraction { background: var(--kind-extraction); }
+        .kind-dot.k-note { background: var(--kind-note); }
+        .kind-dot.k-draft { background: var(--kind-draft); }
+        .kind-dot.k-deliverable { background: var(--kind-deliverable); }
+        .kind-dot.k-comparison { background: var(--kind-comparison); }
+
+        .nav-legend {
+            padding: 10px 16px;
+            border-top: 1px solid var(--border);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px 12px;
+        }
+        .nav-legend .legend-item { display: flex; align-items: baseline; gap: 4px; }
+        .nav-legend .legend-item .kind-dot { top: 1px; }
+
+        .nav-meta {
+            padding: 10px 16px 14px;
+            border-top: 1px solid var(--border);
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .nav-meta .key { color: var(--text-muted); }
+        .nav-meta .val { color: var(--text); }
+
+        main.reader {
+            overflow-y: auto;
+            background: var(--bg);
+        }
+
+        .reader-inner {
+            max-width: 760px;
+            margin: 0 auto;
+            padding: 56px 64px 96px;
+        }
+
+        @media (max-width: 768px) {
+            .reader-inner { padding: 32px 24px 64px; }
+        }
+
+        /* ============================================================
+           TAB STRIP
+           ============================================================ */
+        .tab-strip {
+            display: flex;
+            align-items: stretch;
+            gap: 4px;
+            padding: 6px 16px 0;
+            background: var(--bg-soft);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 5;
+            min-height: 36px;
+            overflow-x: auto;
+        }
+
+        .tab {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 10px 6px 12px;
+            background: var(--bg-nav);
+            border: 1px solid var(--border);
+            border-bottom: none;
+            border-radius: 4px 4px 0 0;
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            user-select: none;
+            cursor: default;
+            position: relative;
+            top: 1px;
+            min-width: 100px;
+            max-width: 280px;
+        }
+
+        .tab.filled { background: var(--bg); color: var(--text); border-bottom: 1px solid var(--bg); }
+        .tab.empty {
+            background: transparent;
+            border-style: dashed;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+        .tab.pending {
+            border-color: var(--link);
+            background: var(--select);
+            color: var(--select-text);
+            font-style: normal;
+            box-shadow: 0 0 0 1px var(--link) inset;
+        }
+
+        .tab .tab-name {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.78rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex: 1;
+        }
+
+        .tab .focus-marker {
+            color: var(--kind-source);
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .tab .tab-close {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            line-height: 1;
+            padding: 2px 4px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        .tab .tab-close:hover { background: var(--neutral-soft, #f1f5f9); color: var(--text); }
+        .tab.empty .tab-close { color: var(--text-muted); }
+
+        .tab-add {
+            background: transparent;
+            border: 1px dashed var(--border-strong);
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            padding: 6px 10px;
+            border-bottom: none;
+            border-radius: 4px 4px 0 0;
+            cursor: pointer;
+            top: 1px;
+            position: relative;
+        }
+        .tab-add:hover { background: var(--bg); color: var(--text); }
+
+        /* ============================================================
+           DOC PANES — multi-column grid driven by tab count
+           ============================================================ */
+        .doc-pane { display: none; }
+        .doc-pane.in-tab { display: block; }
+
+        main.reader.tabs-1 .reader-inner { grid-template-columns: 1fr; }
+        main.reader.tabs-2 .reader-inner { grid-template-columns: 1fr 1fr; }
+        main.reader.tabs-3 .reader-inner { grid-template-columns: 1fr 1fr 1fr; }
+        main.reader.tabs-4 .reader-inner { grid-template-columns: 1fr 1fr 1fr 1fr; }
+
+        main.reader[class*="tabs-"] .reader-inner {
+            display: grid;
+            gap: 24px;
+            max-width: none;
+            padding: 24px 24px 96px;
+        }
+
+        /* Single tab: keep nice reading width */
+        main.reader.tabs-1 .reader-inner {
+            max-width: 880px;
+            padding: 56px 64px 96px;
+        }
+
+        /* Multi-tab: each pane gets a card-like treatment */
+        main.reader:not(.tabs-1) .doc-pane.in-tab {
+            border: 1px solid var(--border);
+            border-radius: 0 0 4px 4px;
+            border-top: none;
+            padding: 18px 22px;
+            background: var(--bg);
+            min-width: 0;
+        }
+        main.reader:not(.tabs-1) .reader-frontmatter {
+            font-size: 0.7rem;
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            gap: 10px 14px;
+        }
+        main.reader:not(.tabs-1) .doc-body {
+            max-width: none;
+            font-size: 15.5px;
+            line-height: 1.65;
+        }
+        main.reader:not(.tabs-1) .doc-body h1 { font-size: 1.55rem; }
+        main.reader:not(.tabs-1) .doc-body h2 { font-size: 1.18rem; margin-top: 26px; }
+        main.reader:not(.tabs-1) .doc-body h3 { font-size: 1.0rem; margin-top: 20px; }
+
+        /* Empty placeholder column */
+        .empty-col {
+            border: 1px dashed var(--border-strong);
+            border-top: none;
+            border-radius: 0 0 4px 4px;
+            padding: 60px 22px;
+            background: var(--bg-soft);
+            color: var(--text-muted);
+            text-align: center;
+            font-size: 0.9rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            min-width: 0;
+        }
+        .empty-col.pending {
+            border-color: var(--link);
+            background: var(--select);
+            color: var(--select-text);
+        }
+        .empty-col strong { font-weight: 600; }
+        .empty-col .hint { font-size: 0.78rem; color: var(--text-muted); font-style: italic; }
+        .empty-col.pending .hint { color: var(--select-text); font-weight: 500; font-style: normal; }
+
+        /* ============================================================
+           CONTEXT MENU
+           ============================================================ */
+        .context-menu {
+            position: fixed;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            padding: 4px 0;
+            min-width: 180px;
+            z-index: 100;
+            font-size: 0.86rem;
+            display: none;
+        }
+        .context-menu.visible { display: block; }
+        .context-menu-item {
+            padding: 7px 14px;
+            cursor: pointer;
+            color: var(--text);
+        }
+        .context-menu-item:hover { background: var(--bg-soft); }
+        .context-menu-item.disabled { color: var(--text-muted); cursor: not-allowed; }
+        .context-menu-item.disabled:hover { background: transparent; }
+        .context-menu-divider { height: 1px; background: var(--border); margin: 4px 0; }
+
+        .reader-frontmatter {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px 22px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.74rem;
+            color: var(--text-muted);
+            padding-bottom: 12px;
+            margin-bottom: 28px;
+            border-bottom: 1px solid var(--border);
+        }
+        .reader-frontmatter .fm-item .key { color: var(--text-muted); }
+        .reader-frontmatter .fm-item .val { color: var(--text); margin-left: 4px; }
+
+        .doc-body {
+            font-family: 'Source Serif 4', Georgia, serif;
+            font-size: 17px;
+            line-height: 1.7;
+            color: var(--text);
+            max-width: 680px;
+        }
+
+        .doc-body h1, .doc-body h2, .doc-body h3, .doc-body h4 {
+            font-family: 'Inter', sans-serif;
+        }
+        .doc-body h1 { font-size: 1.9rem; margin-top: 8px; margin-bottom: 14px; }
+        .doc-body h2 { font-size: 1.35rem; margin-top: 36px; margin-bottom: 10px; }
+        .doc-body h3 { font-size: 1.1rem; margin-top: 28px; margin-bottom: 8px; }
+        .doc-body p { margin-bottom: 14px; }
+        .doc-body ul, .doc-body ol { margin: 12px 0 14px 26px; }
+        .doc-body li { margin-bottom: 6px; }
+        .doc-body em { font-style: italic; }
+        .doc-body strong { font-weight: 600; }
+        .doc-body code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.86em;
+            background: var(--bg-soft);
+            padding: 1px 6px;
+            border-radius: 3px;
+        }
+        .doc-body blockquote {
+            border-left: 3px solid var(--border-strong);
+            padding: 4px 16px;
+            color: var(--text-secondary);
+            margin: 14px 0;
+            font-style: italic;
+        }
+
+        details.inspector {
+            position: fixed;
+            bottom: 0;
+            right: 24px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-bottom: none;
+            border-radius: 6px 6px 0 0;
+            padding: 8px 14px;
+            max-width: 460px;
+            font-size: 0.8rem;
+            z-index: 10;
+        }
+        details.inspector summary {
+            cursor: pointer;
+            list-style: none;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.74rem;
+            color: var(--text-secondary);
+        }
+        details.inspector summary::-webkit-details-marker { display: none; }
+        details.inspector summary::before {
+            content: '▸';
+            color: var(--text-muted);
+            margin-right: 6px;
+            transition: transform 0.15s;
+        }
+        details.inspector[open] summary::before { transform: rotate(90deg); }
+        details.inspector[open] { max-width: 480px; padding-bottom: 16px; }
+        details.inspector .body {
+            margin-top: 10px;
+            color: var(--text-secondary);
+            font-family: 'Inter', sans-serif;
+            line-height: 1.55;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+        details.inspector pre {
+            background: var(--bg-soft);
+            border: 1px solid var(--border);
+            border-radius: 3px;
+            padding: 10px 12px;
+            margin: 8px 0;
+            overflow-x: auto;
+            font-size: 0.74rem;
+            line-height: 1.55;
+        }
+        details.inspector p { margin-bottom: 8px; }
+        details.inspector h4 { font-size: 0.82rem; margin: 10px 0 6px; }
     </style>
 </head>
 <body>
 
-    <!-- SHELL -->
     <div class="shell-bar">
-        <div class="container shell-inner">
-            <span>workspace: <span class="val">draft-revision</span></span>
-            <span>blueprint: <span class="val">none</span></span>
-            <span>status: <span class="val">operating</span></span>
-            <span>stage: <span class="val">harvesting</span></span>
-            <span class="spacer"></span>
-            <a href="../../living-workspace-plugin/reference/index.html" class="shell-link">Reference</a>
-            <span><span class="live-pulse"></span><span class="muted">live</span></span>
-        </div>
+        <span>workspace: <span class="val">draft-revision</span></span>
+        <span>status: <span class="val">operating</span></span>
+        <span>5 documents · 1 extraction</span>
+        <span class="spacer"></span>
+        <a href="../../living-workspace-plugin/reference/index.html">Reference</a>
+        <span><span class="live-pulse"></span><span style="color: var(--text-muted)">live</span></span>
     </div>
 
-    <!-- GOAL -->
-    <section class="goal">
-        <div class="container">
-            <p class="section-eyebrow">Goal</p>
-            <h1>Take 'cmr take 2' of the AI-driven photo editing methodology spec and improve it — harvest what's good, cut what's weak, develop the good further.</h1>
-            <p class="deliverable">A revised version of the methodology document. Same kind of artifact (technical methodology spec for the Aftershoot photo editing coach), tighter and stronger than cmr take 2.</p>
+    <div class="app">
 
-            <dl class="goal-meta">
-                <dt>Audience</dt>
-                <dd>Same as the source — Aftershoot engineering and product team</dd>
-                <dt>Source</dt>
-                <dd>cmr take 2 only — earlier versions are context, not material</dd>
-                <dt>Method</dt>
-                <dd>Harvest then rebuild (see workspace/method.md)</dd>
-                <dt>Out of scope</dt>
-                <dd>Synthesizing across all four versions · format transformation · adding new sections</dd>
-            </dl>
-        </div>
-    </section>
-
-    <!-- LIFECYCLE -->
-    <section class="lifecycle">
-        <div class="container">
-            <div class="lifecycle-row">
-                <span class="lifecycle-label" title="The work's progression. See workspace/method.md for the methodology.">Workflow stage</span>
-                <span class="stage" title="Input loaded.">intake</span>
-                <span class="arrow">→</span>
-                <span class="stage current" title="Reading cmr take 2 carefully; capturing what's good in stores/harvest.">harvesting</span>
-                <span class="arrow">→</span>
-                <span class="stage" title="Writing v1 from the harvest, cutting what's weak.">drafting</span>
-                <span class="arrow">→</span>
-                <span class="stage" title="Versions 2+, refining.">iterating</span>
-                <span class="arrow">→</span>
-                <span class="stage" title="Polish; ship.">finalizing</span>
-            </div>
-        </div>
-    </section>
-
-    <!-- INPUTS / SOURCE -->
-    <section class="widget">
-        <div class="container">
-            <div class="widget-header">
-                <h2>Source</h2>
-                <span class="widget-source">document <span class="arrow">·</span> stores/inputs</span>
-                <span class="terminal-hint">read-only</span>
+        <nav class="file-browser">
+            <div class="nav-header">
+                <div class="nav-title">Files</div>
+                <div class="nav-tools">
+                    <button class="sort-btn" id="sort-btn" title="Cycle sort">⇅ name</button>
+                </div>
             </div>
 
-            <dl class="document-frontmatter">
-                <dt>title</dt><dd>Aftershoot LLM-based Coach — Methodology Drafts</dd>
-                <dt>contains_versions</dt><dd>4</dd>
-                <dt>captured_at</dt><dd>2026-04-28</dd>
-                <dt>source</dt><dd><a href="https://docs.google.com/document/d/1GCkp0We-pvND54BwqALGKlSBBV5LRjBltiQx2LRBMO4/edit">Google Doc</a></dd>
-            </dl>
+            <div class="file-tree" id="file-tree">
+                <div class="folder">
+                    <div class="folder-row" data-folder>
+                        <span class="caret">▾</span>
+                        <span class="folder-name">stores/</span>
+                    </div>
+                    <div class="folder-children">
+                        <div class="folder">
+                            <div class="folder-row" data-folder>
+                                <span class="caret">▾</span>
+                                <span class="folder-name">documents/</span>
+                            </div>
+                            <div class="folder-children" id="documents-list">
+                                <a class="file-row" href="#source-original" data-name="source-original.md" data-kind="source" data-focus="false">
+                                    <span class="kind-dot k-source"></span>
+                                    <span class="file-name">source-original.md</span>
+                                </a>
+                                <a class="file-row" href="#source-updated" data-name="source-updated.md" data-kind="source" data-focus="false">
+                                    <span class="kind-dot k-source"></span>
+                                    <span class="file-name">source-updated.md</span>
+                                </a>
+                                <a class="file-row" href="#source-hypothesis-options" data-name="source-hypothesis-options.md" data-kind="source" data-focus="false">
+                                    <span class="kind-dot k-source"></span>
+                                    <span class="file-name">source-hypothesis-options.md</span>
+                                </a>
+                                <a class="file-row" href="#source-cmr-take-2" data-name="source-cmr-take-2.md" data-kind="source" data-focus="true">
+                                    <span class="kind-dot k-source"></span>
+                                    <span class="file-name">source-cmr-take-2.md</span>
+                                    <span class="focus-marker">★</span>
+                                </a>
+                                <a class="file-row" href="#outline-cmr-take-2" data-name="outline-cmr-take-2.md" data-kind="extraction" data-focus="false">
+                                    <span class="kind-dot k-extraction"></span>
+                                    <span class="file-name">outline-cmr-take-2.md</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-            <details class="document-widget" open>
-                <div class="document-toc">
-                    <h3>Versions in source <span class="muted" style="font-weight: 400; font-size: 0.78rem; margin-left: 4px;">(focus is cmr take 2)</span></h3>
-                    <ul>
-                        <li>v1 — AI-Driven Photo Editing Methodology <span class="meta">~6 sections, baseline</span></li>
-                        <li>v2 — Updated AI-Driven Photo Editing Methodology / "Aftershoot: Orchestration-Based..." <span class="meta">v1 with light revisions; +token-cost line</span></li>
-                        <li>v3 — Draft - Aftershoot LLM Coach <span class="meta">Hypothesis + Options framing</span></li>
-                        <li class="focused">v4 — cmr take 2 <span class="focus-tag">focus</span> <span class="meta">Substantially expanded; new §3 (decomposition + library retrieval)</span></li>
-                    </ul>
+            <div class="nav-legend">
+                <span class="legend-item"><span class="kind-dot k-source"></span>source</span>
+                <span class="legend-item"><span class="kind-dot k-extraction"></span>extraction</span>
+                <span class="legend-item"><span class="kind-dot k-note"></span>note</span>
+                <span class="legend-item"><span class="kind-dot k-draft"></span>draft</span>
+            </div>
+
+            <div class="nav-meta">
+                <div><span class="key">goal:</span> <span class="val">harvest cmr-take-2; cut weak; develop strong</span></div>
+            </div>
+        </nav>
+
+        <main class="reader">
+            <div class="tab-strip" id="tab-strip">
+                <!-- tabs rendered by JS -->
+            </div>
+            <div class="reader-inner">
+
+                <!-- ============================================================
+                     DOC PANE: source-original
+                     ============================================================ -->
+                <div class="doc-pane" id="source-original">
+                    <div class="reader-frontmatter">
+                        <div class="fm-item"><span class="key">file:</span><span class="val">source-original.md</span></div>
+                        <div class="fm-item"><span class="key">kind:</span><span class="val">source</span></div>
+                        <div class="fm-item"><span class="key">order:</span><span class="val">1</span></div>
+                    </div>
+                    <article class="doc-body">
+                        <h1>AI-Driven Photo Editing Methodology</h1>
+
+                        <h2>1. Goal</h2>
+                        <p>Build an AI-assisted photo editing system that helps novices produce visibly stronger images and learn to edit more effectively in the process. The system guides users through a structured, expert-informed workflow that adapts to the image, the user's skill level, the desired outcome, and the current stage of the edit.</p>
+                        <p>Division of responsibility:</p>
+                        <ul>
+                            <li><strong>Methodology</strong> — encodes professional photographic judgment (sequencing, tradeoffs, failure modes, when to stop).</li>
+                            <li><strong>Orchestration</strong> — manages state, selects relevant methodology modules, enforces tool constraints, ensures repeatability.</li>
+                            <li><strong>LLM</strong> — explains, recommends, and adapts conversationally.</li>
+                            <li><strong>Evaluation loop</strong> — measures whether outcomes are actually improving against professional references.</li>
+                        </ul>
+                        <p>The LLM is not responsible for the workflow. It is responsible for communication and adaptation within a workflow the orchestration layer controls.</p>
+
+                        <h2>2. Target User Experience</h2>
+                        <p>The user opens an image. The system analyzes it and gathers context: image type, likely strengths and weaknesses, user proficiency, desired mood or style, available tools, relevant metadata. Based on that context it selects the appropriate methodology modules and guides the user step by step.</p>
+                        <p>The interaction is a closed loop: system gives the next instruction in plain language with rationale → user applies the adjustment → system observes the updated image state → system updates state and gives the next instruction. The user can ask questions or push back at any point, and guidance adapts. The loop continues until the edit reaches an acceptable result.</p>
+                        <p>This is not prompt-and-response. The system sees the image evolve and teaches the user what to do next.</p>
+
+                        <h2>3. Why Structured Orchestration</h2>
+                        <p>A generic LLM checklist ("crop, expose, white balance, recover highlights...") is directionally fine but doesn't know whether the image is a portrait or a low-light scene, whether the user already overcorrected the last slider, whether the next recommendation conflicts with prior edits, whether a beginner should even see a particular tool, or whether the result is moving toward or away from a professional-quality edit.</p>
+                        <p>Prompt-only approaches also force the LLM to do too much at once: interpret the image, choose the workflow, remember skill level, manage prior edits, enforce constraints, prevent overediting, and teach. That produces inconsistency.</p>
+                        <p>Professional photographer input is what makes the methodology non-generic. Pros know which adjustments matter most for each image type, which tools beginners misuse, which technically correct adjustments make images worse, when to stop, and how to spot hidden opportunities. A novice sees a dark image and pushes exposure; a pro recognizes the real issue is subject separation, white balance, or local contrast. Capturing that judgment — and operationalizing it as conditional rules — is the actual work.</p>
+
+                        <h2>4. Modular Methodology with State-Based Injection</h2>
+                        <p>The methodology is not one large prompt. It is a library of modules, conditionally selected and injected based on tracked state.</p>
+                        <p>State the orchestrator maintains:</p>
+                        <ul>
+                            <li>Image category, metadata, detected conditions</li>
+                            <li>User proficiency and preferences</li>
+                            <li>Editing objective and desired mood/style</li>
+                            <li>Current workflow stage</li>
+                            <li>Edits already applied and their effects</li>
+                            <li>Available tools at this point in the session</li>
+                            <li>Known risk patterns for this image type</li>
+                        </ul>
+                        <p>Methodology modules include category workflows (portrait, landscape, food, low-light, product, etc.), proficiency pathways, sequencing rules, failure-mode checks, style variants, evaluation rubrics, and escalation rules for introducing more advanced tools. Only the relevant modules enter the LLM context at any moment.</p>
+                        <p>This buys consistency, token efficiency, debuggability, and protection against the model offering advice that conflicts with edits already made.</p>
+
+                        <h2>5. Tool Recommendation Strategy</h2>
+                        <p>Tool availability is gated by skill level, image type, workflow stage, and editing objective. More tools do not produce better results — for novices they reliably produce worse ones.</p>
+                        <p>Beginners get a small set of high-impact, low-risk controls (crop, straighten, exposure, white balance, highlights, shadows, contrast, vibrance, basic noise reduction, basic sharpening). Intermediate access opens up tone curve, HSL, masks, healing, local adjustments, lens corrections. Advanced access opens luminosity masks, dodge and burn, frequency separation, channel-based adjustments, advanced color grading.</p>
+                        <p>Principle: expose the right tool at the right time, not every tool at once. The system should also prefer simpler tools when they can solve the problem, and only escalate when they can't.</p>
+
+                        <h2>6. Development and Refinement Loop</h2>
+                        <p>The methodology is built and improved by testing it against real editing behavior and professional reference outcomes. The first version is a hypothesis, not a finished artifact.</p>
+                        <p><strong>Build the initial methodology</strong> from professional photographer interviews, analysis of common novice mistakes, review of representative photo categories, and existing knowledge of standard editing workflows. Define core controls, sequencing, category-specific workflows, tool access rules, failure-mode warnings, and evaluation rubrics.</p>
+                        <p><strong>Assemble a test set</strong> across portraits, landscapes, food, low-light indoor, travel, pets, product-style, backlit subjects, high-contrast scenes, mobile photos, and RAW files — varied in quality, lighting, color issues, and composition challenges.</p>
+                        <p><strong>Generate four edit paths per test image</strong>: unguided novice, generic LLM-guided novice, structured-methodology AI-assisted novice, and a professional reference edit with the pro's reasoning captured. The structured system has to beat the generic LLM path, not just the unguided baseline — that's the bar.</p>
+                        <p><strong>Evaluate and gap-analyze.</strong> Score on visual improvement, naturalness, color and skin tone, highlight/shadow preservation, subject emphasis, composition, avoidance of overediting, appropriate tool use, consistency across similar images, user understanding, and similarity to professional decisions. Then isolate causes: where did the methodology improve outcomes, where was generic guidance just as good, where did the pro make a better call, where did state tracking or context injection break down, where were tool constraints too strict or too loose.</p>
+                        <p><strong>Refine and re-test</strong> category workflows, tool rules, skill-level constraints, prompt templates, state-tracking logic, professional heuristics, and rubrics. Continue until structured AI-assisted edits consistently beat both unguided and generic-LLM paths. The target is measurable improvement, not perfection.</p>
+
+                        <h2>Critical Success Factors</h2>
+                        <p>The system succeeds if it: improves novice outcomes over both unguided editing and generic LLM guidance; teaches rather than just automates; reflects real professional judgment; adapts to image type and user proficiency; maintains workflow state; constrains tool recommendations appropriately; avoids prompt-stuffing through modular injection; produces consistent, debuggable behavior; and shows measurable movement toward professional reference edits while remaining beginner-appropriate.</p>
+                    </article>
                 </div>
 
-                <summary style="margin-top: 14px; font-size: 0.82rem; color: var(--link);">▸ Show full source body</summary>
+                <!-- ============================================================
+                     DOC PANE: source-updated
+                     ============================================================ -->
+                <div class="doc-pane" id="source-updated">
+                    <div class="reader-frontmatter">
+                        <div class="fm-item"><span class="key">file:</span><span class="val">source-updated.md</span></div>
+                        <div class="fm-item"><span class="key">kind:</span><span class="val">source</span></div>
+                        <div class="fm-item"><span class="key">parent:</span><span class="val">source-original</span></div>
+                        <div class="fm-item"><span class="key">order:</span><span class="val">2</span></div>
+                    </div>
+                    <article class="doc-body">
+                        <h1>Aftershoot: Orchestration-Based AI-Driven Photo Editing Coach</h1>
 
-                <div class="document-body">
-                    <p class="muted" style="font-style: italic;">Full body in <code>workspace/stores/inputs/body.md</code>. Showing cmr take 2 sections only:</p>
+                        <h2>1. Goal</h2>
+                        <p>Make the best use of commercially available LLM models to build an AI-assisted photo editing system that helps novices and hobbyists produce visibly stronger images and learn to edit more effectively in the process. The system guides users through a structured, expert-informed workflow that adapts to the image, the user's skill level, the desired outcome, and the current stage of the edit.</p>
+                        <p>Division of responsibility:</p>
+                        <ul>
+                            <li><strong>Methodology</strong> — encodes professional photographic judgment (sequencing, tradeoffs, failure modes, when to stop).</li>
+                            <li><strong>Orchestration</strong> — manages state, selects relevant methodology modules, enforces tool constraints, ensures repeatability.</li>
+                            <li><strong>LLM</strong> — explains, recommends, and adapts conversationally.</li>
+                            <li><strong>Evaluation loop</strong> — measures whether outcomes are actually improving against professional references.</li>
+                        </ul>
+                        <p>The LLM is not responsible for the workflow. It is responsible for communication and adaptation within a workflow the orchestration layer controls.</p>
 
-                    <h2>cmr take 2 — Section structure</h2>
-                    <ul>
-                        <li><strong>§1 Goal</strong> — what the system does, with a forward reference to §3</li>
-                        <li><strong>§2 Target User Experience</strong> — closed-loop interaction model</li>
-                        <li><strong>§3 Why a Mega-Prompt Falls Short — and What Orchestration Actually Buys</strong> — the substantive argument: decomposition + library-retrieval</li>
-                        <li><strong>§4 What This Translates to in the Build</strong> — workflow library, prompt library, orchestrator, LLM as 4 parts</li>
-                        <li><strong>§5 Development and Refinement Loop</strong> — how the methodology gets iteratively improved</li>
-                    </ul>
-                    <p class="muted" style="font-size: 0.85rem;">(Note: cmr take 2 dropped the "Critical Success Factors" section that earlier versions had.)</p>
+                        <h2>2. Target User Experience</h2>
+                        <p>The user opens an image. The system analyzes it and gathers context: image type, likely strengths and weaknesses, user proficiency, desired mood or style, available tools, relevant metadata. Based on that context it selects the appropriate methodology modules and guides the user step by step.</p>
+                        <p>The interaction is a closed loop: system gives the next instruction in plain language with rationale → user applies the adjustment → system observes the updated image state → system updates state and gives the next instruction. The user can ask questions or push back at any point, and guidance adapts. The loop continues until the edit reaches an acceptable result.</p>
+                        <p>This is not prompt-and-response. The system sees the image evolve and teaches the user what to do next.</p>
+
+                        <h2>3. Why Structured Orchestration</h2>
+                        <p>A generic LLM checklist ("crop, expose, white balance, recover highlights...") is directionally fine but doesn't know whether the image is a portrait or a low-light scene, whether the user already overcorrected the last slider, whether the next recommendation conflicts with prior edits, whether a beginner should even see a particular tool, or whether the result is moving toward or away from a professional-quality edit.</p>
+                        <p>Prompt-only approaches also force the LLM to do too much at once: interpret the image, choose the workflow, remember skill level, manage prior edits, enforce constraints, prevent overediting, and teach. That produces inconsistency.</p>
+                        <p>Using generic LLMs in a prompt-only manner also produces substantially higher token costs.</p>
+                        <p>Professional photographer input is what makes the methodology non-generic. Pros know which adjustments matter most for each image type, which tools beginners misuse, which technically correct adjustments make images worse, when to stop, and how to spot hidden opportunities. A novice sees a dark image and pushes exposure; a pro recognizes the real issue is subject separation, white balance, or local contrast. Capturing that judgment — and operationalizing it as conditional rules — is the actual work.</p>
+
+                        <h2>4. Modular Methodology with State-Based Injection</h2>
+                        <p>The methodology is not one large prompt. It is a library of modules, conditionally selected and injected based on tracked state.</p>
+                        <p>State the orchestrator maintains:</p>
+                        <ul>
+                            <li>Image category, metadata, detected conditions</li>
+                            <li>User proficiency and preferences</li>
+                            <li>Editing objective and desired mood/style</li>
+                            <li>Current workflow stage</li>
+                            <li>Edits already applied and their effects</li>
+                            <li>Available tools at this point in the session</li>
+                            <li>Known risk patterns for this image type</li>
+                        </ul>
+                        <p>Methodology modules include category workflows (portrait, landscape, food, low-light, product, etc.), proficiency pathways, sequencing rules, failure-mode checks, style variants, evaluation rubrics, and escalation rules for introducing more advanced tools. Only the relevant modules enter the LLM context at any moment.</p>
+                        <p>This buys consistency, token efficiency, debuggability, and protection against the model offering advice that conflicts with edits already made.</p>
+
+                        <h2>5. Slider/Tool Recommendation Strategy</h2>
+                        <p>Slider/tool availability is gated by skill level, image type, workflow stage, and editing objective. More sliders do not produce better results — for novices they reliably produce worse ones.</p>
+                        <p>Beginners get a small set of high-impact, low-risk controls (crop, straighten, exposure, white balance, highlights, shadows, contrast, vibrance, basic noise reduction, basic sharpening). Intermediate access opens up additional tools (many currently under development) like tone curve, HSL, masks, and local adjustments. Advanced access opens luminosity masks, frequency separation, channel-based adjustments, advanced color grading, etc.</p>
+                        <p>Principle: expose the right tool at the right time, not every tool at once. The system should also prefer simpler tools when they can solve the problem, and only escalate when they can't.</p>
+
+                        <h2>6. Development and Refinement Loop</h2>
+                        <p>The methodology is built and improved by testing it against real editing behavior and professional reference outcomes. The first version is a hypothesis, not a finished artifact.</p>
+                        <p><strong>Build the initial methodology</strong> from professional photographer interviews, analysis of common novice mistakes, review of representative photo categories, and existing knowledge of standard editing workflows. Define core controls, sequencing, category-specific workflows, tool access rules, failure-mode warnings, and evaluation rubrics.</p>
+                        <p><strong>Assemble a test set</strong> across portraits, landscapes, food, low-light indoor, travel, pets, product-style, backlit subjects, high-contrast scenes, mobile photos, and RAW files — varied in quality, lighting, color issues, and composition challenges.</p>
+                        <p><strong>Generate three edit paths per test image</strong>: generic LLM-guided novice, structured-methodology AI-assisted novice, and a professional reference edit with the pro's reasoning captured. The structured system has to beat the generic LLM path — that's the bar.</p>
+                        <p><strong>Evaluate and gap-analyze.</strong> Score on visual improvement, naturalness, color and skin tone, highlight/shadow preservation, subject emphasis, composition, avoidance of overediting, appropriate tool use, consistency across similar images, user understanding, and similarity to professional decisions. Then isolate causes: where did the methodology improve outcomes, where was generic guidance just as good, where did the pro make a better call, where did state tracking or context injection break down, where were tool constraints too strict or too loose.</p>
+                        <p><strong>Refine and re-test</strong> category workflows, tool rules, skill-level constraints, prompt templates, state-tracking logic, professional heuristics, and rubrics. Continue until structured AI-assisted edits consistently beat both unguided and generic-LLM paths. The target is measurable improvement, not perfection.</p>
+
+                        <h2>Critical Success Factors</h2>
+                        <p>The system succeeds if it: improves novice outcomes over generic LLM guidance; teaches rather than just automates; reflects real professional judgment; adapts to image type and user proficiency; maintains workflow state; constrains tool recommendations appropriately; avoids prompt-stuffing through modular injection; produces consistent, debuggable behavior; and shows measurable movement toward professional reference edits while remaining beginner-appropriate.</p>
+                    </article>
                 </div>
-            </details>
-        </div>
-    </section>
 
-    <!-- HARVEST -->
-    <section class="widget">
-        <div class="container">
-            <div class="widget-header">
-                <h2>Harvest</h2>
-                <span class="widget-source">smart-table <span class="arrow">·</span> stores/harvest</span>
-                <span class="terminal-hint">type in terminal as we go through cmr take 2</span>
+                <!-- ============================================================
+                     DOC PANE: source-hypothesis-options
+                     ============================================================ -->
+                <div class="doc-pane" id="source-hypothesis-options">
+                    <div class="reader-frontmatter">
+                        <div class="fm-item"><span class="key">file:</span><span class="val">source-hypothesis-options.md</span></div>
+                        <div class="fm-item"><span class="key">kind:</span><span class="val">source</span></div>
+                        <div class="fm-item"><span class="key">parent:</span><span class="val">source-updated</span></div>
+                        <div class="fm-item"><span class="key">order:</span><span class="val">3</span></div>
+                    </div>
+                    <article class="doc-body">
+                        <h1>Aftershoot LLM-based Coach</h1>
+
+                        <h2>Hypothesis</h2>
+                        <p>After reviewing the proposed product requirements document for an AI driven photo editing coach, we determined that training and building out novel models to support this may not be necessary.</p>
+                        <p><strong>Hypothesis</strong>: do currently available LLMs have enough general training to create the type of personalized photo editing lessons that will live up to Aftershoot's brand positioning of "helping you to learn how to become a better photo editor?"</p>
+
+                        <h2>Options</h2>
+
+                        <h3>Option 1: create robust prompting to create the lesson experience</h3>
+                        <p>Issues:</p>
+                        <ul>
+                            <li>LLM will naturally either follow its own probabilistic (or maybe even stochastic) sequence or will follow the order of our sliders as they are in the app. Creating a detailed prompt that directs the LLM on which sliders to focus on in which sequence for which types of photos for which types of users will be long and complex and might not ultimately be followed.</li>
+                            <li>We rely almost completely on LLM judgment - very difficult to encode professional editing judgment into the experience</li>
+                            <li>Prompt-only approaches also force the LLM to do too much at once: interpret the image, choose the workflow, remember skill level, manage prior edits, enforce constraints, prevent overediting, and teach. That produces inconsistency.</li>
+                            <li>This will also generate large token costs.</li>
+                        </ul>
+
+                        <h3>Option 2: create an orchestration-based system to manage the lesson experience</h3>
+                        <p>Build an AI-assisted photo editing system that helps novices produce visibly stronger images and learn to edit more effectively in the process. The system guides users through a structured, expert-informed workflow that adapts to the image, the user's skill level, the desired outcome, and the current stage of the edit.</p>
+                        <p>Division of responsibility:</p>
+                        <ul>
+                            <li><strong>Methodology</strong> — encodes professional photographic judgment (sequencing, tradeoffs, failure modes, when to stop).</li>
+                            <li><strong>Orchestration</strong> — manages state, selects relevant methodology modules, enforces tool constraints, ensures repeatability.</li>
+                            <li><strong>LLM</strong> — explains, recommends, and adapts conversationally.</li>
+                            <li><strong>Evaluation loop</strong> — measures whether outcomes are actually improving against professional references.</li>
+                        </ul>
+                        <p>The LLM is not responsible for the workflow. It is responsible for communication and adaptation within a workflow the orchestration layer controls.</p>
+                        <p><strong>Issues</strong>:</p>
+                        <ul>
+                            <li>Slightly larger up front investment - but framework can be used with any model (or multiple models) in the future in the event we want to train new models ourselves.</li>
+                        </ul>
+                    </article>
+                </div>
+
+                <!-- ============================================================
+                     DOC PANE: source-cmr-take-2 (focus, default)
+                     ============================================================ -->
+                <div class="doc-pane active" id="source-cmr-take-2">
+                    <div class="reader-frontmatter">
+                        <div class="fm-item"><span class="key">file:</span><span class="val">source-cmr-take-2.md</span></div>
+                        <div class="fm-item"><span class="key">kind:</span><span class="val">source</span></div>
+                        <div class="fm-item"><span class="key">focus:</span><span class="val">true</span></div>
+                        <div class="fm-item"><span class="key">parent:</span><span class="val">source-hypothesis-options</span></div>
+                        <div class="fm-item"><span class="key">order:</span><span class="val">4</span></div>
+                    </div>
+                    <article class="doc-body">
+                        <h1>AI-Driven Photo Editing Methodology</h1>
+
+                        <h2>1. Goal</h2>
+                        <p>Build an AI-assisted photo editing system that helps novices produce visibly stronger images and learn to edit more effectively in the process. The system guides users through a structured, expert-informed workflow that adapts to the image, the user's skill level, the desired outcome, and the current stage of the edit.</p>
+                        <p>Achieving this reliably — not occasionally, not on cherry-picked images — requires more than a well-written prompt. It requires a structured orchestration layer that manages workflow state, selects expert methodology modules conditionally, constrains tool exposure, and observes the image as it evolves. Section 3 makes the case for each of those mechanisms concretely. For now, the headline is: the LLM handles communication and adaptation; the orchestration layer handles control.</p>
+
+                        <h2>2. Target User Experience</h2>
+                        <p>The user opens an image. The system analyzes it and gathers context: image type, likely strengths and weaknesses, user proficiency, desired mood or style, available tools, relevant metadata. Based on that context it selects the appropriate methodology modules and guides the user step by step.</p>
+                        <p>The interaction is a closed loop: system gives the next instruction in plain language with rationale → user applies the adjustment → system observes the updated image state → system updates state and gives the next instruction. The user can ask questions or push back at any point, and guidance adapts. The loop continues until the edit reaches an acceptable result.</p>
+                        <p>This is not prompt-and-response. The system sees the image evolve and teaches the user what to do next.</p>
+
+                        <h2>3. Why a Mega-Prompt Falls Short — and What Orchestration Actually Buys</h2>
+                        <p>Ask a professional photographer to edit an image and you trigger a silent, deep, internal process. They establish what the image is for and what the user wants from it. They look at the image carefully — not just for problems, but for opportunities, for what's recoverable, for what's interesting that a checklist would miss. They form a rough roadmap of phases: get the foundation right first, then refine, then finish. Within each phase they reason about which specific operations to perform, in what order, with what intensity, given everything they've established so far. They evaluate as they go, and revise the plan when an operation reveals something new or fails to deliver what they expected. They know when to stop. The result is a sequence of operations and, presumably, a good outcome.</p>
+                        <p>Now imagine doing the same thing with an LLM via a single mega-prompt: the image, a description of the editing methodology, a state machine describing the phases of work, catalogs of evaluations and operations, completion criteria, and a request to "help the user edit this image." The LLM will produce something. It will be plausible. It will not be good — and the reasons it won't be good come in two distinct kinds, both of which orchestration addresses, but in different ways.</p>
+
+                        <h3>The first argument: decomposition</h3>
+                        <p>A mega-prompt asks the LLM to do, silently and in one pass, work that needs to be done in stages with structured handoffs between them. The model is asked simultaneously to figure out which phase of the work applies right now, what context still needs establishing, which evaluations are relevant, which operations to consider, whether prior recommendations have been honored, and whether the work is done. There is nothing in the prompt structure forcing it to inhabit one of those tasks at a time. What training rewards is producing a fluent end-to-end response. So the model satisfices: it produces a coherent answer that <em>resembles</em> the output of careful staged work without actually doing the staged work.</p>
+                        <p>This is the failure mode underlying every "the LLM compressed phases," "the LLM gave a generic readout," "the LLM produced a plausible plan instead of an analytic one," and "the LLM kept recommending things past the point of being done." All of them are the same failure — too much being asked at once — surfacing in different places in the workflow.</p>
+                        <p>The fix is decomposition. The orchestrator externalizes the phase machine and invokes the LLM once per phase, with a prompt scoped to that phase's task only. The output of each phase is a structured artifact that becomes input to the next. The model never sees the full machine — it sees the current phase's well-bounded question. Because the question is well-bounded, the model has its best shot at being genuinely smart about it. Because the orchestrator controls phase transitions, things like "establish context before planning" and "re-evaluate after an operation" and "check completion criteria before recommending more" stop being judgments the model makes implicitly under conditions where it will satisfice, and become structural inevitabilities of the workflow. The principle is: never ask the LLM to do more than it has to do. Every silent compression is leverage lost.</p>
+
+                        <h3>The second argument: library retrieval at lynchpin moments</h3>
+                        <p>The decomposition argument explains why bite-sized prompts beat mega-prompts. But it has a ceiling. Suppose the orchestrator decomposes perfectly and asks the LLM exactly the right tightly-scoped question at every step. Now ask: when the LLM produces, say, a high-level analysis strategy for a difficult backlit portrait — how good is that strategy, compared to what a working pro would produce for the same image?</p>
+                        <p>Even ideally prompted, the LLM is producing the strategy by reasoning from its training data. The pro is doing something different. The pro is recognizing the situation — "this is the backlit-portrait-with-recoverable-rim-light case" — and pulling the matching practice from an internalized library of expert moves built up over years of working with similar images. At those moments the pro is not solving the problem from first principles. They are pattern-matching against curated, context-keyed expertise that took years to accumulate, and adapting it to the specifics in front of them. The LLM's training corpus contains the <em>appearance</em> of that expertise — tutorials describing what photographers do — but not the curated, situation-indexed library a working pro carries.</p>
+                        <p>This means there are key moments in the workflow where the right move is not "ask the LLM a smaller, smarter question" but "do not ask the LLM the strategic question at all." Instead: have the orchestrator recognize the situation, retrieve the matching authored practice from a curated library, and ask the LLM to instantiate it against the specifics of this image. The LLM's job at those moments shifts from generation to recognition and application. It is no longer being asked "what's the right strategy here?" — it is being told "the right strategy here is X; apply it to the specifics of this case." Recognition-and-application is a task the LLM can do well. Strategy generation against tacit expert practice is not.</p>
+                        <p>This is what turns the methodology from "better instructions for the LLM to reason from" into something architecturally different: an authored library of context-keyed expert practice — case patterns, sequencing instincts, evaluation priorities, completion criteria — that the orchestrator selects from based on the situation. The library is the content. Decomposition is what makes the LLM able to apply the library well. Both are necessary.</p>
+
+                        <h3>How the two arguments fit together</h3>
+                        <p>Decomposition without an authored library produces a competent but tutorial-grade system: the LLM is being asked smart questions, but it's answering them from its priors, which top out at what's in the corpus. An authored library without decomposition produces a system that has the right content but can't reliably apply it: the model gets the methodology but compresses and satisfices when actually using it. Together they produce something neither one delivers alone — bite-sized prompts at every step so the LLM operates at its best, and at the lynchpin strategic moments, retrieval from authored expert practice rather than fresh generation.</p>
+                        <p>Concretely, this means orchestration externalizes a stack of things, and each one is doing one of these two jobs:</p>
+                        <ul>
+                            <li><strong>Phase position and phase transitions.</strong> Decomposition. Without these, phases get compressed.</li>
+                            <li><strong>Per-phase prompts scoped to one well-bounded task.</strong> Decomposition. Without these, the model is asked too many questions at once and satisfices.</li>
+                            <li><strong>Structured state passed between phases.</strong> Decomposition. Without it, phase outputs degrade into narrative the next phase has to re-derive.</li>
+                            <li><strong>Catalogs of evaluations, indexed by image category and phase.</strong> Library retrieval. Without these, the model produces general-purpose readouts instead of the specific evaluations a pro would run for this situation.</li>
+                            <li><strong>Catalogs of operations, with sequencing rules, indexed by image category and proficiency tier.</strong> Library retrieval. Without these, the model produces operation sequences from its general repertoire instead of the curated set a pro would draw from.</li>
+                            <li><strong>Completion criteria, per image category and goal.</strong> Library retrieval. Without these, the model is being asked an open-ended "what's next" when the right question is a closed "does this meet X, Y, Z."</li>
+                        </ul>
+                        <p>The line between the two arguments runs through the middle of this list. The first three items are about asking the LLM the right question at the right time. The last three are about answering the strategic question with curated content rather than asking the LLM to derive it. A mega-prompt fails on all six. A decomposition-only system fails on the last three. A system with both has its best shot at producing genuinely expert outcomes.</p>
+                        <p>What's left for the LLM, after all of this is externalized, is what the LLM is actually good at: looking carefully when prompted to look carefully, recognizing which case from the library applies to this situation, applying the retrieved practice to the specifics in front of it, explaining its reasoning to the user, and adapting to questions and pushback. That is a smaller job than "edit this image like a pro." It is also a job the model can do reliably.</p>
+
+                        <h2>4. What This Translates to in the Build</h2>
+                        <p>The arguments above describe what the system has to do. This section makes concrete what the system actually is, so the engineering team has a working mental model when they read this spec.</p>
+                        <p>The system has four major parts: a workflow library, a prompt library, an orchestrator, and the LLM itself.</p>
+
+                        <h3>The workflow library</h3>
+                        <p>A workflow is a state machine describing how a particular kind of work proceeds: what states exist, what valid transitions between them are, what work happens in each state, what state must be true to enter or exit each state, and what the structured output of each state looks like.</p>
+                        <p>There is a master workflow that every editing session enters. It handles initial intake — establishing image category, user intent, proficiency, and the relevant constraints — and then routes to one or more sub-workflows based on what it has established. Each sub-workflow handles a specific kind of work: a portrait workflow, a landscape workflow, a low-light workflow, a product-photo workflow. Sub-workflows can themselves invoke other sub-workflows — a portrait workflow might hand off to a backlit-subject sub-workflow when its analysis stage flags the case, then resume when that sub-workflow returns.</p>
+                        <p>For each workflow, the library stores two artifacts. The first is a JSON definition: states, valid transitions, the conditions under which each transition fires, the structured inputs each state requires, and the structured outputs each state produces. This is the executable spec — what the orchestrator reads to know what's legal at any moment. The second is a narrative document explaining what the workflow is for, how it's intended to behave, why the states are designed the way they are, and what the design decisions were. This is the human-readable document — what an engineer or methodology author reads when reasoning about whether the workflow is correct, and what they edit when refining it. The two stay in sync; the JSON is the source of truth at runtime, the narrative is the source of truth for design intent.</p>
+                        <p>The library also stores routing metadata for each workflow: what conditions cause it to be invoked, what inputs it expects, and what outputs it produces back to its caller. This is what allows the master workflow — and any sub-workflow — to dispatch correctly.</p>
+
+                        <h3>The prompt library</h3>
+                        <p>For each state in each workflow, there is a prompt template that defines how the LLM is invoked when that state is active. Prompt templates are parameterized: they take the state's inputs (current image state, established context, evaluation findings from prior states, retrieved methodology content) and produce the actual prompt sent to the LLM. The output schema is also defined per state, so the orchestrator knows how to parse what comes back and update state from it.</p>
+                        <p>Prompt templates are not free-form. They are written specifically to do one of the two jobs described in Section 3: either to put the LLM into the right cognitive frame for a tightly-scoped reasoning task (decomposition), or to ask the LLM to apply a piece of retrieved methodology to the specifics of this image (library retrieval). A prompt template either includes the methodology content the LLM is meant to apply, or it doesn't — and the choice corresponds to which kind of work this state is asking the LLM to do.</p>
+
+                        <h3>The orchestrator</h3>
+                        <p>The orchestrator is the runtime that holds everything together. Its responsibilities are:</p>
+                        <ul>
+                            <li><strong>Workflow tracking.</strong> For any active session, the orchestrator knows which workflow is currently engaged, which state within that workflow is active, what the workflow's state variables currently hold, and what the call stack of nested workflows looks like.</li>
+                            <li><strong>Transition logic.</strong> When a state's work completes and produces output, the orchestrator evaluates the workflow's transition conditions against that output (and against accumulated session state) and moves the session to the next valid state.</li>
+                            <li><strong>Prompt composition.</strong> When entering a state, the orchestrator pulls the prompt template for that state, populates it with the current state's inputs, retrieves the relevant methodology content from the library, and produces the actual prompt sent to the LLM.</li>
+                            <li><strong>Output handling.</strong> When the LLM responds, the orchestrator parses the response according to the state's output schema, updates session state, and triggers the next transition.</li>
+                            <li><strong>Routing across workflows.</strong> When a workflow's transition logic dictates handoff to a sub-workflow, the orchestrator pushes the current workflow's frame onto the stack, initializes the sub-workflow with the appropriate inputs, and resumes the parent when the sub-workflow returns.</li>
+                        </ul>
+                        <p>The orchestrator never asks the LLM to make routing decisions, evaluate transition conditions, or decide what state it's in. Those are deterministic operations performed by code against the workflow JSON. The LLM's role is bounded to producing the structured output its current state expects, given the prompt the orchestrator composes for it.</p>
+
+                        <h3>The LLM</h3>
+                        <p>The LLM is invoked once per state activation. Each invocation is a tightly-scoped task with a specific prompt template, specific inputs, specific retrieved methodology content (where applicable), and a specific expected output schema. The LLM does not maintain conversation history across invocations in the way a chatbot would — its memory across the session is entirely the structured state the orchestrator carries between invocations. This is what makes the model's behavior reliable: every invocation starts from a known, controlled context, and the model is asked exactly one well-bounded question.</p>
+
+                        <h3>How a session actually runs</h3>
+                        <blockquote><em>NOTE: this is overly specific for instructional purposes. Pay more attention to the concepts rather than the details.</em></blockquote>
+                        <p>A user uploads an image. The orchestrator initializes a session and enters the master workflow at its initial state. That state's prompt template asks the LLM to perform image classification and surface candidate goals. The LLM returns structured output. The orchestrator updates state, evaluates the master workflow's transitions, and either moves to the next state in the master workflow (e.g., goal confirmation with the user) or, once enough is established, dispatches to the appropriate category sub-workflow.</p>
+                        <p>Inside the sub-workflow, the same pattern repeats: each state activates a prompt template, retrieves any relevant methodology content from the library, invokes the LLM, parses the response, updates state, and transitions. When the user applies an edit in the editing tool, that becomes input to the next state — a verify state that re-evaluates whether the plan still holds. When the workflow's completion conditions are met, it returns control to the master workflow, which decides whether the session is finished or another sub-workflow should now run.</p>
+                        <p>What an engineer building this needs to know up front:</p>
+                        <ul>
+                            <li><strong>JSON workflow definitions</strong> are the executable contract. Schema needs to support states, transitions, transition guards, input/output specs, and references to prompt templates and methodology content.</li>
+                            <li><strong>Prompt templates</strong> are stored alongside workflows and versioned together with them. Changing a prompt template is a workflow change.</li>
+                            <li><strong>The methodology library</strong> is content, stored separately, indexed by image category, phase, and case pattern. Workflows reference into it; they don't contain it.</li>
+                            <li><strong>State persistence</strong> has to handle in-progress sessions, including the workflow stack. A session can be paused and resumed; the orchestrator's session state is the source of truth.</li>
+                            <li><strong>The LLM is a stateless function call</strong> from the orchestrator's perspective. Everything that needs to persist persists in orchestrator state, not in the model's context window.</li>
+                        </ul>
+                        <p>This is what a working version of the system looks like. The methodology work — authoring the workflows, the prompt templates, and the methodology library — is the substantive content work. The orchestrator and the integration with the LLM are the engineering scaffolding that makes that content executable.</p>
+
+                        <h2>5. Development and Refinement Loop</h2>
+                        <p>The methodology is a hypothesis on day one, not a finished artifact. Improvement comes from running it against real editing behavior and professional reference outcomes, finding the gaps, and refining.</p>
+                        <p><strong>Build the initial methodology</strong> from professional photographer interviews, analysis of common novice mistakes, and existing knowledge of standard editing workflows. Define the phase machine, the evaluation catalogs per category, the operation catalogs per category and proficiency tier, the sequencing rules, the completion criteria, and the failure-mode warnings.</p>
+                        <p><strong>Assemble a test set</strong> across portraits, landscapes, food, low-light indoor, travel, pets, product-style, backlit subjects, high-contrast scenes, mobile photos, and RAW files — varied in quality, lighting, color, and composition.</p>
+                        <p><strong>Generate four edit paths per test image:</strong> unguided novice, generic LLM-guided novice, structured-methodology AI-assisted novice, and a professional reference edit with the pro's reasoning captured. The structured system must beat the generic-LLM path, not just the unguided baseline. That's the bar.</p>
+                        <p><strong>Evaluate and gap-analyze.</strong> Score on visual improvement, naturalness, color and skin tone, highlight/shadow preservation, subject emphasis, composition, avoidance of overediting, appropriate tool use, consistency, user understanding, and similarity to professional decisions. Then isolate causes: where did the methodology improve outcomes, where was generic guidance just as good, where did the pro make a better call, where did state tracking or context injection break down, where were the evaluation or operation catalogs missing something the pro relied on.</p>
+                        <p><strong>Refine and re-test</strong> the phase machine, catalogs, sequencing rules, completion criteria, prompt templates, and state-tracking logic. Continue until structured AI-assisted edits consistently beat both unguided and generic-LLM paths. The target is measurable improvement, not perfection.</p>
+                    </article>
+                </div>
+
+                <!-- ============================================================
+                     DOC PANE: outline-cmr-take-2 (extraction)
+                     ============================================================ -->
+                <div class="doc-pane" id="outline-cmr-take-2">
+                    <div class="reader-frontmatter">
+                        <div class="fm-item"><span class="key">file:</span><span class="val">outline-cmr-take-2.md</span></div>
+                        <div class="fm-item"><span class="key">kind:</span><span class="val">extraction</span></div>
+                        <div class="fm-item"><span class="key">parent:</span><span class="val">source-cmr-take-2</span></div>
+                    </div>
+                    <article class="doc-body">
+                        <h1>Outline — cmr take 2</h1>
+                        <p>Structural + key-points outline of <code>source-cmr-take-2.md</code>. One bullet per substantive move; nesting reflects the argument structure.</p>
+
+                        <h2>§1 Goal</h2>
+                        <ul>
+                            <li>Build an AI-assisted photo editing system for novices
+                                <ul>
+                                    <li>Two outcomes: visibly stronger images <strong>and</strong> skill development through the process</li>
+                                    <li>System adapts along four axes: image, skill level, desired outcome, current edit stage</li>
+                                </ul>
+                            </li>
+                            <li>Reliable delivery requires more than a well-written prompt — it requires a structured orchestration layer
+                                <ul>
+                                    <li>Manages workflow state</li>
+                                    <li>Selects expert methodology modules conditionally</li>
+                                    <li>Constrains tool exposure</li>
+                                    <li>Observes the image as it evolves</li>
+                                </ul>
+                            </li>
+                            <li><strong>Headline:</strong> LLM handles communication and adaptation; orchestration handles control</li>
+                            <li>Forward reference: §3 makes the case concretely</li>
+                        </ul>
+
+                        <h2>§2 Target User Experience</h2>
+                        <ul>
+                            <li>User opens an image</li>
+                            <li>System gathers context: image type, strengths/weaknesses, proficiency, desired mood/style, available tools, metadata</li>
+                            <li><strong>Closed-loop interaction</strong>:
+                                <ul>
+                                    <li>System gives next instruction in plain language with rationale</li>
+                                    <li>User applies the adjustment</li>
+                                    <li>System observes updated image state</li>
+                                    <li>System updates its state and gives the next instruction</li>
+                                </ul>
+                            </li>
+                            <li>User can ask questions or push back at any point; guidance adapts</li>
+                            <li>Loop continues until acceptable result</li>
+                            <li><strong>Frame:</strong> "Not prompt-and-response. The system sees the image evolve and teaches the user what to do next."</li>
+                        </ul>
+
+                        <h2>§3 Why a Mega-Prompt Falls Short — and What Orchestration Actually Buys</h2>
+
+                        <h3>Setup</h3>
+                        <ul>
+                            <li>Pro photographer's editing process is silent, deep, internal
+                                <ul>
+                                    <li>Establishes context (what image is for, what user wants)</li>
+                                    <li>Looks carefully — for opportunities, not just problems</li>
+                                    <li>Forms phase roadmap (foundation → refine → finish)</li>
+                                    <li>Reasons about operations within phases (which, in what order, intensity)</li>
+                                    <li>Evaluates as they go; revises on new information</li>
+                                    <li>Knows when to stop</li>
+                                </ul>
+                            </li>
+                            <li>Now imagine same task with LLM via single mega-prompt
+                                <ul>
+                                    <li>Result: plausible, not good</li>
+                                    <li>Two distinct failure modes — orchestration addresses each, but differently</li>
+                                </ul>
+                            </li>
+                        </ul>
+
+                        <h3>§3.1 First argument: decomposition</h3>
+                        <ul>
+                            <li>Mega-prompt asks the LLM to do staged work in one pass
+                                <ul>
+                                    <li>Simultaneously: figure out phase, what context still needs establishing, which evaluations apply, which operations to consider, whether prior recs are honored, whether work is done</li>
+                                    <li>Nothing forces the model to inhabit one task at a time</li>
+                                    <li>Training rewards fluent end-to-end response → model satisfices</li>
+                                    <li>Produces output that <strong>resembles</strong> staged work without doing it</li>
+                                </ul>
+                            </li>
+                            <li>This is the failure mode underlying:
+                                <ul>
+                                    <li>"LLM compressed phases"</li>
+                                    <li>"LLM gave a generic readout"</li>
+                                    <li>"LLM produced a plausible plan instead of an analytic one"</li>
+                                    <li>"LLM kept recommending past the point of being done"</li>
+                                </ul>
+                            </li>
+                            <li>All the same failure: too much asked at once</li>
+                            <li><strong>Fix: decomposition</strong>
+                                <ul>
+                                    <li>Orchestrator externalizes the phase machine</li>
+                                    <li>LLM invoked once per phase with prompt scoped to that phase's task only</li>
+                                    <li>Output of each phase = structured artifact, input to next</li>
+                                    <li>Model never sees full machine — just current phase's well-bounded question</li>
+                                    <li>"Establish context before planning," "re-evaluate after operation," "check completion criteria" become structural, not implicit</li>
+                                </ul>
+                            </li>
+                            <li><strong>Principle:</strong> never ask the LLM to do more than it has to do. Every silent compression is leverage lost.</li>
+                        </ul>
+
+                        <h3>§3.2 Second argument: library retrieval at lynchpin moments</h3>
+                        <ul>
+                            <li>Decomposition has a ceiling</li>
+                            <li>Even ideally prompted, LLM produces strategy by reasoning from training data</li>
+                            <li>Pro does something different at strategic moments:
+                                <ul>
+                                    <li>Recognizes situation ("this is the backlit-portrait-with-recoverable-rim-light case")</li>
+                                    <li>Pulls matching practice from internalized library</li>
+                                    <li>Pattern-matches against curated, context-keyed expertise</li>
+                                    <li>Adapts to specifics</li>
+                                </ul>
+                            </li>
+                            <li>LLM training corpus has <em>appearance</em> of expertise (tutorials about what photographers do), not the curated, situation-indexed library</li>
+                            <li><strong>Fix at lynchpin moments:</strong> don't ask the LLM the strategic question at all
+                                <ul>
+                                    <li>Orchestrator recognizes situation</li>
+                                    <li>Retrieves matching authored practice from curated library</li>
+                                    <li>LLM instantiates against the specifics of this image</li>
+                                </ul>
+                            </li>
+                            <li>LLM's job shifts from <strong>generation</strong> to <strong>recognition + application</strong></li>
+                            <li>Methodology becomes architecturally different: an authored library of context-keyed expert practice (case patterns, sequencing instincts, evaluation priorities, completion criteria)</li>
+                        </ul>
+
+                        <h3>§3.3 How the two arguments fit together</h3>
+                        <ul>
+                            <li>Decomposition without library = competent but tutorial-grade</li>
+                            <li>Library without decomposition = right content, can't reliably apply it</li>
+                            <li>Together = bite-sized prompts at every step + retrieval at lynchpin strategic moments</li>
+                            <li><strong>Six things orchestration externalizes</strong> (each doing one of the two jobs):
+                                <ul>
+                                    <li>Phase position and transitions ← decomposition</li>
+                                    <li>Per-phase prompts scoped to one well-bounded task ← decomposition</li>
+                                    <li>Structured state passed between phases ← decomposition</li>
+                                    <li>Catalogs of evaluations, indexed by image category and phase ← library retrieval</li>
+                                    <li>Catalogs of operations with sequencing rules ← library retrieval</li>
+                                    <li>Completion criteria per image category and goal ← library retrieval</li>
+                                </ul>
+                            </li>
+                            <li>Line through middle: first three = right question at right time; last three = curated content instead of LLM-derived</li>
+                            <li>A mega-prompt fails on all six. Decomposition-only fails on the last three. Both together has its best shot.</li>
+                            <li>What's left for the LLM:
+                                <ul>
+                                    <li>Looking carefully when prompted to look carefully</li>
+                                    <li>Recognizing which case applies</li>
+                                    <li>Applying retrieved practice to specifics</li>
+                                    <li>Explaining reasoning to the user</li>
+                                    <li>Adapting to questions and pushback</li>
+                                </ul>
+                            </li>
+                        </ul>
+
+                        <h2>§4 What This Translates to in the Build</h2>
+                        <ul>
+                            <li>Four major parts: workflow library, prompt library, orchestrator, LLM</li>
+                        </ul>
+
+                        <h3>§4.1 The workflow library</h3>
+                        <ul>
+                            <li>Workflow = state machine for one kind of work
+                                <ul>
+                                    <li>States, valid transitions, work-per-state, entry/exit conditions, structured output per state</li>
+                                </ul>
+                            </li>
+                            <li>Master workflow (intake, routing) + sub-workflows (portrait, landscape, low-light, product)</li>
+                            <li>Sub-workflows can invoke other sub-workflows (portrait → backlit-subject → return)</li>
+                            <li><strong>Two artifacts per workflow</strong>:
+                                <ul>
+                                    <li>JSON definition (executable spec — orchestrator reads at runtime)</li>
+                                    <li>Narrative document (design intent — humans edit when refining)</li>
+                                    <li>Stay in sync; JSON is runtime truth, narrative is design truth</li>
+                                </ul>
+                            </li>
+                            <li>Library stores routing metadata (what conditions invoke this workflow, expected inputs, outputs)</li>
+                        </ul>
+
+                        <h3>§4.2 The prompt library</h3>
+                        <ul>
+                            <li>One prompt template per (workflow, state)</li>
+                            <li>Parameterized: takes state inputs (image state, established context, prior findings, retrieved methodology) → produces actual prompt</li>
+                            <li>Output schema defined per state (orchestrator parses response accordingly)</li>
+                            <li>Templates do one of two jobs:
+                                <ul>
+                                    <li>Decomposition framing (cognitive frame for tightly-scoped reasoning)</li>
+                                    <li>Retrieval application (apply piece of retrieved methodology to specifics)</li>
+                                </ul>
+                            </li>
+                        </ul>
+
+                        <h3>§4.3 The orchestrator</h3>
+                        <ul>
+                            <li>Runtime that holds it all together</li>
+                            <li><strong>Responsibilities</strong>:
+                                <ul>
+                                    <li>Workflow tracking (active workflow, active state, state vars, call stack)</li>
+                                    <li>Transition logic (evaluate conditions against output + state)</li>
+                                    <li>Prompt composition (template + inputs + retrieved methodology)</li>
+                                    <li>Output handling (parse response per schema, update state, trigger next transition)</li>
+                                    <li>Routing across workflows (push/pop nested workflows)</li>
+                                </ul>
+                            </li>
+                            <li>Orchestrator never asks LLM to: make routing decisions, evaluate transitions, decide what state it's in</li>
+                            <li>LLM bounded to: producing structured output its current state expects, given the composed prompt</li>
+                        </ul>
+
+                        <h3>§4.4 The LLM</h3>
+                        <ul>
+                            <li>Invoked once per state activation</li>
+                            <li>Each invocation: tightly-scoped, specific prompt + inputs + (optionally) retrieved methodology + expected output schema</li>
+                            <li><strong>No conversation history across invocations</strong> — model's memory is the orchestrator's structured state, not the LLM context window</li>
+                            <li>Why this works: every invocation starts from known controlled context, model asked exactly one well-bounded question</li>
+                        </ul>
+
+                        <h3>§4.5 How a session actually runs (illustrative)</h3>
+                        <blockquote><em>NOTE: caveat that this is overly specific; concepts &gt; details</em></blockquote>
+                        <ul>
+                            <li>User uploads image → orchestrator initializes session in master workflow</li>
+                            <li>Master workflow: classify image, surface candidate goals</li>
+                            <li>LLM returns structured output → orchestrator updates state, evaluates transitions</li>
+                            <li>Either advances within master (e.g., goal confirmation) or dispatches to category sub-workflow</li>
+                            <li>Inside sub-workflow: same pattern repeats per state</li>
+                            <li>User applies edits → input to next state (verify state re-evaluates plan)</li>
+                            <li>Sub-workflow completes → returns to master → either session done or next sub-workflow</li>
+                        </ul>
+
+                        <h3>§4.6 What the engineer needs to know up front</h3>
+                        <ul>
+                            <li>JSON workflow definitions = executable contract (states, transitions, guards, I/O specs, prompt + methodology refs)</li>
+                            <li>Prompt templates stored alongside workflows; versioned together</li>
+                            <li>Methodology library = content, separate, indexed by image category + phase + case pattern</li>
+                            <li>State persistence handles in-progress sessions including workflow stack (resumable)</li>
+                            <li>LLM is stateless function call from orchestrator's perspective</li>
+                        </ul>
+
+                        <h2>§5 Development and Refinement Loop</h2>
+                        <ul>
+                            <li><strong>Methodology = hypothesis on day one</strong>, not finished artifact</li>
+                            <li><strong>Build initial methodology</strong>: pro photographer interviews, novice mistakes analysis, standard editing workflow knowledge
+                                <ul>
+                                    <li>Define: phase machine, evaluation catalogs (per category), operation catalogs (per category + tier), sequencing rules, completion criteria, failure-mode warnings</li>
+                                </ul>
+                            </li>
+                            <li><strong>Assemble test set</strong>: portraits, landscapes, food, low-light, travel, pets, product, backlit, high-contrast, mobile, RAW — varied in quality, lighting, color, composition</li>
+                            <li><strong>Generate four edit paths per test image</strong>:
+                                <ul>
+                                    <li>Unguided novice</li>
+                                    <li>Generic LLM-guided novice</li>
+                                    <li>Structured-methodology AI-assisted novice</li>
+                                    <li>Professional reference (with reasoning captured)</li>
+                                </ul>
+                            </li>
+                            <li><strong>Bar:</strong> structured must beat generic-LLM, not just unguided</li>
+                            <li><strong>Evaluate and gap-analyze</strong>:
+                                <ul>
+                                    <li>Score: visual improvement, naturalness, color/skin, highlight/shadow, subject emphasis, composition, avoiding overediting, tool use, consistency, user understanding, similarity to pro</li>
+                                    <li>Isolate causes: where methodology improved, where generic was just as good, where pro made a better call, where state tracking broke, where catalogs were missing</li>
+                                </ul>
+                            </li>
+                            <li><strong>Refine and re-test</strong>: phase machine, catalogs, sequencing rules, completion criteria, prompt templates, state-tracking</li>
+                            <li><strong>Target:</strong> measurable improvement, not perfection</li>
+                        </ul>
+
+                        <hr>
+
+                        <h2>Observations from making this outline</h2>
+                        <ul>
+                            <li><strong>§1 packs a lot into a small space.</strong> The orchestration mechanisms get listed (state, modules, tool exposure, image observation) but each one is one line. §3 is where they get developed. The forward reference works because §3 actually pays off.</li>
+                            <li><strong>§3 is the spine of the document.</strong> Outlining it surfaces three sub-arguments that fit together cleanly. The "six things orchestration externalizes" list is doing real work (it's the bridge from abstract argument to concrete design).</li>
+                            <li><strong>§4 reads like reference material, not argument.</strong> Every subsection is a definition of a system component. The argument lives in §3; §4 is "given §3, here's what we build."</li>
+                            <li><strong>§5 is procedural and well-shaped.</strong> Build → assemble → generate → evaluate → refine. Five clear phases with concrete content per phase.</li>
+                            <li><strong>What's structurally exposed by outlining:</strong> §1 + §3 do most of the load-bearing work. §2 is mostly UX framing that survives intact. §4 is build description (could potentially be tighter). §5 is the methodology iteration loop and reads cleanly.</li>
+                        </ul>
+                    </article>
+                </div>
+
             </div>
+        </main>
 
-            <div class="empty-state">
-                <div class="empty-icon">stores/harvest/</div>
-                <strong>No items yet.</strong> Harvest fills as we walk cmr take 2 section by section.<br>
-                Each row will be a passage, framing move, phrase, or argument worth preserving — categorized, with a note on why it works, and a state (raw → preserved / developed / relocated / dropped).
-            </div>
-        </div>
-    </section>
+    </div>
 
-    <!-- VERSIONS -->
-    <section class="widget">
-        <div class="container">
-            <div class="widget-header">
-                <h2>Versions</h2>
-                <span class="widget-source">smart-table <span class="arrow">·</span> stores/versions</span>
-                <span class="terminal-hint">first draft after harvest</span>
-            </div>
+    <details class="inspector">
+        <summary>Inspector — what's on disk</summary>
+        <div class="body">
+            <p>Two-pane document workspace. Left nav lists files in <code>stores/documents/</code> grouped by <code>kind</code>. Click a filename to view; main area shows one document at a time with ample reading typography (Source Serif 4).</p>
 
-            <div class="empty-state">
-                <div class="empty-icon">stores/versions/</div>
-                <strong>No versions yet.</strong> The first draft (v1) will appear here once harvest is rich enough.<br>
-                Each version is a row + sidecar markdown body. We can have many versions visible side-by-side.
-            </div>
-        </div>
-    </section>
-
-    <!-- INSPECTOR -->
-    <div class="container">
-        <details class="inspector">
-            <summary>Inspector <span class="inspector-tag">what's on disk</span></summary>
-            <div class="inspector-body">
-                <p>What the plugin reads to render this dashboard. For an explanation of the system (substrate, stores, contracts, blueprints, methodology), see the <a href="../../living-workspace-plugin/reference/index.html">Reference</a> link at the top.</p>
-
-                <h3>Files in this workspace</h3>
-                <pre>draft-revision/
+            <h4>File tree</h4>
+            <pre>draft-revision/
 ├── workspace/
-│   ├── _contract.json              workspace contract: 5 lifecycle states, 5-stage workflow (intake → harvesting → drafting → iterating → finalizing)
-│   ├── state.json                  status: operating, current_workflow_stage: harvesting
-│   ├── goal.json                   purpose, deliverable, scope
-│   ├── manual.md                   universal operating manual
-│   ├── method.md                   harvest-then-rebuild methodology
+│   ├── _contract.json          (no workflow — emergent work)
+│   ├── state.json              status: operating, current_workflow_stage: null
+│   ├── goal.json
+│   ├── manual.md
+│   ├── method.md               document-intensive emergent rhythm
 │   ├── stores/
-│   │   ├── inputs/                 Document; the source draft (4 versions, focus = cmr take 2)
-│   │   │   ├── _contract.json
-│   │   │   └── body.md
-│   │   ├── harvest/                Table; items to preserve/develop. State machine: raw → preserved/developed/relocated/dropped
-│   │   │   └── _contract.json      (no instances yet)
-│   │   └── versions/               Table with document column; drafts of the rebuilt doc
-│   │       └── _contract.json      (no instances yet)
+│   │   └── documents/          Document store, mode: collection
+│   │       ├── _contract.json
+│   │       ├── source-original.md
+│   │       ├── source-updated.md
+│   │       ├── source-hypothesis-options.md
+│   │       └── source-cmr-take-2.md  ★ focus
 │   ├── pages/
-│   │   └── dashboard.json          the page composition you're looking at
-│   └── escapes/                    (empty)
-├── log.md                          decisions + spine candidates
-└── dashboard.html                  this file</pre>
+│   │   └── dashboard.json      file-browser + document, two-pane
+│   └── escapes/
+├── log.md
+└── dashboard.html              this file</pre>
 
-                <h3>Three stores, simple shape</h3>
-                <p><strong>inputs</strong> (read-only) → <strong>harvest</strong> (extracted gold) → <strong>versions</strong> (rebuilds drawing on harvest)</p>
+            <h4>What's next</h4>
+            <p>Pick the next extraction / summarization / review you want, and we create a new file in <code>stores/documents/</code> for it. Re-render the dashboard and the new file appears in the nav.</p>
+        </div>
+    </details>
 
-                <h3>Where to start</h3>
-                <p>Workflow stage is <code>harvesting</code>. Next move: walk cmr take 2 section by section, capturing strong content into <code>stores/harvest</code> with state <code>raw</code>, then advancing those rows to <code>preserved</code> / <code>developed</code> as the new draft incorporates them.</p>
-            </div>
-        </details>
+    <!-- Context menu (hidden until right-click on a tab) -->
+    <div class="context-menu" id="context-menu">
+        <div class="context-menu-item" data-action="add-left">Add tab to left</div>
+        <div class="context-menu-item" data-action="add-right">Add tab to right</div>
+        <div class="context-menu-divider"></div>
+        <div class="context-menu-item" data-action="close">Close tab</div>
     </div>
+
+    <script>
+        (function () {
+            // ============================================================
+            // TABBED VIEW MODE
+            //
+            // State: a list of tabs, each {id, file}.
+            //   - id is a stable client-side id ('tab-1', 'tab-2', ...)
+            //   - file is the document id (e.g., 'source-cmr-take-2') or null (empty / unassigned)
+            //
+            // pendingTabId: which empty tab gets the next file click from the nav.
+            //   - When a tab is added, it becomes pending automatically.
+            //   - When a tab is cleared (close→reopen pattern not implemented; instead,
+            //     close removes the tab entirely. To "swap" you close + add new.).
+            //
+            // 1 tab = single mode. 2+ tabs = multi-pane. Right-click any tab to add another.
+            // ============================================================
+
+            const FILE_META = {
+                'source-original':           { kind: 'source',     focus: false },
+                'source-updated':            { kind: 'source',     focus: false },
+                'source-hypothesis-options': { kind: 'source',     focus: false },
+                'source-cmr-take-2':         { kind: 'source',     focus: true },
+                'outline-cmr-take-2':        { kind: 'extraction', focus: false }
+            };
+
+            let nextTabId = 1;
+            const newTabId = () => 'tab-' + (nextTabId++);
+
+            // Initial state: one tab showing the focus file
+            const state = {
+                tabs: [{ id: newTabId(), file: 'source-cmr-take-2' }],
+                pendingTabId: null
+            };
+
+            const reader = document.querySelector('main.reader');
+            const tabStrip = document.getElementById('tab-strip');
+            const readerInner = document.querySelector('.reader-inner');
+            const contextMenu = document.getElementById('context-menu');
+            const allPanes = Array.from(document.querySelectorAll('.doc-pane'));
+
+            // --- Render ---
+            function render() {
+                // Tab strip
+                tabStrip.innerHTML = state.tabs.map(tab => {
+                    if (tab.file) {
+                        const meta = FILE_META[tab.file] || {};
+                        const dot = `<span class="kind-dot k-${meta.kind || 'source'}"></span>`;
+                        const focus = meta.focus ? `<span class="focus-marker">★</span>` : '';
+                        return `
+                            <div class="tab filled" data-tab-id="${tab.id}" data-file="${tab.file}">
+                                ${dot}
+                                <span class="tab-name">${tab.file}.md</span>
+                                ${focus}
+                                <button class="tab-close" data-tab-id="${tab.id}" title="Close tab">×</button>
+                            </div>
+                        `;
+                    } else {
+                        const isPending = state.pendingTabId === tab.id;
+                        return `
+                            <div class="tab empty ${isPending ? 'pending' : ''}" data-tab-id="${tab.id}">
+                                <span class="tab-name">${isPending ? 'next click →' : 'unassigned'}</span>
+                                <button class="tab-close" data-tab-id="${tab.id}" title="Close tab">×</button>
+                            </div>
+                        `;
+                    }
+                }).join('') + `<button class="tab-add" id="tab-add" title="Add tab">+</button>`;
+
+                // Reader grid columns
+                reader.className = 'reader tabs-' + Math.min(state.tabs.length, 4);
+
+                // Place panes / placeholders into grid columns
+                allPanes.forEach(p => {
+                    p.classList.remove('in-tab');
+                    p.style.gridColumn = '';
+                    p.style.order = '';
+                });
+                // Remove old placeholders
+                readerInner.querySelectorAll('.empty-col').forEach(el => el.remove());
+
+                state.tabs.forEach((tab, i) => {
+                    if (tab.file) {
+                        const pane = document.getElementById(tab.file);
+                        if (pane) {
+                            pane.classList.add('in-tab');
+                            pane.style.order = String(i);
+                        }
+                    } else {
+                        const ph = document.createElement('div');
+                        ph.className = 'empty-col' + (state.pendingTabId === tab.id ? ' pending' : '');
+                        ph.dataset.tabId = tab.id;
+                        ph.style.order = String(i);
+                        ph.innerHTML = state.pendingTabId === tab.id
+                            ? '<strong>Pending tab</strong><span class="hint">Click any file in the left nav →</span>'
+                            : '<strong>Empty tab</strong><span class="hint">click to make this the pending target</span>';
+                        ph.addEventListener('click', () => {
+                            state.pendingTabId = tab.id;
+                            render();
+                        });
+                        readerInner.appendChild(ph);
+                    }
+                });
+
+                // Make sure reader-inner uses flex/grid order
+                readerInner.style.display = 'grid';
+
+                // Update nav active state
+                const activeFile = state.tabs.find(t => t.file)?.file;
+                document.querySelectorAll('.file-row').forEach(a => {
+                    const fileId = a.getAttribute('href').slice(1);
+                    a.classList.toggle('active', state.tabs.some(t => t.file === fileId));
+                });
+            }
+
+            // --- Tab actions ---
+            function addTabAt(referenceTabId, side) {
+                const refIdx = state.tabs.findIndex(t => t.id === referenceTabId);
+                const newTab = { id: newTabId(), file: null };
+                const insertAt = side === 'left' ? refIdx : refIdx + 1;
+                state.tabs.splice(insertAt, 0, newTab);
+                state.pendingTabId = newTab.id;
+                render();
+            }
+
+            function closeTab(tabId) {
+                if (state.tabs.length <= 1) return; // keep at least one
+                const idx = state.tabs.findIndex(t => t.id === tabId);
+                if (idx < 0) return;
+                state.tabs.splice(idx, 1);
+                if (state.pendingTabId === tabId) state.pendingTabId = null;
+                render();
+            }
+
+            function assignFileToPending(file) {
+                if (!state.pendingTabId) {
+                    // Find first empty tab
+                    const empty = state.tabs.find(t => !t.file);
+                    if (empty) state.pendingTabId = empty.id;
+                }
+                if (state.pendingTabId) {
+                    const tab = state.tabs.find(t => t.id === state.pendingTabId);
+                    if (tab) tab.file = file;
+                    state.pendingTabId = null;
+                    render();
+                }
+                // If no pending tab and no empties, no-op
+            }
+
+            // --- Event handlers ---
+
+            // File click in nav
+            document.querySelectorAll('.file-row').forEach(row => {
+                row.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const file = row.getAttribute('href').slice(1);
+                    // If single tab, replace its file
+                    if (state.tabs.length === 1) {
+                        state.tabs[0].file = file;
+                        state.pendingTabId = null;
+                        render();
+                        return;
+                    }
+                    // Multi-tab: assign to pending if any
+                    if (state.pendingTabId || state.tabs.some(t => !t.file)) {
+                        assignFileToPending(file);
+                    }
+                    // else: no-op (user must clear a tab first or right-click to add)
+                });
+            });
+
+            // Tab close (×) — delegated
+            tabStrip.addEventListener('click', (e) => {
+                if (e.target.classList.contains('tab-close')) {
+                    e.stopPropagation();
+                    closeTab(e.target.dataset.tabId);
+                } else if (e.target.id === 'tab-add' || e.target.classList.contains('tab-add')) {
+                    // Add new tab to the right of the last one
+                    const last = state.tabs[state.tabs.length - 1];
+                    addTabAt(last.id, 'right');
+                }
+            });
+
+            // Right-click on tab → context menu
+            let contextTabId = null;
+            tabStrip.addEventListener('contextmenu', (e) => {
+                const tabEl = e.target.closest('.tab');
+                if (!tabEl) return;
+                e.preventDefault();
+                contextTabId = tabEl.dataset.tabId;
+                contextMenu.style.left = e.clientX + 'px';
+                contextMenu.style.top = e.clientY + 'px';
+                // Disable close if only one tab
+                const closeItem = contextMenu.querySelector('[data-action="close"]');
+                closeItem.classList.toggle('disabled', state.tabs.length <= 1);
+                contextMenu.classList.add('visible');
+            });
+
+            contextMenu.addEventListener('click', (e) => {
+                const action = e.target.dataset.action;
+                if (!action || !contextTabId) return;
+                if (action === 'close' && e.target.classList.contains('disabled')) return;
+                if (action === 'add-left')  addTabAt(contextTabId, 'left');
+                if (action === 'add-right') addTabAt(contextTabId, 'right');
+                if (action === 'close')     closeTab(contextTabId);
+                contextMenu.classList.remove('visible');
+                contextTabId = null;
+            });
+
+            // Hide context menu on outside click or escape
+            document.addEventListener('click', (e) => {
+                if (!contextMenu.contains(e.target)) {
+                    contextMenu.classList.remove('visible');
+                }
+            });
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') contextMenu.classList.remove('visible');
+            });
+
+            // ===== File browser: folder expand/collapse =====
+            document.querySelectorAll('.folder-row[data-folder]').forEach(row => {
+                row.addEventListener('click', () => {
+                    row.parentElement.classList.toggle('collapsed');
+                });
+            });
+
+            // ===== File browser: sort cycling =====
+            const SORT_MODES = [
+                { key: 'name-asc',  label: '⇅ name',         compare: (a, b) => a.dataset.name.localeCompare(b.dataset.name) },
+                { key: 'name-desc', label: '⇅ name (Z-A)',   compare: (a, b) => b.dataset.name.localeCompare(a.dataset.name) },
+                { key: 'kind',      label: '⇅ kind',          compare: (a, b) => a.dataset.kind.localeCompare(b.dataset.kind) || a.dataset.name.localeCompare(b.dataset.name) },
+                { key: 'focus',     label: '⇅ focus first',  compare: (a, b) => (b.dataset.focus === 'true' ? 1 : 0) - (a.dataset.focus === 'true' ? 1 : 0) || a.dataset.name.localeCompare(b.dataset.name) }
+            ];
+            let sortIdx = 0;
+
+            function applySort() {
+                const mode = SORT_MODES[sortIdx];
+                document.getElementById('sort-btn').textContent = mode.label;
+                const list = document.getElementById('documents-list');
+                if (!list) return;
+                const items = Array.from(list.querySelectorAll('.file-row'));
+                items.sort(mode.compare);
+                items.forEach(el => list.appendChild(el));
+            }
+
+            const sortBtn = document.getElementById('sort-btn');
+            if (sortBtn) {
+                sortBtn.addEventListener('click', () => {
+                    sortIdx = (sortIdx + 1) % SORT_MODES.length;
+                    applySort();
+                });
+            }
+
+            // Initial render
+            window.addEventListener('DOMContentLoaded', () => {
+                applySort();
+                render();
+            });
+        })();
+    </script>
 
 </body>
 </html>

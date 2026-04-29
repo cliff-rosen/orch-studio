@@ -46,6 +46,7 @@
             "calendar",
             "timeline",
             "document",
+            "document-pair",
             "outline",
             "tree",
             "graph",

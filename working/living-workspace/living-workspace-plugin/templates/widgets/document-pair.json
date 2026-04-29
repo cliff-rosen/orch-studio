@@ -1,0 +1,11 @@
+{
+  "widget": "document-pair",
+  "store": "stores/{{ store_name }}",
+  "title": "{{ widget_title }}",
+  "config": {
+    "left": "{{ left_file_id }}",
+    "right": "{{ right_file_id }}",
+    "sync_scroll": false,
+    "widths": [1, 1]
+  }
+}
