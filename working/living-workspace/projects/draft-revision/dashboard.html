@@ -214,38 +214,46 @@
         .nav-meta .val { color: var(--text); }
 
         main.reader {
-            overflow-y: auto;
             background: var(--bg);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            min-height: 0;
         }
 
         .reader-inner {
-            max-width: 760px;
-            margin: 0 auto;
-            padding: 56px 64px 96px;
+            flex: 1;
+            min-height: 0;
+            overflow: hidden;
         }
 
         @media (max-width: 768px) {
-            .reader-inner { padding: 32px 24px 64px; }
+            main.reader.tabs-1 .doc-pane.in-tab { padding: 32px 24px 64px; }
         }
 
         /* ============================================================
            TAB STRIP
            ============================================================ */
+        /* Tab strip uses the SAME grid as reader-inner so each tab is positioned above its column */
         .tab-strip {
-            display: flex;
-            align-items: stretch;
-            gap: 4px;
-            padding: 6px 16px 0;
+            display: grid;
             background: var(--bg-soft);
             border-bottom: 1px solid var(--border);
             position: sticky;
             top: 0;
             z-index: 5;
             min-height: 36px;
-            overflow-x: auto;
+            padding-top: 6px;
+            align-items: end;
         }
 
+        main.reader.tabs-1 .tab-strip { grid-template-columns: 1fr; padding: 6px 0 0; }
+        main.reader.tabs-2 .tab-strip { grid-template-columns: 1fr 1fr; gap: 24px; padding: 6px 16px 0; }
+        main.reader.tabs-3 .tab-strip { grid-template-columns: 1fr 1fr 1fr; gap: 16px; padding: 6px 12px 0; }
+        main.reader.tabs-4 .tab-strip { grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; padding: 6px 8px 0; }
+
         .tab {
+            justify-self: start;          /* tab sits at the left edge of its column */
             display: flex;
             align-items: center;
             gap: 8px;
@@ -257,26 +265,25 @@
             font-size: 0.82rem;
             color: var(--text-secondary);
             user-select: none;
-            cursor: default;
+            cursor: pointer;
             position: relative;
             top: 1px;
             min-width: 100px;
-            max-width: 280px;
+            max-width: 100%;
         }
 
-        .tab.filled { background: var(--bg); color: var(--text); border-bottom: 1px solid var(--bg); }
+        .tab.filled { background: var(--bg); color: var(--text); }
+
+        /* Active tab merges into the content area below it */
+        .tab.active { border-bottom: 1px solid var(--bg); top: 1px; }
+        .tab.active.filled { background: var(--bg); }
+        .tab.active.empty { background: var(--select); border-color: var(--link); color: var(--select-text); border-style: dashed; }
+
         .tab.empty {
             background: transparent;
             border-style: dashed;
             color: var(--text-muted);
             font-style: italic;
-        }
-        .tab.pending {
-            border-color: var(--link);
-            background: var(--select);
-            color: var(--select-text);
-            font-style: normal;
-            box-shadow: 0 0 0 1px var(--link) inset;
         }
 
         .tab .tab-name {
@@ -307,19 +314,6 @@
         .tab .tab-close:hover { background: var(--neutral-soft, #f1f5f9); color: var(--text); }
         .tab.empty .tab-close { color: var(--text-muted); }
 
-        .tab-add {
-            background: transparent;
-            border: 1px dashed var(--border-strong);
-            color: var(--text-muted);
-            font-size: 0.95rem;
-            padding: 6px 10px;
-            border-bottom: none;
-            border-radius: 4px 4px 0 0;
-            cursor: pointer;
-            top: 1px;
-            position: relative;
-        }
-        .tab-add:hover { background: var(--bg); color: var(--text); }
 
         /* ============================================================
            DOC PANES — multi-column grid driven by tab count
@@ -327,22 +321,37 @@
         .doc-pane { display: none; }
         .doc-pane.in-tab { display: block; }
 
-        main.reader.tabs-1 .reader-inner { grid-template-columns: 1fr; }
-        main.reader.tabs-2 .reader-inner { grid-template-columns: 1fr 1fr; }
-        main.reader.tabs-3 .reader-inner { grid-template-columns: 1fr 1fr 1fr; }
-        main.reader.tabs-4 .reader-inner { grid-template-columns: 1fr 1fr 1fr 1fr; }
-
+        /* Reader-inner is always a grid; columns set per tab count */
         main.reader[class*="tabs-"] .reader-inner {
             display: grid;
-            gap: 24px;
-            max-width: none;
-            padding: 24px 24px 96px;
+            gap: 0;
+            grid-template-rows: 1fr;
+            height: 100%;
+            min-height: 0;
+            padding: 0;
+        }
+        main.reader.tabs-1 .reader-inner { grid-template-columns: 1fr; }
+        main.reader.tabs-2 .reader-inner { grid-template-columns: 1fr 1fr; gap: 24px; padding: 0 16px; }
+        main.reader.tabs-3 .reader-inner { grid-template-columns: 1fr 1fr 1fr; gap: 16px; padding: 0 12px; }
+        main.reader.tabs-4 .reader-inner { grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; padding: 0 8px; }
+
+        /* Each tab pane: independent scroll within its grid cell */
+        .doc-pane.in-tab {
+            overflow-y: auto;
+            min-height: 0;
+            min-width: 0;
+            height: 100%;
         }
 
-        /* Single tab: keep nice reading width */
-        main.reader.tabs-1 .reader-inner {
-            max-width: 880px;
+        /* Single-tab: ample reading layout, padded inside the scrolling pane */
+        main.reader.tabs-1 .doc-pane.in-tab {
             padding: 56px 64px 96px;
+        }
+        main.reader.tabs-1 .doc-pane.in-tab > .reader-frontmatter,
+        main.reader.tabs-1 .doc-pane.in-tab > .doc-body {
+            max-width: 760px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         /* Multi-tab: each pane gets a card-like treatment */
@@ -352,7 +361,7 @@
             border-top: none;
             padding: 18px 22px;
             background: var(--bg);
-            min-width: 0;
+            margin-top: 0;
         }
         main.reader:not(.tabs-1) .reader-frontmatter {
             font-size: 0.7rem;
@@ -369,7 +378,7 @@
         main.reader:not(.tabs-1) .doc-body h2 { font-size: 1.18rem; margin-top: 26px; }
         main.reader:not(.tabs-1) .doc-body h3 { font-size: 1.0rem; margin-top: 20px; }
 
-        /* Empty placeholder column */
+        /* Empty placeholder column — also independently scrolls if its content overflows */
         .empty-col {
             border: 1px dashed var(--border-strong);
             border-top: none;
@@ -385,6 +394,9 @@
             align-items: center;
             gap: 8px;
             min-width: 0;
+            min-height: 0;
+            height: 100%;
+            overflow-y: auto;
         }
         .empty-col.pending {
             border-color: var(--link);
@@ -394,6 +406,207 @@
         .empty-col strong { font-weight: 600; }
         .empty-col .hint { font-size: 0.78rem; color: var(--text-muted); font-style: italic; }
         .empty-col.pending .hint { color: var(--select-text); font-weight: 500; font-style: normal; }
+
+        /* ============================================================
+           VERSION DROPDOWN (per-tab)
+           ============================================================ */
+        .tab-version {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 1px 6px;
+            border-radius: 3px;
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+        }
+        .tab-version:hover { background: var(--neutral-soft); color: var(--text); }
+        .tab-version.has-history { color: var(--link); border: 1px solid var(--border); }
+
+        .version-menu {
+            position: fixed;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            padding: 4px 0;
+            min-width: 280px;
+            z-index: 100;
+            font-size: 0.84rem;
+            display: none;
+        }
+        .version-menu.visible { display: block; }
+        .version-menu-item {
+            padding: 8px 14px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .version-menu-item:hover { background: var(--bg-soft); }
+        .version-menu-item.current { background: var(--select); color: var(--select-text); }
+        .version-menu-item .v-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.78rem;
+            font-weight: 500;
+        }
+        .version-menu-item .v-note {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+        .version-menu-item.current .v-note { color: var(--select-text); opacity: 0.85; font-style: normal; }
+        .version-menu-divider { height: 1px; background: var(--border); margin: 4px 0; }
+        .version-menu-action {
+            padding: 6px 14px;
+            cursor: pointer;
+            color: var(--link);
+            font-size: 0.82rem;
+        }
+        .version-menu-action:hover { background: var(--bg-soft); }
+
+        /* ============================================================
+           DIFF TAB / PANE
+           ============================================================ */
+        .diff-pane {
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            color: var(--text);
+        }
+        .diff-pane .diff-header {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            padding-bottom: 12px;
+            margin-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px 12px;
+            align-items: baseline;
+        }
+        .diff-pane .diff-header strong { color: var(--text); font-weight: 500; }
+        .diff-pane .diff-header .diff-stats {
+            font-size: 0.74rem;
+            color: var(--text-muted);
+            margin-left: auto;
+        }
+        .diff-pane .diff-header .diff-stats .add { color: var(--ok); }
+        .diff-pane .diff-header .diff-stats .rem { color: var(--rose, #be185d); }
+
+        .diff-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+            gap: 12px;
+            font-family: 'Source Serif 4', Georgia, serif;
+            font-size: 14.5px;
+            line-height: 1.55;
+        }
+        .diff-grid .diff-col-head {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.74rem;
+            color: var(--text-muted);
+            padding-bottom: 6px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 8px;
+        }
+        .diff-grid .diff-col-head.left  { grid-column: 1; }
+        .diff-grid .diff-col-head.right { grid-column: 2; }
+
+        .diff-block {
+            display: contents;
+        }
+        .diff-line {
+            padding: 2px 8px;
+            border-radius: 2px;
+            min-height: 1.55em;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .diff-line.same         { background: transparent; color: var(--text); }
+        .diff-line.added        { background: #dcfce7; color: #14532d; border-left: 2px solid var(--ok); }
+        .diff-line.removed      { background: #fee2e2; color: #7f1d1d; border-left: 2px solid var(--rose, #be185d); text-decoration: line-through; text-decoration-color: rgba(127,29,29,0.4); }
+        .diff-line.empty        { background: transparent; color: transparent; }
+        .diff-line.heading      { font-family: 'Inter', sans-serif; font-weight: 600; padding-top: 12px; }
+        .diff-line.subheading   { font-family: 'Inter', sans-serif; font-weight: 500; padding-top: 6px; }
+        .diff-line.indent-1     { padding-left: 24px; }
+        .diff-line.indent-2     { padding-left: 44px; }
+
+        /* ============================================================
+           LINE NUMBERS (per-tab toggle)
+           ============================================================ */
+        .doc-body.show-line-numbers {
+            counter-reset: ln;
+        }
+        .doc-body.show-line-numbers > h1,
+        .doc-body.show-line-numbers > h2,
+        .doc-body.show-line-numbers > h3,
+        .doc-body.show-line-numbers > h4,
+        .doc-body.show-line-numbers > p,
+        .doc-body.show-line-numbers > blockquote,
+        .doc-body.show-line-numbers li {
+            counter-increment: ln;
+        }
+        .doc-body.show-line-numbers > h1::before,
+        .doc-body.show-line-numbers > h2::before,
+        .doc-body.show-line-numbers > h3::before,
+        .doc-body.show-line-numbers > h4::before,
+        .doc-body.show-line-numbers > p::before,
+        .doc-body.show-line-numbers > blockquote::before,
+        .doc-body.show-line-numbers li::before {
+            content: counter(ln);
+            display: inline-block;
+            width: 2.5em;
+            margin-right: 0.7em;
+            color: var(--text-muted);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.78em;
+            font-weight: 400;
+            text-align: right;
+            user-select: none;
+            opacity: 0.7;
+        }
+        /* Headings with leading line-number look better with a touch of vertical alignment */
+        .doc-body.show-line-numbers > h1::before,
+        .doc-body.show-line-numbers > h2::before,
+        .doc-body.show-line-numbers > h3::before {
+            vertical-align: middle;
+        }
+
+        /* Diff: line numbers for both columns */
+        .diff-pane.show-line-numbers .diff-grid {
+            counter-reset: ln-l ln-r;
+        }
+        .diff-pane.show-line-numbers .diff-line {
+            position: relative;
+            padding-left: 2.5em;
+        }
+        .diff-pane.show-line-numbers .diff-line:nth-child(2n+3):not(.diff-col-head):not(.empty) {
+            counter-increment: ln-l;
+        }
+        .diff-pane.show-line-numbers .diff-line:nth-child(2n+4):not(.diff-col-head):not(.empty) {
+            counter-increment: ln-r;
+        }
+        .diff-pane.show-line-numbers .diff-line:nth-child(2n+3):not(.diff-col-head):not(.empty)::before {
+            content: counter(ln-l);
+        }
+        .diff-pane.show-line-numbers .diff-line:nth-child(2n+4):not(.diff-col-head):not(.empty)::before {
+            content: counter(ln-r);
+        }
+        .diff-pane.show-line-numbers .diff-line::before {
+            position: absolute;
+            left: 4px;
+            top: 2px;
+            width: 1.6em;
+            text-align: right;
+            color: var(--text-muted);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7em;
+            font-weight: 400;
+            user-select: none;
+            opacity: 0.6;
+        }
 
         /* ============================================================
            CONTEXT MENU
@@ -1160,6 +1373,291 @@
                     </article>
                 </div>
 
+                <!-- ============================================================
+                     DOC PANE: outline-cmr-take-2 @ 2026-04-28T16-00-00Z (earlier snapshot)
+                     ============================================================ -->
+                <div class="doc-pane" id="outline-cmr-take-2@2026-04-28T16-00-00Z">
+                    <div class="reader-frontmatter">
+                        <div class="fm-item"><span class="key">file:</span><span class="val">outline-cmr-take-2.md</span></div>
+                        <div class="fm-item"><span class="key">version:</span><span class="val">2026-04-28T16:00:00Z</span></div>
+                        <div class="fm-item"><span class="key">kind:</span><span class="val">extraction</span></div>
+                        <div class="fm-item"><span class="key">note:</span><span class="val">First-pass outline. §3 only covers decomposition; §4 not detailed.</span></div>
+                    </div>
+                    <article class="doc-body">
+                        <h1>Outline — cmr take 2</h1>
+                        <p>Structural outline of <code>source-cmr-take-2.md</code>.</p>
+                        <h2>§1 Goal</h2>
+                        <ul>
+                            <li>Build an AI-assisted photo editing system for novices</li>
+                            <li>Two outcomes: stronger images + skill development</li>
+                            <li>Adapts along four axes (image, skill, outcome, edit stage)</li>
+                            <li>Reliable delivery requires orchestration layer</li>
+                            <li>Headline: LLM = communication; orchestration = control</li>
+                        </ul>
+                        <h2>§2 Target User Experience</h2>
+                        <ul>
+                            <li>User opens an image</li>
+                            <li>System gathers context</li>
+                            <li>Closed-loop interaction</li>
+                            <li>Loop continues until acceptable result</li>
+                            <li>Frame: this is not prompt-and-response</li>
+                        </ul>
+                        <h2>§3 Why a Mega-Prompt Falls Short</h2>
+                        <ul>
+                            <li>Pro photographer's process is silent and deep</li>
+                            <li>Mega-prompt approach: plausible but not good</li>
+                            <li>Two failure modes — orchestration addresses both differently</li>
+                        </ul>
+                        <h3>Decomposition</h3>
+                        <ul>
+                            <li>Mega-prompt asks LLM to do staged work in one pass</li>
+                            <li>Model satisfices: produces fluent output that resembles staged work</li>
+                            <li>Fix: orchestrator externalizes phase machine</li>
+                            <li>LLM invoked once per phase with scoped prompt</li>
+                            <li>Principle: never ask the LLM to do more than it has to do</li>
+                        </ul>
+                        <h2>§4 What This Translates to in the Build</h2>
+                        <ul>
+                            <li>Four major parts: workflow library, prompt library, orchestrator, LLM</li>
+                            <li>(details TBD)</li>
+                        </ul>
+                        <h2>§5 Development and Refinement Loop</h2>
+                        <ul>
+                            <li>Methodology = hypothesis on day one</li>
+                            <li>Build initial methodology from interviews and analysis</li>
+                            <li>Assemble test set</li>
+                            <li>Generate edit paths</li>
+                            <li>Evaluate and gap-analyze</li>
+                            <li>Refine and re-test</li>
+                            <li>Target: measurable improvement, not perfection</li>
+                        </ul>
+                    </article>
+                </div>
+
+                <!-- ============================================================
+                     DIFF PANE: outline-cmr-take-2 (older ↔ latest)
+                     Block-level diff. Heading rows align both versions.
+                     ============================================================ -->
+                <div class="doc-pane" id="diff:outline-cmr-take-2:2026-04-28T16-00-00Z:latest">
+                    <div class="diff-pane">
+                        <div class="diff-header">
+                            <strong>diff</strong>
+                            <span>outline-cmr-take-2.md</span>
+                            <span class="mono">2026-04-28T16:00 → latest</span>
+                            <span class="diff-stats"><span class="add">+58 lines</span> · <span class="rem">−2 lines</span></span>
+                        </div>
+
+                        <div class="diff-grid">
+                            <div class="diff-col-head left">2026-04-28T16:00:00Z</div>
+                            <div class="diff-col-head right">latest</div>
+
+                            <!-- Title -->
+                            <div class="diff-line same heading">Outline — cmr take 2</div>
+                            <div class="diff-line same heading">Outline — cmr take 2</div>
+
+                            <!-- Lede -->
+                            <div class="diff-line removed">Structural outline of source-cmr-take-2.md.</div>
+                            <div class="diff-line added">Structural + key-points outline of source-cmr-take-2.md. One bullet per substantive move; nesting reflects the argument structure.</div>
+
+                            <!-- §1 -->
+                            <div class="diff-line same heading">§1 Goal</div>
+                            <div class="diff-line same heading">§1 Goal</div>
+                            <div class="diff-line same">• Build an AI-assisted photo editing system for novices</div>
+                            <div class="diff-line same">• Build an AI-assisted photo editing system for novices</div>
+                            <div class="diff-line same">• Two outcomes: stronger images + skill development</div>
+                            <div class="diff-line added indent-1">◦ Two outcomes: visibly stronger images and skill development through the process</div>
+                            <div class="diff-line same">• Adapts along four axes (image, skill, outcome, edit stage)</div>
+                            <div class="diff-line added indent-1">◦ System adapts along four axes: image, skill level, desired outcome, current edit stage</div>
+                            <div class="diff-line same">• Reliable delivery requires orchestration layer</div>
+                            <div class="diff-line same">• Reliable delivery requires more than a well-written prompt — it requires a structured orchestration layer</div>
+                            <div class="diff-line empty"></div>
+                            <div class="diff-line added indent-1">◦ Manages workflow state</div>
+                            <div class="diff-line empty"></div>
+                            <div class="diff-line added indent-1">◦ Selects expert methodology modules conditionally</div>
+                            <div class="diff-line empty"></div>
+                            <div class="diff-line added indent-1">◦ Constrains tool exposure</div>
+                            <div class="diff-line empty"></div>
+                            <div class="diff-line added indent-1">◦ Observes the image as it evolves</div>
+                            <div class="diff-line same">• Headline: LLM = communication; orchestration = control</div>
+                            <div class="diff-line same">• Headline: LLM handles communication and adaptation; orchestration handles control</div>
+                            <div class="diff-line empty"></div>
+                            <div class="diff-line added">• Forward reference: §3 makes the case concretely</div>
+
+                            <!-- §2 -->
+                            <div class="diff-line same heading">§2 Target User Experience</div>
+                            <div class="diff-line same heading">§2 Target User Experience</div>
+                            <div class="diff-line same">• User opens an image</div>
+                            <div class="diff-line same">• User opens an image</div>
+                            <div class="diff-line same">• System gathers context</div>
+                            <div class="diff-line same">• System gathers context: image type, strengths/weaknesses, proficiency, desired mood/style, available tools, metadata</div>
+                            <div class="diff-line same">• Closed-loop interaction</div>
+                            <div class="diff-line same">• Closed-loop interaction</div>
+                            <div class="diff-line empty"></div>
+                            <div class="diff-line added indent-1">◦ System gives next instruction in plain language with rationale</div>
+                            <div class="diff-line empty"></div>
+                            <div class="diff-line added indent-1">◦ User applies the adjustment</div>
+                            <div class="diff-line empty"></div>
+                            <div class="diff-line added indent-1">◦ System observes updated image state</div>
+                            <div class="diff-line empty"></div>
+                            <div class="diff-line added indent-1">◦ System updates its state and gives the next instruction</div>
+                            <div class="diff-line empty"></div>
+                            <div class="diff-line added">• User can ask questions or push back at any point; guidance adapts</div>
+                            <div class="diff-line same">• Loop continues until acceptable result</div>
+                            <div class="diff-line same">• Loop continues until acceptable result</div>
+                            <div class="diff-line same">• Frame: this is not prompt-and-response</div>
+                            <div class="diff-line same">• Frame: "Not prompt-and-response. The system sees the image evolve and teaches the user what to do next."</div>
+
+                            <!-- §3 — major expansion -->
+                            <div class="diff-line same heading">§3 Why a Mega-Prompt Falls Short</div>
+                            <div class="diff-line same heading">§3 Why a Mega-Prompt Falls Short — and What Orchestration Actually Buys</div>
+                            <div class="diff-line empty"></div>
+                            <div class="diff-line added subheading">Setup</div>
+                            <div class="diff-line same">• Pro photographer's process is silent and deep</div>
+                            <div class="diff-line same">• Pro photographer's editing process is silent, deep, internal</div>
+                            <div class="diff-line empty"></div>
+                            <div class="diff-line added indent-1">◦ Establishes context (what image is for, what user wants)</div>
+                            <div class="diff-line empty"></div>
+                            <div class="diff-line added indent-1">◦ Looks carefully — for opportunities, not just problems</div>
+                            <div class="diff-line empty"></div>
+                            <div class="diff-line added indent-1">◦ Forms phase roadmap (foundation → refine → finish)</div>
+                            <div class="diff-line empty"></div>
+                            <div class="diff-line added indent-1">◦ Reasons about operations within phases</div>
+                            <div class="diff-line empty"></div>
+                            <div class="diff-line added indent-1">◦ Evaluates as they go; revises on new information</div>
+                            <div class="diff-line empty"></div>
+                            <div class="diff-line added indent-1">◦ Knows when to stop</div>
+                            <div class="diff-line same">• Mega-prompt approach: plausible but not good</div>
+                            <div class="diff-line same">• Mega-prompt approach: plausible, not good</div>
+                            <div class="diff-line same">• Two failure modes — orchestration addresses both differently</div>
+                            <div class="diff-line same">• Two distinct failure modes — orchestration addresses each, but differently</div>
+
+                            <!-- §3.1 — expanded -->
+                            <div class="diff-line same subheading">§3.1 Decomposition</div>
+                            <div class="diff-line same subheading">§3.1 First argument: decomposition</div>
+                            <div class="diff-line same">• Mega-prompt asks LLM to do staged work in one pass</div>
+                            <div class="diff-line same">• Mega-prompt asks the LLM to do staged work in one pass</div>
+                            <div class="diff-line empty"></div>
+                            <div class="diff-line added indent-1">◦ Simultaneously: figure out phase, what context still needs establishing, which evaluations apply, which operations to consider, whether prior recs are honored, whether work is done</div>
+                            <div class="diff-line empty"></div>
+                            <div class="diff-line added indent-1">◦ Nothing forces the model to inhabit one task at a time</div>
+                            <div class="diff-line empty"></div>
+                            <div class="diff-line added indent-1">◦ Training rewards fluent end-to-end response → model satisfices</div>
+                            <div class="diff-line same">• Model satisfices: produces fluent output that resembles staged work</div>
+                            <div class="diff-line same">• Produces output that resembles staged work without doing it</div>
+                            <div class="diff-line empty"></div>
+                            <div class="diff-line added">• This is the failure mode underlying every "compressed phases," "generic readout," "plausible plan," "kept recommending past done"</div>
+                            <div class="diff-line same">• Fix: orchestrator externalizes phase machine</div>
+                            <div class="diff-line same">• Fix: decomposition. Orchestrator externalizes the phase machine</div>
+                            <div class="diff-line same">• LLM invoked once per phase with scoped prompt</div>
+                            <div class="diff-line same">• LLM invoked once per phase with prompt scoped to that phase's task only</div>
+                            <div class="diff-line empty"></div>
+                            <div class="diff-line added">• Output of each phase = structured artifact, input to next</div>
+                            <div class="diff-line same">• Principle: never ask the LLM to do more than it has to do</div>
+                            <div class="diff-line same">• Principle: never ask the LLM to do more than it has to do. Every silent compression is leverage lost.</div>
+
+                            <!-- §3.2 — entirely new section -->
+                            <div class="diff-line empty"></div>
+                            <div class="diff-line added subheading">§3.2 Second argument: library retrieval at lynchpin moments</div>
+                            <div class="diff-line empty"></div>
+                            <div class="diff-line added">• Decomposition has a ceiling</div>
+                            <div class="diff-line empty"></div>
+                            <div class="diff-line added">• Even ideally prompted, LLM produces strategy by reasoning from training data</div>
+                            <div class="diff-line empty"></div>
+                            <div class="diff-line added">• Pro recognizes the situation, pulls matching practice from internalized library</div>
+                            <div class="diff-line empty"></div>
+                            <div class="diff-line added">• LLM training corpus has appearance of expertise, not the curated, situation-indexed library</div>
+                            <div class="diff-line empty"></div>
+                            <div class="diff-line added">• Fix: don't ask the LLM the strategic question — orchestrator retrieves authored practice; LLM applies it</div>
+                            <div class="diff-line empty"></div>
+                            <div class="diff-line added">• LLM's job shifts from generation to recognition + application</div>
+                            <div class="diff-line empty"></div>
+                            <div class="diff-line added">• Methodology becomes architecturally different: an authored library of context-keyed expert practice</div>
+
+                            <!-- §3.3 — entirely new -->
+                            <div class="diff-line empty"></div>
+                            <div class="diff-line added subheading">§3.3 How the two arguments fit together</div>
+                            <div class="diff-line empty"></div>
+                            <div class="diff-line added">• Decomposition without library = competent but tutorial-grade</div>
+                            <div class="diff-line empty"></div>
+                            <div class="diff-line added">• Library without decomposition = right content, can't reliably apply</div>
+                            <div class="diff-line empty"></div>
+                            <div class="diff-line added">• Together = bite-sized prompts + retrieval at lynchpin moments</div>
+                            <div class="diff-line empty"></div>
+                            <div class="diff-line added">• Six things orchestration externalizes: phase position, per-phase prompts, structured state (decomposition); evaluation catalogs, operation catalogs, completion criteria (library retrieval)</div>
+
+                            <!-- §4 — major expansion -->
+                            <div class="diff-line same heading">§4 What This Translates to in the Build</div>
+                            <div class="diff-line same heading">§4 What This Translates to in the Build</div>
+                            <div class="diff-line same">• Four major parts: workflow library, prompt library, orchestrator, LLM</div>
+                            <div class="diff-line same">• Four major parts: workflow library, prompt library, orchestrator, LLM</div>
+                            <div class="diff-line removed">• (details TBD)</div>
+                            <div class="diff-line empty"></div>
+                            <div class="diff-line empty"></div>
+                            <div class="diff-line added subheading">§4.1 The workflow library</div>
+                            <div class="diff-line empty"></div>
+                            <div class="diff-line added">• Workflow = state machine for one kind of work</div>
+                            <div class="diff-line empty"></div>
+                            <div class="diff-line added">• Master workflow + sub-workflows (portrait, landscape, low-light, product)</div>
+                            <div class="diff-line empty"></div>
+                            <div class="diff-line added">• Two artifacts per workflow: JSON definition (executable) + narrative document (design intent)</div>
+                            <div class="diff-line empty"></div>
+                            <div class="diff-line added subheading">§4.2 The prompt library</div>
+                            <div class="diff-line empty"></div>
+                            <div class="diff-line added">• One prompt template per (workflow, state); parameterized; output schema per state</div>
+                            <div class="diff-line empty"></div>
+                            <div class="diff-line added">• Templates do one of two jobs: decomposition framing OR retrieval application</div>
+                            <div class="diff-line empty"></div>
+                            <div class="diff-line added subheading">§4.3 The orchestrator</div>
+                            <div class="diff-line empty"></div>
+                            <div class="diff-line added">• Tracks workflow + state + state vars + call stack</div>
+                            <div class="diff-line empty"></div>
+                            <div class="diff-line added">• Composes prompts; parses outputs per schema; routes across workflows</div>
+                            <div class="diff-line empty"></div>
+                            <div class="diff-line added">• Never asks LLM to make routing/transition decisions</div>
+                            <div class="diff-line empty"></div>
+                            <div class="diff-line added subheading">§4.4 The LLM</div>
+                            <div class="diff-line empty"></div>
+                            <div class="diff-line added">• Invoked once per state activation</div>
+                            <div class="diff-line empty"></div>
+                            <div class="diff-line added">• No conversation history across invocations — orchestrator's structured state is the memory</div>
+                            <div class="diff-line empty"></div>
+                            <div class="diff-line added">• (Plus §4.5 illustrative session walkthrough, §4.6 engineer notes)</div>
+
+                            <!-- §5 -->
+                            <div class="diff-line same heading">§5 Development and Refinement Loop</div>
+                            <div class="diff-line same heading">§5 Development and Refinement Loop</div>
+                            <div class="diff-line same">• Methodology = hypothesis on day one</div>
+                            <div class="diff-line same">• Methodology = hypothesis on day one, not finished artifact</div>
+                            <div class="diff-line same">• Build initial methodology from interviews and analysis</div>
+                            <div class="diff-line same">• Build initial methodology: interviews, novice mistakes analysis, standard workflows</div>
+                            <div class="diff-line same">• Assemble test set</div>
+                            <div class="diff-line same">• Assemble test set across many categories</div>
+                            <div class="diff-line same">• Generate edit paths</div>
+                            <div class="diff-line same">• Generate four edit paths per test image</div>
+                            <div class="diff-line same">• Evaluate and gap-analyze</div>
+                            <div class="diff-line same">• Evaluate and gap-analyze (multi-criteria scoring)</div>
+                            <div class="diff-line same">• Refine and re-test</div>
+                            <div class="diff-line same">• Refine and re-test</div>
+                            <div class="diff-line same">• Target: measurable improvement, not perfection</div>
+                            <div class="diff-line same">• Target: measurable improvement, not perfection</div>
+
+                            <!-- Observations — entirely new -->
+                            <div class="diff-line empty"></div>
+                            <div class="diff-line added heading">Observations from making this outline</div>
+                            <div class="diff-line empty"></div>
+                            <div class="diff-line added">• §1 packs a lot into a small space; §3 is where it's developed</div>
+                            <div class="diff-line empty"></div>
+                            <div class="diff-line added">• §3 is the spine of the document; three sub-arguments fit together cleanly</div>
+                            <div class="diff-line empty"></div>
+                            <div class="diff-line added">• §4 reads like reference material, not argument</div>
+                            <div class="diff-line empty"></div>
+                            <div class="diff-line added">• §5 is procedural and well-shaped</div>
+                            <div class="diff-line empty"></div>
+                            <div class="diff-line added">• What's structurally exposed: §1 + §3 do the load-bearing work; §2 survives intact; §4 could be tighter; §5 reads cleanly</div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </main>
 
@@ -1201,24 +1699,32 @@
         <div class="context-menu-item" data-action="add-left">Add tab to left</div>
         <div class="context-menu-item" data-action="add-right">Add tab to right</div>
         <div class="context-menu-divider"></div>
+        <div class="context-menu-item" data-action="compare-versions">Compare versions…</div>
+        <div class="context-menu-item" data-action="toggle-line-numbers">Show line numbers</div>
+        <div class="context-menu-divider"></div>
         <div class="context-menu-item" data-action="close">Close tab</div>
     </div>
+
+    <!-- Version dropdown menu (shown when clicking a tab's version selector) -->
+    <div class="version-menu" id="version-menu"></div>
 
     <script>
         (function () {
             // ============================================================
-            // TABBED VIEW MODE
+            // TABBED VIEW MODE — active tab model
             //
-            // State: a list of tabs, each {id, file}.
-            //   - id is a stable client-side id ('tab-1', 'tab-2', ...)
-            //   - file is the document id (e.g., 'source-cmr-take-2') or null (empty / unassigned)
+            // State: a list of tabs + an activeTabId.
+            //   - tabs: [{id, file}], file is document id or null (empty)
+            //   - activeTabId: which tab is the current receiver of nav clicks
             //
-            // pendingTabId: which empty tab gets the next file click from the nav.
-            //   - When a tab is added, it becomes pending automatically.
-            //   - When a tab is cleared (close→reopen pattern not implemented; instead,
-            //     close removes the tab entirely. To "swap" you close + add new.).
+            // Rules:
+            //   - There is always exactly one active tab.
+            //   - Clicking a file in the nav fills the active tab (replacing if filled).
+            //   - Clicking a tab body makes it active.
+            //   - Right-click adds a new tab, which becomes active.
+            //   - Close (×) removes a tab; if it was active, an adjacent tab becomes active.
             //
-            // 1 tab = single mode. 2+ tabs = multi-pane. Right-click any tab to add another.
+            // No "pending" state. No silent no-ops. The active tab is always the receiver.
             // ============================================================
 
             const FILE_META = {
@@ -1229,14 +1735,39 @@
                 'outline-cmr-take-2':        { kind: 'extraction', focus: false }
             };
 
+            // Per-file version history (read from .history/<file>/_versions.json in the real plugin)
+            const FILE_VERSIONS = {
+                'outline-cmr-take-2': [
+                    { version: 'latest',                  captured_at: '2026-04-29T09:00', note: 'Expanded §3, detailed §4, added Observations' },
+                    { version: '2026-04-28T16-00-00Z',    captured_at: '2026-04-28T16:00', note: 'First-pass outline; §3 only carries decomposition' }
+                ]
+                // Other files have no history (only "latest" implicit)
+            };
+
+            const versionLabel = (v) => v === 'latest' ? 'latest' : v.replace('Z', '').replace('T', ' ').slice(0, 16);
+
             let nextTabId = 1;
             const newTabId = () => 'tab-' + (nextTabId++);
 
-            // Initial state: one tab showing the focus file
+            // Tab shape:
+            //   doc:  { id, type: 'doc',  file, version }
+            //   diff: { id, type: 'diff', file, leftVersion, rightVersion } (single-file diff; cross-file later)
+            const initialTab = { id: newTabId(), type: 'doc', file: 'source-cmr-take-2', version: 'latest', showLineNumbers: false };
             const state = {
-                tabs: [{ id: newTabId(), file: 'source-cmr-take-2' }],
-                pendingTabId: null
+                tabs: [initialTab],
+                activeTabId: initialTab.id
             };
+
+            // Look up the pane DOM id for a given tab
+            function paneIdFor(tab) {
+                if (tab.type === 'diff') {
+                    return `diff:${tab.file}:${tab.leftVersion}:${tab.rightVersion}`;
+                }
+                if (tab.version && tab.version !== 'latest') {
+                    return `${tab.file}@${tab.version}`;
+                }
+                return tab.file;
+            }
 
             const reader = document.querySelector('main.reader');
             const tabStrip = document.getElementById('tab-strip');
@@ -1246,33 +1777,54 @@
 
             // --- Render ---
             function render() {
+                // Reader grid columns set first so .tab-strip's column grid resolves correctly
+                reader.className = 'reader tabs-' + Math.min(state.tabs.length, 4);
+
                 // Tab strip
                 tabStrip.innerHTML = state.tabs.map(tab => {
-                    if (tab.file) {
-                        const meta = FILE_META[tab.file] || {};
-                        const dot = `<span class="kind-dot k-${meta.kind || 'source'}"></span>`;
-                        const focus = meta.focus ? `<span class="focus-marker">★</span>` : '';
+                    const isActive = state.activeTabId === tab.id;
+
+                    if (tab.type === 'diff') {
                         return `
-                            <div class="tab filled" data-tab-id="${tab.id}" data-file="${tab.file}">
-                                ${dot}
-                                <span class="tab-name">${tab.file}.md</span>
-                                ${focus}
-                                <button class="tab-close" data-tab-id="${tab.id}" title="Close tab">×</button>
-                            </div>
-                        `;
-                    } else {
-                        const isPending = state.pendingTabId === tab.id;
-                        return `
-                            <div class="tab empty ${isPending ? 'pending' : ''}" data-tab-id="${tab.id}">
-                                <span class="tab-name">${isPending ? 'next click →' : 'unassigned'}</span>
+                            <div class="tab filled ${isActive ? 'active' : ''}" data-tab-id="${tab.id}">
+                                <span class="kind-dot k-comparison"></span>
+                                <span class="tab-name">diff: ${tab.file}.md</span>
+                                <span class="tab-version" data-tab-id="${tab.id}" title="Versions">
+                                    ${versionLabel(tab.leftVersion)} ↔ ${versionLabel(tab.rightVersion)}
+                                </span>
                                 <button class="tab-close" data-tab-id="${tab.id}" title="Close tab">×</button>
                             </div>
                         `;
                     }
-                }).join('') + `<button class="tab-add" id="tab-add" title="Add tab">+</button>`;
 
-                // Reader grid columns
-                reader.className = 'reader tabs-' + Math.min(state.tabs.length, 4);
+                    // doc tab
+                    if (tab.file) {
+                        const meta = FILE_META[tab.file] || {};
+                        const dot = `<span class="kind-dot k-${meta.kind || 'source'}"></span>`;
+                        const focus = meta.focus ? `<span class="focus-marker">★</span>` : '';
+                        const versions = FILE_VERSIONS[tab.file];
+                        const hasHistory = versions && versions.length > 1;
+                        const versionEl = hasHistory
+                            ? `<span class="tab-version has-history" data-tab-id="${tab.id}" title="Switch version">${versionLabel(tab.version || 'latest')} ▾</span>`
+                            : '';
+                        return `
+                            <div class="tab filled ${isActive ? 'active' : ''}" data-tab-id="${tab.id}" data-file="${tab.file}">
+                                ${dot}
+                                <span class="tab-name">${tab.file}.md</span>
+                                ${focus}
+                                ${versionEl}
+                                <button class="tab-close" data-tab-id="${tab.id}" title="Close tab">×</button>
+                            </div>
+                        `;
+                    } else {
+                        return `
+                            <div class="tab empty ${isActive ? 'active' : ''}" data-tab-id="${tab.id}">
+                                <span class="tab-name">${isActive ? 'click any file →' : 'empty tab'}</span>
+                                <button class="tab-close" data-tab-id="${tab.id}" title="Close tab">×</button>
+                            </div>
+                        `;
+                    }
+                }).join('');
 
                 // Place panes / placeholders into grid columns
                 allPanes.forEach(p => {
@@ -1280,37 +1832,38 @@
                     p.style.gridColumn = '';
                     p.style.order = '';
                 });
-                // Remove old placeholders
                 readerInner.querySelectorAll('.empty-col').forEach(el => el.remove());
 
                 state.tabs.forEach((tab, i) => {
-                    if (tab.file) {
-                        const pane = document.getElementById(tab.file);
+                    const hasContent = tab.type === 'diff' || (tab.type === 'doc' && tab.file);
+                    if (hasContent) {
+                        const paneId = paneIdFor(tab);
+                        const pane = document.getElementById(paneId);
                         if (pane) {
                             pane.classList.add('in-tab');
                             pane.style.order = String(i);
+                            // Apply line-numbers class to the inner content (doc-body for doc tabs, diff-pane for diff tabs)
+                            const docBody = pane.querySelector('.doc-body');
+                            if (docBody) docBody.classList.toggle('show-line-numbers', !!tab.showLineNumbers);
+                            const diffInner = pane.querySelector('.diff-pane');
+                            if (diffInner) diffInner.classList.toggle('show-line-numbers', !!tab.showLineNumbers);
                         }
                     } else {
+                        // Empty doc tab: show placeholder
                         const ph = document.createElement('div');
-                        ph.className = 'empty-col' + (state.pendingTabId === tab.id ? ' pending' : '');
+                        ph.className = 'empty-col' + (state.activeTabId === tab.id ? ' pending' : '');
                         ph.dataset.tabId = tab.id;
                         ph.style.order = String(i);
-                        ph.innerHTML = state.pendingTabId === tab.id
-                            ? '<strong>Pending tab</strong><span class="hint">Click any file in the left nav →</span>'
-                            : '<strong>Empty tab</strong><span class="hint">click to make this the pending target</span>';
-                        ph.addEventListener('click', () => {
-                            state.pendingTabId = tab.id;
-                            render();
-                        });
+                        ph.innerHTML = state.activeTabId === tab.id
+                            ? '<strong>Active empty tab</strong><span class="hint">Click any file in the left nav →</span>'
+                            : '<strong>Empty tab</strong><span class="hint">click the tab above to make it active</span>';
                         readerInner.appendChild(ph);
                     }
                 });
 
-                // Make sure reader-inner uses flex/grid order
                 readerInner.style.display = 'grid';
 
-                // Update nav active state
-                const activeFile = state.tabs.find(t => t.file)?.file;
+                // Update nav active state — highlight files currently shown in any tab
                 document.querySelectorAll('.file-row').forEach(a => {
                     const fileId = a.getAttribute('href').slice(1);
                     a.classList.toggle('active', state.tabs.some(t => t.file === fileId));
@@ -1320,68 +1873,158 @@
             // --- Tab actions ---
             function addTabAt(referenceTabId, side) {
                 const refIdx = state.tabs.findIndex(t => t.id === referenceTabId);
-                const newTab = { id: newTabId(), file: null };
+                const newTab = { id: newTabId(), type: 'doc', file: null, version: 'latest', showLineNumbers: false };
                 const insertAt = side === 'left' ? refIdx : refIdx + 1;
                 state.tabs.splice(insertAt, 0, newTab);
-                state.pendingTabId = newTab.id;
+                state.activeTabId = newTab.id;
                 render();
             }
 
             function closeTab(tabId) {
-                if (state.tabs.length <= 1) return; // keep at least one
+                if (state.tabs.length <= 1) return;
                 const idx = state.tabs.findIndex(t => t.id === tabId);
                 if (idx < 0) return;
+                const wasActive = state.activeTabId === tabId;
                 state.tabs.splice(idx, 1);
-                if (state.pendingTabId === tabId) state.pendingTabId = null;
+                if (wasActive) {
+                    state.activeTabId = state.tabs[Math.min(idx, state.tabs.length - 1)].id;
+                }
                 render();
             }
 
-            function assignFileToPending(file) {
-                if (!state.pendingTabId) {
-                    // Find first empty tab
-                    const empty = state.tabs.find(t => !t.file);
-                    if (empty) state.pendingTabId = empty.id;
-                }
-                if (state.pendingTabId) {
-                    const tab = state.tabs.find(t => t.id === state.pendingTabId);
-                    if (tab) tab.file = file;
-                    state.pendingTabId = null;
+            function fillActiveTab(file) {
+                const t = state.tabs.find(tab => tab.id === state.activeTabId);
+                if (t && t.type === 'doc') {
+                    t.file = file;
+                    t.version = 'latest';
                     render();
                 }
-                // If no pending tab and no empties, no-op
             }
+
+            function setActive(tabId) {
+                if (state.activeTabId === tabId) return;
+                state.activeTabId = tabId;
+                render();
+            }
+
+            function setTabVersion(tabId, version) {
+                const t = state.tabs.find(tab => tab.id === tabId);
+                if (t && t.type === 'doc') {
+                    t.version = version;
+                    render();
+                }
+            }
+
+            function openDiffTab(file, leftVersion, rightVersion) {
+                // Insert diff tab to the right of the currently active tab
+                const activeIdx = state.tabs.findIndex(t => t.id === state.activeTabId);
+                const newTab = {
+                    id: newTabId(),
+                    type: 'diff',
+                    file: file,
+                    leftVersion: leftVersion,
+                    rightVersion: rightVersion,
+                    showLineNumbers: false
+                };
+                state.tabs.splice(activeIdx + 1, 0, newTab);
+                state.activeTabId = newTab.id;
+                render();
+            }
+
+            function toggleLineNumbers(tabId) {
+                const t = state.tabs.find(tab => tab.id === tabId);
+                if (t) {
+                    t.showLineNumbers = !t.showLineNumbers;
+                    render();
+                }
+            }
+
+            // --- Version menu ---
+            const versionMenu = document.getElementById('version-menu');
+            let versionMenuTabId = null;
+
+            function openVersionMenu(tabId, anchorEl) {
+                const tab = state.tabs.find(t => t.id === tabId);
+                if (!tab || tab.type !== 'doc') return;
+                const versions = FILE_VERSIONS[tab.file];
+                if (!versions) return;
+
+                versionMenuTabId = tabId;
+                const items = versions.map(v => {
+                    const isCurrent = (tab.version || 'latest') === v.version;
+                    return `
+                        <div class="version-menu-item ${isCurrent ? 'current' : ''}" data-version="${v.version}">
+                            <span class="v-label">${versionLabel(v.version)} <span style="opacity:0.6">· ${v.captured_at}</span></span>
+                            <span class="v-note">${v.note || ''}</span>
+                        </div>
+                    `;
+                }).join('');
+                versionMenu.innerHTML = items + `
+                    <div class="version-menu-divider"></div>
+                    <div class="version-menu-action" data-version-action="compare">→ Compare any two versions</div>
+                `;
+
+                const rect = anchorEl.getBoundingClientRect();
+                versionMenu.style.left = rect.left + 'px';
+                versionMenu.style.top = (rect.bottom + 4) + 'px';
+                versionMenu.classList.add('visible');
+            }
+
+            versionMenu.addEventListener('click', (e) => {
+                if (!versionMenuTabId) return;
+                const item = e.target.closest('.version-menu-item');
+                const action = e.target.closest('.version-menu-action');
+                if (item) {
+                    setTabVersion(versionMenuTabId, item.dataset.version);
+                    versionMenu.classList.remove('visible');
+                    versionMenuTabId = null;
+                } else if (action && action.dataset.versionAction === 'compare') {
+                    // For v0: open a diff between the two known versions of this file
+                    const tab = state.tabs.find(t => t.id === versionMenuTabId);
+                    if (tab && tab.type === 'doc') {
+                        const versions = FILE_VERSIONS[tab.file];
+                        if (versions && versions.length >= 2) {
+                            openDiffTab(tab.file, versions[1].version, versions[0].version);
+                        }
+                    }
+                    versionMenu.classList.remove('visible');
+                    versionMenuTabId = null;
+                }
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!versionMenu.contains(e.target) && !e.target.classList.contains('tab-version')) {
+                    versionMenu.classList.remove('visible');
+                    versionMenuTabId = null;
+                }
+            });
 
             // --- Event handlers ---
 
-            // File click in nav
+            // File click in nav → fills the active tab
             document.querySelectorAll('.file-row').forEach(row => {
                 row.addEventListener('click', (e) => {
                     e.preventDefault();
                     const file = row.getAttribute('href').slice(1);
-                    // If single tab, replace its file
-                    if (state.tabs.length === 1) {
-                        state.tabs[0].file = file;
-                        state.pendingTabId = null;
-                        render();
-                        return;
-                    }
-                    // Multi-tab: assign to pending if any
-                    if (state.pendingTabId || state.tabs.some(t => !t.file)) {
-                        assignFileToPending(file);
-                    }
-                    // else: no-op (user must clear a tab first or right-click to add)
+                    fillActiveTab(file);
                 });
             });
 
-            // Tab close (×) — delegated
+            // Tab strip click — set active, close, or open version menu
             tabStrip.addEventListener('click', (e) => {
                 if (e.target.classList.contains('tab-close')) {
                     e.stopPropagation();
                     closeTab(e.target.dataset.tabId);
-                } else if (e.target.id === 'tab-add' || e.target.classList.contains('tab-add')) {
-                    // Add new tab to the right of the last one
-                    const last = state.tabs[state.tabs.length - 1];
-                    addTabAt(last.id, 'right');
+                    return;
+                }
+                if (e.target.classList.contains('tab-version')) {
+                    e.stopPropagation();
+                    openVersionMenu(e.target.dataset.tabId, e.target);
+                    return;
+                }
+                const tabEl = e.target.closest('.tab');
+                if (tabEl) {
+                    setActive(tabEl.dataset.tabId);
                 }
             });
 
@@ -1394,19 +2037,45 @@
                 contextTabId = tabEl.dataset.tabId;
                 contextMenu.style.left = e.clientX + 'px';
                 contextMenu.style.top = e.clientY + 'px';
+
+                const tab = state.tabs.find(t => t.id === contextTabId);
+
                 // Disable close if only one tab
                 const closeItem = contextMenu.querySelector('[data-action="close"]');
                 closeItem.classList.toggle('disabled', state.tabs.length <= 1);
+
+                // Disable compare-versions if this tab is not a doc with history
+                const compareItem = contextMenu.querySelector('[data-action="compare-versions"]');
+                const hasHistory = tab && tab.type === 'doc' && tab.file && FILE_VERSIONS[tab.file] && FILE_VERSIONS[tab.file].length >= 2;
+                compareItem.classList.toggle('disabled', !hasHistory);
+
+                // Update line-numbers toggle label based on current state
+                const lnItem = contextMenu.querySelector('[data-action="toggle-line-numbers"]');
+                lnItem.textContent = (tab && tab.showLineNumbers) ? 'Hide line numbers' : 'Show line numbers';
+                lnItem.classList.toggle('disabled', !tab || (tab.type === 'doc' && !tab.file));
+
                 contextMenu.classList.add('visible');
             });
 
             contextMenu.addEventListener('click', (e) => {
                 const action = e.target.dataset.action;
                 if (!action || !contextTabId) return;
-                if (action === 'close' && e.target.classList.contains('disabled')) return;
+                if (e.target.classList.contains('disabled')) return;
                 if (action === 'add-left')  addTabAt(contextTabId, 'left');
                 if (action === 'add-right') addTabAt(contextTabId, 'right');
                 if (action === 'close')     closeTab(contextTabId);
+                if (action === 'compare-versions') {
+                    const tab = state.tabs.find(t => t.id === contextTabId);
+                    if (tab && tab.type === 'doc' && tab.file) {
+                        const versions = FILE_VERSIONS[tab.file];
+                        if (versions && versions.length >= 2) {
+                            openDiffTab(tab.file, versions[1].version, versions[0].version);
+                        }
+                    }
+                }
+                if (action === 'toggle-line-numbers') {
+                    toggleLineNumbers(contextTabId);
+                }
                 contextMenu.classList.remove('visible');
                 contextTabId = null;
             });

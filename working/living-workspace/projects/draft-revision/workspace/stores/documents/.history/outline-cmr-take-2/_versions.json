@@ -1,0 +1,17 @@
+{
+  "$comment": "Per-version metadata for outline-cmr-take-2.md. Each entry corresponds to a snapshot file (or 'latest' for the canonical file).",
+  "file": "outline-cmr-take-2.md",
+  "versions": [
+    {
+      "version": "2026-04-28T16-00-00Z",
+      "captured_at": "2026-04-28T16:00:00Z",
+      "note": "First-pass outline. §3 only carries the decomposition argument; §4 not yet detailed."
+    },
+    {
+      "version": "latest",
+      "captured_at": "2026-04-29T09:00:00Z",
+      "note": "Expanded §3 with library-retrieval and the six-things synthesis. Detailed §4 subsections. Added 'Observations from making this outline' section.",
+      "parent_version": "2026-04-28T16-00-00Z"
+    }
+  ]
+}
