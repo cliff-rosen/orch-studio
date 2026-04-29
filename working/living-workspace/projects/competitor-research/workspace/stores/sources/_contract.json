@@ -1,0 +1,27 @@
+{
+  "type": "Table",
+  "description": "A source we've cited (article, website, report, blog post, etc.).",
+  "schema": {
+    "type": "object",
+    "required": ["id", "title", "type", "captured_at"],
+    "properties": {
+      "id": { "type": "string", "pattern": "^src-\\d{3,}$" },
+      "title": { "type": "string", "minLength": 1 },
+      "url": { "type": "string", "format": "uri" },
+      "type": { "enum": ["article", "website", "blog", "report", "podcast", "g2-review", "linkedin", "press-release"] },
+      "publisher": { "type": "string" },
+      "date_published": { "type": "string", "format": "date" },
+      "captured_at": { "type": "string", "format": "date-time" },
+      "competitor_refs": {
+        "type": "array",
+        "items": { "type": "string" },
+        "description": "Which competitors this source pertains to."
+      },
+      "notes": { "type": "string" }
+    }
+  },
+  "id_field": "id",
+  "title_field": "title",
+  "references": [],
+  "document_columns": []
+}

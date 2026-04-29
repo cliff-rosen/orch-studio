@@ -1,0 +1,9 @@
+{
+  "id": "find-002",
+  "competitor_ref": "comp-001",
+  "dimension_ref": "dim-002",
+  "finding": "Linear's pricing is simple: free up to 10 users, $8 starter, $14 business. No per-feature gating below enterprise — distinctive among peers.",
+  "source_refs": ["src-004"],
+  "strength": "strong",
+  "captured_at": "2026-04-22T10:15:00Z"
+}

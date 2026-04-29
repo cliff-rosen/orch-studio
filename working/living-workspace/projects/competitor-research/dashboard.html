@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plotpoint Competitor Research — Living Workspace</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --text: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+            --link: #1e40af;
+            --bg: #ffffff;
+            --bg-soft: #fafaf9;
+            --border: #e2e8f0;
+            --border-strong: #cbd5e1;
+            --warn: #b45309;
+            --warn-soft: #fef3c7;
+            --ok: #166534;
+            --ok-soft: #dcfce7;
+            --info: #1e40af;
+            --info-soft: #dbeafe;
+            --rose: #9f1239;
+            --rose-soft: #ffe4e6;
+            --neutral-soft: #f1f5f9;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            color: var(--text);
+            background: var(--bg);
+            line-height: 1.65;
+            font-size: 14.5px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        h1, h2, h3 { font-family: 'Inter', sans-serif; line-height: 1.3; font-weight: 700; letter-spacing: -0.015em; }
+        code, pre, .mono { font-family: 'JetBrains Mono', monospace; }
+
+        a { color: var(--link); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+
+        .container { max-width: 1080px; margin: 0 auto; padding: 0 32px; }
+
+        /* SHELL BAR */
+        .shell-bar { border-bottom: 1px solid var(--border); padding: 10px 0; font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; color: var(--text-muted); }
+        .shell-inner { display: flex; align-items: center; gap: 18px; }
+        .shell-inner .val { color: var(--text); }
+        .shell-inner .spacer { flex: 1; }
+        .shell-inner a.shell-link { color: var(--link); font-family: 'Inter', sans-serif; font-size: 0.82rem; }
+        .shell-inner a.shell-link:hover { text-decoration: underline; }
+        .live-pulse { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--ok); margin-right: 6px; }
+
+        /* GOAL */
+        section.goal { padding: 48px 0 36px; border-bottom: 1px solid var(--border); }
+        .section-eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 10px; }
+        section.goal h1 { font-size: 1.7rem; font-weight: 700; margin-bottom: 8px; color: var(--text); max-width: 760px; }
+        section.goal .deliverable { color: var(--text-secondary); font-size: 0.96rem; max-width: 760px; margin-bottom: 20px; }
+        .goal-meta { display: grid; grid-template-columns: 110px 1fr; row-gap: 6px; column-gap: 16px; font-size: 0.86rem; max-width: 760px; }
+        .goal-meta dt { color: var(--text-muted); font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; padding-top: 2px; }
+        .goal-meta dd { color: var(--text); }
+
+        /* LIFECYCLE / WORKFLOW STRIPS */
+        section.lifecycle { padding: 18px 0; border-bottom: 1px solid var(--border); }
+        .lifecycle-row { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; font-size: 0.84rem; margin-bottom: 8px; }
+        .lifecycle-row:last-child { margin-bottom: 0; }
+        .lifecycle-label { font-family: 'JetBrains Mono', monospace; font-size: 0.74rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; min-width: 130px; }
+        .stage { font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; color: var(--text-secondary); cursor: help; border-bottom: 1px dotted var(--border-strong); }
+        .stage .count { color: var(--text); font-weight: 600; }
+        .stage.empty { color: var(--text-muted); }
+        .stage.empty .count { color: var(--text-muted); font-weight: 400; }
+        .stage.current { color: var(--text); border-bottom: 1px solid var(--text); font-weight: 600; }
+        .lifecycle-row .arrow { color: var(--text-muted); font-size: 0.78rem; }
+
+        /* WIDGETS */
+        section.widget { padding: 36px 0; border-bottom: 1px solid var(--border); }
+        section.widget:last-of-type { border-bottom: none; }
+        .widget-header { display: flex; align-items: baseline; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+        .widget-header h2 { font-size: 1.05rem; font-weight: 700; color: var(--text); }
+        .widget-source { font-family: 'JetBrains Mono', monospace; font-size: 0.74rem; color: var(--text-muted); }
+        .widget-source .arrow { color: var(--text-muted); margin: 0 4px; }
+        .terminal-hint { margin-left: auto; font-size: 0.78rem; color: var(--text-muted); font-style: italic; }
+        .terminal-hint::before { content: '⌨ '; font-style: normal; }
+
+        /* SMART TABLE */
+        .smart-table-wrap { overflow-x: auto; }
+        table.smart-table { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
+        table.smart-table thead th { text-align: left; padding: 8px 12px; font-weight: 600; font-size: 0.74rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; border-bottom: 1px solid var(--border); white-space: nowrap; }
+        table.smart-table thead th .sort-ind { color: var(--text-muted); margin-left: 4px; opacity: 0.5; }
+        table.smart-table thead th.sorted .sort-ind { color: var(--text); opacity: 1; }
+        table.smart-table tbody td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+        table.smart-table tbody tr:hover { background: var(--bg-soft); }
+        table.smart-table .col-title { font-weight: 500; min-width: 200px; }
+        table.smart-table .col-detail { color: var(--text-secondary); font-size: 0.85rem; max-width: 460px; }
+
+        /* PILLS */
+        .pill { display: inline-block; font-family: 'JetBrains Mono', monospace; font-size: 0.74rem; padding: 1px 8px; border-radius: 3px; font-weight: 500; }
+        .pill.s-candidate    { background: var(--neutral-soft); color: var(--text-secondary); }
+        .pill.s-shortlisted  { background: var(--info-soft); color: var(--info); }
+        .pill.s-final-three  { background: var(--text); color: var(--bg); }
+        .pill.s-dropped      { background: var(--neutral-soft); color: var(--text-muted); text-decoration: line-through; }
+
+        .pill.weight-high    { background: var(--warn-soft); color: var(--warn); }
+        .pill.weight-medium  { background: var(--info-soft); color: var(--info); }
+        .pill.weight-low     { color: var(--text-muted); padding: 0; }
+
+        .pill.strength-strong   { background: var(--ok-soft); color: var(--ok); }
+        .pill.strength-moderate { background: var(--neutral-soft); color: var(--text-secondary); }
+        .pill.strength-weak     { color: var(--text-muted); padding: 0; }
+
+        .ref { font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; color: var(--link); }
+
+        .empty-cell { color: var(--text-muted); }
+        .filter-line { font-size: 0.78rem; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; margin-bottom: 10px; }
+        .filter-line strong { color: var(--text); font-weight: 500; }
+
+        /* LIST */
+        .list-rows { font-size: 0.88rem; }
+        .list-row { padding: 12px 0; border-bottom: 1px solid var(--border); }
+        .list-row:last-child { border-bottom: none; }
+        .list-row .row-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 2px; }
+        .list-row .row-title { font-weight: 500; }
+        .list-row .row-meta { font-family: 'JetBrains Mono', monospace; font-size: 0.74rem; color: var(--text-muted); }
+        .list-row .row-detail { color: var(--text-secondary); font-size: 0.85rem; line-height: 1.55; }
+
+        /* DOCUMENT */
+        .document-frontmatter { background: var(--bg-soft); border: 1px solid var(--border); border-radius: 4px; padding: 10px 14px; margin-bottom: 16px; font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; color: var(--text-secondary); }
+        .document-frontmatter dt { color: var(--text-muted); display: inline; }
+        .document-frontmatter dd { display: inline; margin-right: 14px; }
+        .document-frontmatter dt::after { content: ': '; }
+
+        .document-body { font-size: 0.95rem; line-height: 1.7; max-width: 760px; }
+        .document-body h1 { font-size: 1.3rem; font-weight: 700; margin: 24px 0 8px; }
+        .document-body h2 { font-size: 1.1rem; font-weight: 700; margin: 20px 0 8px; }
+        .document-body h3 { font-size: 0.98rem; font-weight: 600; margin: 16px 0 6px; }
+        .document-body p { margin-bottom: 10px; }
+        .document-body ul { margin: 8px 0 12px 22px; }
+        .document-body li { margin-bottom: 4px; }
+        .document-body blockquote { border-left: 3px solid var(--border-strong); padding: 6px 14px; color: var(--text-secondary); margin: 12px 0; font-size: 0.9rem; }
+        .document-body code { font-family: 'JetBrains Mono', monospace; font-size: 0.88em; background: var(--neutral-soft); padding: 1px 6px; border-radius: 2px; }
+        .document-body em { color: var(--text-secondary); }
+
+        /* INSPECTOR */
+        details.inspector { border-top: 1px solid var(--border); padding: 18px 0 32px; }
+        details.inspector summary { cursor: pointer; font-family: 'JetBrains Mono', monospace; font-size: 0.84rem; color: var(--text-secondary); list-style: none; display: flex; align-items: center; gap: 8px; }
+        details.inspector summary::-webkit-details-marker { display: none; }
+        details.inspector summary::before { content: '▸'; color: var(--text-muted); transition: transform 0.15s; font-size: 0.7rem; }
+        details.inspector[open] summary::before { transform: rotate(90deg); }
+        details.inspector summary .inspector-tag { color: var(--text-muted); font-size: 0.74rem; margin-left: 4px; }
+        details.inspector .inspector-body { margin-top: 14px; font-size: 0.85rem; color: var(--text-secondary); }
+        details.inspector h3 { font-size: 0.86rem; font-weight: 600; margin: 16px 0 8px; color: var(--text); }
+        details.inspector pre { background: var(--bg-soft); border: 1px solid var(--border); border-radius: 3px; padding: 12px 14px; margin: 8px 0 14px; overflow-x: auto; font-size: 0.78rem; line-height: 1.55; color: var(--text); }
+        details.inspector p { margin-bottom: 10px; }
+        details.inspector code { font-family: 'JetBrains Mono', monospace; font-size: 0.84em; color: var(--text); }
+
+        .muted { color: var(--text-muted); }
+    </style>
+</head>
+<body>
+
+    <!-- SHELL BAR -->
+    <div class="shell-bar">
+        <div class="container shell-inner">
+            <span>workspace: <span class="val">competitor-research</span></span>
+            <span>blueprint: <span class="val">none</span></span>
+            <span>status: <span class="val">operating</span></span>
+            <span>stage: <span class="val">researching</span></span>
+            <span class="spacer"></span>
+            <a href="../../living-workspace-plugin/reference/index.html" class="shell-link">Reference</a>
+            <span><span class="live-pulse"></span><span class="muted">live</span></span>
+        </div>
+    </div>
+
+    <!-- GOAL -->
+    <section class="goal">
+        <div class="container">
+            <p class="section-eyebrow">Goal</p>
+            <h1>Identify and deeply research Plotpoint's top 3 direct competitors to inform Q2 strategic positioning.</h1>
+            <p class="deliverable">A 6-page competitive analysis memo for the executive team, with structured profiles per competitor and a clear differentiation thesis.</p>
+
+            <dl class="goal-meta">
+                <dt>Audience</dt>
+                <dd>Plotpoint executive team — CEO, Head of Product, Head of Marketing</dd>
+                <dt>Timeframe</dt>
+                <dd>Two weeks: April 15 to April 30, 2026</dd>
+                <dt>Success</dt>
+                <dd>Each final competitor profiled across all 5 dimensions; clear evidence-backed differentiation thesis</dd>
+                <dt>Out of scope</dt>
+                <dd>Indirect competitors · customer segments · Plotpoint pricing · internal capability assessment</dd>
+            </dl>
+        </div>
+    </section>
+
+    <!-- LIFECYCLE — workflow stages + competitor lifecycle -->
+    <section class="lifecycle">
+        <div class="container">
+            <div class="lifecycle-row">
+                <span class="lifecycle-label" title="Defined in workspace/_contract.json under 'workflow'. The work's progression. See workspace/method.md for the methodology.">Workflow stage</span>
+                <span class="stage" title="Wide candidate scan.">gathering</span>
+                <span class="arrow">→</span>
+                <span class="stage" title="Narrow to ~5-8 candidates.">shortlisting</span>
+                <span class="arrow">→</span>
+                <span class="stage current" title="Deep research on the final three; populate findings.">researching</span>
+                <span class="arrow">→</span>
+                <span class="stage" title="Build the comparison; identify differentiation thesis.">synthesizing</span>
+                <span class="arrow">→</span>
+                <span class="stage" title="Write the memo.">drafting</span>
+                <span class="arrow">→</span>
+                <span class="stage" title="Polish, citations, executive review.">finalizing</span>
+            </div>
+
+            <div class="lifecycle-row">
+                <span class="lifecycle-label" title="The state machine on the competitors store. Each competitor moves through these states.">Competitor states</span>
+                <span class="stage empty" title="Initial state. Just captured.">candidate <span class="count">0</span></span>
+                <span class="arrow">→</span>
+                <span class="stage empty" title="Narrowed; promising fit.">shortlisted <span class="count">0</span></span>
+                <span class="arrow">→</span>
+                <span class="stage" title="Deep research subjects.">final-three <span class="count">3</span></span>
+                <span class="arrow">→</span>
+                <span class="stage" title="Decided not to research; reason recorded.">dropped <span class="count">2</span></span>
+            </div>
+        </div>
+    </section>
+
+    <!-- COMPETITORS -->
+    <section class="widget">
+        <div class="container">
+            <div class="widget-header">
+                <h2>Competitors</h2>
+                <span class="widget-source">smart-table <span class="arrow">·</span> stores/competitors</span>
+                <span class="terminal-hint">type in terminal to add or update</span>
+            </div>
+
+            <div class="smart-table-wrap">
+                <table class="smart-table">
+                    <thead>
+                        <tr>
+                            <th>name <span class="sort-ind">↕</span></th>
+                            <th class="sorted">state <span class="sort-ind">↑</span></th>
+                            <th>url <span class="sort-ind">↕</span></th>
+                            <th>founded <span class="sort-ind">↕</span></th>
+                            <th>hq <span class="sort-ind">↕</span></th>
+                            <th>employees <span class="sort-ind">↕</span></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="col-title">Linear</td>
+                            <td><span class="pill s-final-three">final-three</span></td>
+                            <td><a href="https://linear.app">linear.app</a></td>
+                            <td>2019</td>
+                            <td>San Francisco, CA</td>
+                            <td>100-200</td>
+                        </tr>
+                        <tr>
+                            <td class="col-title">Asana</td>
+                            <td><span class="pill s-final-three">final-three</span></td>
+                            <td><a href="https://asana.com">asana.com</a></td>
+                            <td>2008</td>
+                            <td>San Francisco, CA</td>
+                            <td>1500+</td>
+                        </tr>
+                        <tr>
+                            <td class="col-title">ClickUp</td>
+                            <td><span class="pill s-final-three">final-three</span></td>
+                            <td><a href="https://clickup.com">clickup.com</a></td>
+                            <td>2017</td>
+                            <td>San Diego, CA</td>
+                            <td>800+</td>
+                        </tr>
+                        <tr>
+                            <td class="col-title">Notion</td>
+                            <td><span class="pill s-dropped">dropped</span></td>
+                            <td><a href="https://notion.so">notion.so</a></td>
+                            <td>2016</td>
+                            <td>San Francisco, CA</td>
+                            <td>500+</td>
+                        </tr>
+                        <tr>
+                            <td class="col-title">Trello</td>
+                            <td><span class="pill s-dropped">dropped</span></td>
+                            <td><a href="https://trello.com">trello.com</a></td>
+                            <td>2011</td>
+                            <td>New York, NY</td>
+                            <td class="muted">Atlassian sub.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- DIMENSIONS -->
+    <section class="widget">
+        <div class="container">
+            <div class="widget-header">
+                <h2>Dimensions</h2>
+                <span class="widget-source">list <span class="arrow">·</span> stores/dimensions</span>
+                <span class="terminal-hint">type in terminal to add or refine</span>
+            </div>
+
+            <div class="list-rows">
+                <div class="list-row">
+                    <div class="row-head">
+                        <span class="row-title">Product depth</span>
+                        <span class="pill weight-high">high</span>
+                    </div>
+                    <div class="row-detail">What can the product actually do? How well does it execute on the core promise of project planning?</div>
+                </div>
+                <div class="list-row">
+                    <div class="row-head">
+                        <span class="row-title">Pricing model</span>
+                        <span class="pill weight-high">high</span>
+                    </div>
+                    <div class="row-detail">Per-seat, per-feature, freemium structure. Determines who's willing/able to adopt and how it scales with team growth.</div>
+                </div>
+                <div class="list-row">
+                    <div class="row-head">
+                        <span class="row-title">Target market</span>
+                        <span class="pill weight-high">high</span>
+                    </div>
+                    <div class="row-detail">Who they sell to and how they go to market. Engineering vs. cross-functional, SMB vs. enterprise.</div>
+                </div>
+                <div class="list-row">
+                    <div class="row-head">
+                        <span class="row-title">Team & funding</span>
+                        <span class="pill weight-medium">medium</span>
+                    </div>
+                    <div class="row-detail">Capital available for product development and GTM. Team caliber affects pace and what's plausible.</div>
+                </div>
+                <div class="list-row">
+                    <div class="row-head">
+                        <span class="row-title">Traction & momentum</span>
+                        <span class="pill weight-medium">medium</span>
+                    </div>
+                    <div class="row-detail">ARR, growth rate, NPS, market mindshare. Are they accelerating or fading?</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FINDINGS -->
+    <section class="widget">
+        <div class="container">
+            <div class="widget-header">
+                <h2>Findings</h2>
+                <span class="widget-source">smart-table <span class="arrow">·</span> stores/findings</span>
+                <span class="terminal-hint">type in terminal to add findings</span>
+            </div>
+
+            <p class="filter-line">9 findings · sorted by <strong>competitor ↑</strong> · gaps remain on dimensions <strong>team & funding</strong> and <strong>traction</strong></p>
+
+            <div class="smart-table-wrap">
+                <table class="smart-table">
+                    <thead>
+                        <tr>
+                            <th class="sorted">competitor <span class="sort-ind">↑</span></th>
+                            <th>dimension <span class="sort-ind">↕</span></th>
+                            <th>finding</th>
+                            <th>strength <span class="sort-ind">↕</span></th>
+                            <th>sources</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="ref">→ Linear</span></td>
+                            <td><span class="ref">→ Product depth</span></td>
+                            <td class="col-detail">Best-in-class on speed and keyboard UX, but deliberately narrow. Refuses breadth in favor of opinionated workflows for software teams.</td>
+                            <td><span class="pill strength-strong">strong</span></td>
+                            <td><span class="ref">src-001</span></td>
+                        </tr>
+                        <tr>
+                            <td><span class="ref">→ Linear</span></td>
+                            <td><span class="ref">→ Pricing model</span></td>
+                            <td class="col-detail">Simple: free up to 10 users, $8 starter, $14 business. No per-feature gating below enterprise — distinctive among peers.</td>
+                            <td><span class="pill strength-strong">strong</span></td>
+                            <td><span class="ref">src-004</span></td>
+                        </tr>
+                        <tr>
+                            <td><span class="ref">→ Linear</span></td>
+                            <td><span class="ref">→ Target market</span></td>
+                            <td class="col-detail">Engineering-led product teams. Cross-functional teams (marketing, ops) are out of scope by design.</td>
+                            <td><span class="pill strength-strong">strong</span></td>
+                            <td><span class="ref">src-001</span></td>
+                        </tr>
+                        <tr>
+                            <td><span class="ref">→ Asana</span></td>
+                            <td><span class="ref">→ Product depth</span></td>
+                            <td class="col-detail">Broadest functional surface: projects, portfolios, OKRs, workflows, automations, reporting. Generalist; depth varies by surface.</td>
+                            <td><span class="pill strength-strong">strong</span></td>
+                            <td><span class="ref">src-002</span></td>
+                        </tr>
+                        <tr>
+                            <td><span class="ref">→ Asana</span></td>
+                            <td><span class="ref">→ Pricing model</span></td>
+                            <td class="col-detail">Heavily feature-gated tiers ($13.49 → $30.49 → custom). Workflows, custom fields, goals are upsells.</td>
+                            <td><span class="pill strength-strong">strong</span></td>
+                            <td><span class="ref">src-005</span></td>
+                        </tr>
+                        <tr>
+                            <td><span class="ref">→ Asana</span></td>
+                            <td><span class="ref">→ Target market</span></td>
+                            <td class="col-detail">Mid-market and enterprise, cross-functionally. ~85% of revenue from teams of 100+. Wedge is enterprise process maturity.</td>
+                            <td><span class="pill strength-strong">strong</span></td>
+                            <td><span class="ref">src-002</span></td>
+                        </tr>
+                        <tr>
+                            <td><span class="ref">→ ClickUp</span></td>
+                            <td><span class="ref">→ Product depth</span></td>
+                            <td class="col-detail">Surface area enormous (tasks, docs, whiteboards, chat, goals, time tracking) — but G2 reviews flag complexity and performance.</td>
+                            <td><span class="pill strength-strong">strong</span></td>
+                            <td><span class="ref">src-003</span></td>
+                        </tr>
+                        <tr>
+                            <td><span class="ref">→ ClickUp</span></td>
+                            <td><span class="ref">→ Pricing model</span></td>
+                            <td class="col-detail">Free Forever + $7-$12 paid tiers. Pitch is bundle replacement: "replace N tools with one."</td>
+                            <td><span class="pill strength-strong">strong</span></td>
+                            <td><span class="ref">src-006</span></td>
+                        </tr>
+                        <tr>
+                            <td><span class="ref">→ ClickUp</span></td>
+                            <td><span class="ref">→ Target market</span></td>
+                            <td class="col-detail">SMB and growing mid-market, horizontally. Goes after price-sensitive buyers consolidating tools.</td>
+                            <td><span class="pill strength-moderate">moderate</span></td>
+                            <td><span class="ref">src-003</span> <span class="ref">src-006</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- SOURCES -->
+    <section class="widget">
+        <div class="container">
+            <div class="widget-header">
+                <h2>Sources</h2>
+                <span class="widget-source">list <span class="arrow">·</span> stores/sources</span>
+                <span class="terminal-hint">type in terminal to add sources</span>
+            </div>
+
+            <div class="list-rows">
+                <div class="list-row">
+                    <div class="row-head">
+                        <span class="row-title"><a href="https://linear.app/method">Linear's Method — engineering-first project tracking</a></span>
+                        <span class="row-meta">website · Linear · → comp-001</span>
+                    </div>
+                </div>
+                <div class="list-row">
+                    <div class="row-head">
+                        <span class="row-title"><a href="https://investors.asana.com/q4-2025">Asana Q4 2025 Earnings Call — work management is the category</a></span>
+                        <span class="row-meta">press-release · 2026-03-12 · → comp-002</span>
+                    </div>
+                </div>
+                <div class="list-row">
+                    <div class="row-head">
+                        <span class="row-title"><a href="https://www.g2.com/products/clickup/reviews">ClickUp G2 Reviews — performance and complexity complaints</a></span>
+                        <span class="row-meta">g2-review · G2 · → comp-003</span>
+                    </div>
+                </div>
+                <div class="list-row">
+                    <div class="row-head">
+                        <span class="row-title"><a href="https://linear.app/pricing">Linear pricing — startup tier and team scaling</a></span>
+                        <span class="row-meta">website · Linear · → comp-001</span>
+                    </div>
+                </div>
+                <div class="list-row">
+                    <div class="row-head">
+                        <span class="row-title"><a href="https://asana.com/pricing">Asana pricing tiers — feature-gated SKUs</a></span>
+                        <span class="row-meta">website · Asana · → comp-002</span>
+                    </div>
+                </div>
+                <div class="list-row">
+                    <div class="row-head">
+                        <span class="row-title"><a href="https://clickup.com/pricing">ClickUp pricing — aggressive freemium</a></span>
+                        <span class="row-meta">website · ClickUp · → comp-003</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- MEMO (DOCUMENT) -->
+    <section class="widget">
+        <div class="container">
+            <div class="widget-header">
+                <h2>Memo</h2>
+                <span class="widget-source">document <span class="arrow">·</span> stores/memo</span>
+                <span class="terminal-hint">type in terminal to draft or revise</span>
+            </div>
+
+            <dl class="document-frontmatter">
+                <dt>title</dt><dd>Plotpoint Competitive Landscape — Top 3 Direct Competitors</dd>
+                <dt>version</dt><dd>0.3 (draft)</dd>
+                <dt>status</dt><dd>draft</dd>
+                <dt>date</dt><dd>2026-04-28</dd>
+                <dt>author</dt><dd>Strategy team</dd>
+            </dl>
+
+            <div class="document-body">
+                <h1>Plotpoint Competitive Landscape — Top 3 Direct Competitors</h1>
+                <blockquote>Status: <strong>draft</strong>. Sections marked TK are not yet written. Findings cited inline reference <code>stores/findings/</code>.</blockquote>
+
+                <h2>Summary</h2>
+                <p>Plotpoint sits in a competitive landscape with three direct competitors who occupy meaningfully different positions: Linear (engineering-led, opinionated), Asana (enterprise generalist), and ClickUp (horizontal SMB consolidator). Each is strong on different axes; none is winning on all. Our differentiation thesis (TK — to be written in synthesis stage) should target the gap each leaves open.</p>
+
+                <h2>Why these three</h2>
+                <p>We surveyed five candidates and dropped two:</p>
+                <ul>
+                    <li><strong>Notion</strong> — competes on documents and knowledge, with project planning as a secondary surface. Different center of gravity.</li>
+                    <li><strong>Trello</strong> — different segment. Personal/light kanban, not the structured planning we target.</li>
+                </ul>
+
+                <h2>Comparative findings</h2>
+                <h3>Product depth</h3>
+                <ul>
+                    <li><strong>Linear</strong> — best-in-class on speed and keyboard UX, but deliberately narrow.</li>
+                    <li><strong>Asana</strong> — broadest surface; generalist; depth varies by surface.</li>
+                    <li><strong>ClickUp</strong> — widest surface but G2 reviews flag complexity and performance.</li>
+                </ul>
+
+                <h3>Pricing model</h3>
+                <ul>
+                    <li><strong>Linear</strong> — simple flat tiers, no per-feature gating below enterprise.</li>
+                    <li><strong>Asana</strong> — heavily feature-gated SKUs; key features upsell.</li>
+                    <li><strong>ClickUp</strong> — Free Forever + value pricing; bundle-replacement pitch.</li>
+                </ul>
+
+                <h3>Target market</h3>
+                <ul>
+                    <li><strong>Linear</strong> — engineering-led product teams.</li>
+                    <li><strong>Asana</strong> — mid-market and enterprise, cross-functionally.</li>
+                    <li><strong>ClickUp</strong> — SMB and growing mid-market, horizontally.</li>
+                </ul>
+
+                <h3>Team &amp; funding (TK)</h3>
+                <p><em>Researching this dimension. To be populated in next pass.</em></p>
+
+                <h3>Traction &amp; momentum (TK)</h3>
+                <p><em>Researching this dimension. To be populated in next pass.</em></p>
+
+                <h2>Differentiation thesis (TK — synthesis stage)</h2>
+                <p>The thesis lands once findings are complete on all five dimensions. Working hypothesis: there is a real gap for <strong>opinionated cross-functional planning</strong> — Linear's opinion + Asana's cross-functional fit + something better than ClickUp's bundle-everything pitch. To be developed.</p>
+
+                <h2>Recommendations (TK)</h2>
+                <p><em>To follow synthesis.</em></p>
+            </div>
+        </div>
+    </section>
+
+    <!-- INSPECTOR -->
+    <div class="container">
+        <details class="inspector">
+            <summary>Inspector <span class="inspector-tag">what's on disk</span></summary>
+            <div class="inspector-body">
+                <p>What the plugin reads to render this dashboard. For an explanation of the whole system (substrate, stores, contracts, blueprints, methodology), see the <a href="../../living-workspace-plugin/reference/index.html">Reference</a> link at the top.</p>
+
+                <h3>Files in this workspace</h3>
+                <pre>competitor-research/
+├── workspace/
+│   ├── _contract.json              workspace contract: 5 lifecycle states, 6-stage workflow, cross-store invariants
+│   ├── state.json                  status: operating, current_workflow_stage: researching
+│   ├── goal.json                   purpose, deliverable, success criteria
+│   ├── manual.md                   universal operating manual
+│   ├── method.md                   competitive-analysis methodology (per-stage rhythms)
+│   ├── stores/
+│   │   ├── competitors/            Table; 4 states (candidate→shortlisted→final-three / dropped)
+│   │   │   ├── _contract.json      with document_columns: profile
+│   │   │   ├── comp-001.json       Linear (final-three)
+│   │   │   ├── comp-001.profile.md sidecar profile document
+│   │   │   ├── comp-002, comp-003  Asana, ClickUp (final-three) + .profile.md
+│   │   │   └── comp-004, comp-005  Notion, Trello (dropped, no profile)
+│   │   ├── dimensions/             Table; stateless. 5 dimensions
+│   │   ├── findings/               Table; cross-product. 9 findings (3 competitors × 3 high-priority dimensions)
+│   │   │                            references competitors and dimensions; cites sources
+│   │   ├── sources/                Table; stateless. 6 sources
+│   │   └── memo/                   Document; the deliverable. body.md + front-matter
+│   ├── pages/
+│   │   └── dashboard.json          5 rows (competitors, dimensions, findings, sources, memo)
+│   └── escapes/                    (empty)
+├── log.md                          decisions + spine candidates
+└── dashboard.html                  this file</pre>
+
+                <h3>Active page descriptor (workspace/pages/dashboard.json)</h3>
+                <pre>{
+  "name": "dashboard",
+  "rows": [
+    { "widgets": [{ "widget": "smart-table", "store": "stores/competitors" }] },
+    { "widgets": [{ "widget": "list",        "store": "stores/dimensions" }] },
+    { "widgets": [{ "widget": "smart-table", "store": "stores/findings" }] },
+    { "widgets": [{ "widget": "list",        "store": "stores/sources" }] },
+    { "widgets": [{ "widget": "document",    "store": "stores/memo" }] }
+  ]
+}</pre>
+
+                <h3>How the cross-references work</h3>
+                <p>Each <code>finding</code> row references one <code>competitor_ref</code>, one <code>dimension_ref</code>, and one or more <code>source_refs</code>. The plugin would resolve these at render time so the table cells show <code>→ Linear</code> instead of <code>comp-001</code>. Cross-store invariants (in <code>workspace/_contract.json</code>) declare these references must point at existing rows.</p>
+            </div>
+        </details>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,41 @@
+{
+  "lifecycle": {
+    "states": [
+      { "name": "goal-defining", "description": "Eliciting the workspace goal." },
+      { "name": "contracts-drafting", "description": "Goal set; drafting workspace and store contracts." },
+      { "name": "operating", "description": "Doing the document-revision work." },
+      { "name": "wrapping-up", "description": "Final draft being polished; refusing structural changes." },
+      { "name": "archived", "description": "Final shipped; read-only.", "terminal": true }
+    ],
+    "transitions": [
+      { "from": "goal-defining", "to": "contracts-drafting" },
+      { "from": "contracts-drafting", "to": "goal-defining" },
+      { "from": "contracts-drafting", "to": "operating" },
+      { "from": "operating", "to": "contracts-drafting" },
+      { "from": "operating", "to": "wrapping-up" },
+      { "from": "wrapping-up", "to": "operating" },
+      { "from": "wrapping-up", "to": "archived" }
+    ]
+  },
+  "initial_state": "goal-defining",
+  "required_stores": [
+    { "state": "operating", "stores": ["stores/inputs", "stores/harvest", "stores/versions"] }
+  ],
+  "workflow": {
+    "stages": [
+      { "name": "intake", "description": "Input document(s) loaded and read." },
+      { "name": "harvesting", "description": "Going through cmr take 2 carefully. Capturing what's good in stores/harvest with notes on why and what state it's in." },
+      { "name": "drafting", "description": "Writing v1 from the harvest, cutting what's weak, developing the strongest content." },
+      { "name": "iterating", "description": "Revisions, applying changes, version progression." },
+      { "name": "finalizing", "description": "Polish; executive review; ship." }
+    ],
+    "transitions": [
+      { "from": "intake", "to": "harvesting" },
+      { "from": "harvesting", "to": "drafting" },
+      { "from": "drafting", "to": "iterating" },
+      { "from": "iterating", "to": "finalizing" },
+      { "from": "finalizing", "to": "iterating", "guard": "Revisions needed beyond polish." }
+    ]
+  },
+  "cross_store_invariants": []
+}

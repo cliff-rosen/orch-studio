@@ -1,0 +1,10 @@
+{
+  "id": "src-005",
+  "title": "Asana pricing tiers — feature-gated SKUs",
+  "url": "https://asana.com/pricing",
+  "type": "website",
+  "publisher": "Asana",
+  "captured_at": "2026-04-20T10:45:00Z",
+  "competitor_refs": ["comp-002"],
+  "notes": "Multiple paid tiers (Starter $13.49, Advanced $30.49, Enterprise custom). Significant features gated to higher tiers — workflows, custom fields, portfolios, goals."
+}

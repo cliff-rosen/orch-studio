@@ -1,0 +1,9 @@
+{
+  "id": "find-001",
+  "competitor_ref": "comp-001",
+  "dimension_ref": "dim-001",
+  "finding": "Linear's product depth is best-in-class on speed and keyboard UX, but deliberately narrow. They refuse breadth in favor of opinionated workflows for software teams.",
+  "source_refs": ["src-001"],
+  "strength": "strong",
+  "captured_at": "2026-04-22T10:00:00Z"
+}

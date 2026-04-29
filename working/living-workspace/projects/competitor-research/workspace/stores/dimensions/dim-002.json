@@ -1,0 +1,6 @@
+{
+  "id": "dim-002",
+  "name": "Pricing model",
+  "why_it_matters": "Per-seat, per-feature, freemium structure. Determines who's willing/able to adopt and how it scales with team growth.",
+  "weight": "high"
+}

@@ -1,0 +1,74 @@
+{
+  "name": "dashboard",
+  "title": "Dashboard",
+  "rows": [
+    {
+      "widgets": [
+        {
+          "widget": "smart-table",
+          "store": "stores/competitors",
+          "title": "Competitors",
+          "config": {
+            "columns": [
+              { "field": "name" },
+              { "field": "state" },
+              { "field": "url" },
+              { "field": "founded" },
+              { "field": "hq" },
+              { "field": "employees" }
+            ],
+            "sort": { "field": "state", "direction": "asc" }
+          }
+        }
+      ]
+    },
+    {
+      "widgets": [
+        {
+          "widget": "list",
+          "store": "stores/dimensions",
+          "title": "Dimensions",
+          "config": { "fields": ["name", "weight", "why_it_matters"], "sort": { "field": "weight", "direction": "asc" } }
+        }
+      ]
+    },
+    {
+      "widgets": [
+        {
+          "widget": "smart-table",
+          "store": "stores/findings",
+          "title": "Findings",
+          "config": {
+            "columns": [
+              { "field": "competitor_ref" },
+              { "field": "dimension_ref" },
+              { "field": "finding" },
+              { "field": "strength" },
+              { "field": "source_refs" }
+            ],
+            "sort": { "field": "competitor_ref", "direction": "asc" }
+          }
+        }
+      ]
+    },
+    {
+      "widgets": [
+        {
+          "widget": "list",
+          "store": "stores/sources",
+          "title": "Sources",
+          "config": { "fields": ["title", "type", "publisher", "competitor_refs"] }
+        }
+      ]
+    },
+    {
+      "widgets": [
+        {
+          "widget": "document",
+          "store": "stores/memo",
+          "title": "Memo (draft)"
+        }
+      ]
+    }
+  ]
+}

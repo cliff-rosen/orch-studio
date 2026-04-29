@@ -1,0 +1,34 @@
+{
+  "type": "Document",
+  "mode": "collection",
+  "naming": "free",
+  "description": "All documents in this workspace — sources, extractions, notes, drafts, and the eventual deliverable. Freely added as work emerges. Front-matter declares each document's role.",
+  "front_matter_schema": {
+    "type": "object",
+    "required": ["kind"],
+    "properties": {
+      "kind": {
+        "enum": ["source", "extraction", "note", "draft", "deliverable", "comparison"],
+        "description": "The role this document plays in the workspace."
+      },
+      "title": { "type": "string" },
+      "parent": {
+        "type": "string",
+        "description": "Filename (without .md) of the predecessor document, if any."
+      },
+      "order": {
+        "type": "integer",
+        "description": "Sort hint for grouping in nav."
+      },
+      "focus": {
+        "type": "boolean",
+        "default": false,
+        "description": "If true, this is a focal source/draft — surface prominently in the nav."
+      },
+      "created_at": { "type": "string", "format": "date-time" }
+    }
+  },
+  "body_type": "markdown",
+  "embeds": [],
+  "invariants": []
+}

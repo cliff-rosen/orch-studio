@@ -1,0 +1,10 @@
+{
+  "id": "src-004",
+  "title": "Linear pricing — startup tier and team scaling",
+  "url": "https://linear.app/pricing",
+  "type": "website",
+  "publisher": "Linear",
+  "captured_at": "2026-04-20T10:30:00Z",
+  "competitor_refs": ["comp-001"],
+  "notes": "Free tier up to 10 users; $8/user starter, $14/user business, custom enterprise. Notably no per-feature gating beyond enterprise tier."
+}

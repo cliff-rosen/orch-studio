@@ -1,0 +1,52 @@
+{
+  "type": "Table",
+  "description": "A company we're considering as a competitor. Has a state machine reflecting its position in our research.",
+  "schema": {
+    "type": "object",
+    "required": ["id", "name", "state", "captured_at"],
+    "properties": {
+      "id": { "type": "string", "pattern": "^comp-\\d{3,}$" },
+      "name": { "type": "string", "minLength": 1 },
+      "url": { "type": "string", "format": "uri" },
+      "founded": { "type": "integer" },
+      "hq": { "type": "string" },
+      "employees": { "type": "string", "description": "Approximate range, e.g., '50-100' or '500+'" },
+      "state": { "enum": ["candidate", "shortlisted", "final-three", "dropped"] },
+      "drop_reason": { "type": "string", "description": "Required when state == dropped." },
+      "captured_at": { "type": "string", "format": "date-time" },
+      "shortlisted_at": { "type": "string", "format": "date-time" },
+      "promoted_at": { "type": "string", "format": "date-time" }
+    }
+  },
+  "states": ["candidate", "shortlisted", "final-three", "dropped"],
+  "initial_state": "candidate",
+  "transitions": [
+    { "from": "candidate", "to": "shortlisted" },
+    { "from": "candidate", "to": "dropped", "guard": "drop_reason must be set" },
+    { "from": "shortlisted", "to": "final-three" },
+    { "from": "shortlisted", "to": "dropped", "guard": "drop_reason must be set" },
+    { "from": "final-three", "to": "shortlisted" }
+  ],
+  "invariants": [
+    {
+      "description": "If state == dropped, drop_reason must be set.",
+      "rule": {
+        "if": { "properties": { "state": { "const": "dropped" } } },
+        "then": { "required": ["drop_reason"] }
+      }
+    },
+    {
+      "description": "If state == final-three, promoted_at must be set.",
+      "rule": {
+        "if": { "properties": { "state": { "const": "final-three" } } },
+        "then": { "required": ["promoted_at"] }
+      }
+    }
+  ],
+  "id_field": "id",
+  "title_field": "name",
+  "references": [],
+  "document_columns": [
+    { "field": "profile", "description": "Per-competitor research profile, written during the researching stage." }
+  ]
+}

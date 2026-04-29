@@ -8,14 +8,28 @@
   "properties": {
     "type": { "const": "Document" },
     "description": { "type": "string" },
+    "mode": {
+      "enum": ["singleton", "collection"],
+      "default": "singleton",
+      "description": "singleton = one body.md file (deliverable case); collection = many <name>.md files (working folder case)."
+    },
     "front_matter_schema": {
       "type": "object",
-      "description": "JSON Schema for the document's front-matter / metadata. Optional."
+      "description": "JSON Schema for the document's front-matter. In singleton mode, applies to the single body.md. In collection mode, applies to every file in the folder."
     },
     "body_type": {
       "type": "string",
       "enum": ["markdown", "html"],
       "default": "markdown"
+    },
+    "naming": {
+      "enum": ["free", "id-pattern"],
+      "default": "free",
+      "description": "Collection mode only. 'free' = any filename (e.g., 'source-cmr-take-2.md'). 'id-pattern' = enforce a pattern like 'doc-001.md'."
+    },
+    "id_pattern": {
+      "type": "string",
+      "description": "If naming == 'id-pattern', the regex pattern files must match."
     },
     "embeds": {
       "type": "array",

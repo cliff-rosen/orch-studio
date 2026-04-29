@@ -1,0 +1,11 @@
+{
+  "workspace_id": "draft-revision",
+  "title": "Aftershoot Methodology — Draft Revision",
+  "created_at": "2026-04-28T15:00:00Z",
+  "last_modified": "2026-04-28T15:00:00Z",
+  "status": "operating",
+  "current_workflow_stage": "harvesting",
+  "domain_hint": "document-revision",
+  "blueprint": null,
+  "meta_schema_version": "0.1"
+}

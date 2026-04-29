@@ -1,0 +1,29 @@
+{
+  "type": "Table",
+  "description": "A research finding for a specific (competitor × dimension) cell. Each finding cites at least one source.",
+  "schema": {
+    "type": "object",
+    "required": ["id", "competitor_ref", "dimension_ref", "finding", "source_refs", "captured_at"],
+    "properties": {
+      "id": { "type": "string", "pattern": "^find-\\d{3,}$" },
+      "competitor_ref": { "type": "string", "description": "References a competitor id." },
+      "dimension_ref": { "type": "string", "description": "References a dimension id." },
+      "finding": { "type": "string", "description": "Concise statement of what we learned." },
+      "source_refs": {
+        "type": "array",
+        "items": { "type": "string" },
+        "minItems": 1,
+        "description": "References to source ids. At least one required."
+      },
+      "strength": { "enum": ["strong", "moderate", "weak"], "default": "moderate", "description": "How confident we are in this finding." },
+      "captured_at": { "type": "string", "format": "date-time" }
+    }
+  },
+  "id_field": "id",
+  "title_field": "finding",
+  "references": [
+    { "field": "competitor_ref", "target_store": "stores/competitors" },
+    { "field": "dimension_ref", "target_store": "stores/dimensions" }
+  ],
+  "document_columns": []
+}

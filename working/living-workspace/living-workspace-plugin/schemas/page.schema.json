@@ -50,12 +50,13 @@
             "tree",
             "graph",
             "file-browser",
+            "diff",
             "custom"
           ]
         },
         "store": {
           "type": "string",
-          "description": "Path to the store this widget renders, e.g. 'stores/tasks'."
+          "description": "Path to the store this widget renders, e.g. 'stores/tasks'. Optional for 'diff' (uses left/right config instead)."
         },
         "title": {
           "type": "string",

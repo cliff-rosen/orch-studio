@@ -1,0 +1,22 @@
+{
+  "type": "Document",
+  "description": "The deliverable: a competitive analysis memo for the executive team.",
+  "front_matter_schema": {
+    "type": "object",
+    "required": ["title", "version", "author", "date"],
+    "properties": {
+      "title": { "type": "string" },
+      "version": { "type": "string" },
+      "author": { "type": "string" },
+      "date": { "type": "string", "format": "date" },
+      "status": { "enum": ["draft", "review", "final"] }
+    }
+  },
+  "body_type": "markdown",
+  "embeds": [
+    { "target_store": "stores/competitors", "syntax": "{{ embed: stores/competitors }}" },
+    { "target_store": "stores/dimensions", "syntax": "{{ embed: stores/dimensions }}" },
+    { "target_store": "stores/findings", "syntax": "{{ embed: stores/findings }}" }
+  ],
+  "invariants": []
+}

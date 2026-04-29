@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aftershoot Methodology — Draft Revision</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --text: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+            --link: #1e40af;
+            --bg: #ffffff;
+            --bg-soft: #fafaf9;
+            --border: #e2e8f0;
+            --border-strong: #cbd5e1;
+            --warn: #b45309;
+            --warn-soft: #fef3c7;
+            --ok: #166534;
+            --ok-soft: #dcfce7;
+            --info: #1e40af;
+            --info-soft: #dbeafe;
+            --neutral-soft: #f1f5f9;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            color: var(--text);
+            background: var(--bg);
+            line-height: 1.65;
+            font-size: 14.5px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        h1, h2, h3 { font-family: 'Inter', sans-serif; line-height: 1.3; font-weight: 700; letter-spacing: -0.015em; }
+        code, pre, .mono { font-family: 'JetBrains Mono', monospace; }
+
+        a { color: var(--link); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+
+        .container { max-width: 1080px; margin: 0 auto; padding: 0 32px; }
+
+        /* SHELL */
+        .shell-bar { border-bottom: 1px solid var(--border); padding: 10px 0; font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; color: var(--text-muted); }
+        .shell-inner { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+        .shell-inner .val { color: var(--text); }
+        .shell-inner .spacer { flex: 1; }
+        .shell-inner a.shell-link { color: var(--link); font-family: 'Inter', sans-serif; font-size: 0.82rem; }
+        .live-pulse { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--ok); margin-right: 6px; }
+
+        /* GOAL */
+        section.goal { padding: 48px 0 36px; border-bottom: 1px solid var(--border); }
+        .section-eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 10px; }
+        section.goal h1 { font-size: 1.6rem; font-weight: 700; margin-bottom: 8px; max-width: 760px; }
+        section.goal .deliverable { color: var(--text-secondary); font-size: 0.96rem; max-width: 760px; margin-bottom: 20px; }
+        .goal-meta { display: grid; grid-template-columns: 110px 1fr; row-gap: 6px; column-gap: 16px; font-size: 0.86rem; max-width: 760px; }
+        .goal-meta dt { color: var(--text-muted); font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; padding-top: 2px; }
+        .goal-meta dd { color: var(--text); }
+
+        /* LIFECYCLE */
+        section.lifecycle { padding: 18px 0; border-bottom: 1px solid var(--border); }
+        .lifecycle-row { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; font-size: 0.84rem; margin-bottom: 8px; }
+        .lifecycle-row:last-child { margin-bottom: 0; }
+        .lifecycle-label { font-family: 'JetBrains Mono', monospace; font-size: 0.74rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; min-width: 140px; }
+        .stage { font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; color: var(--text-secondary); cursor: help; border-bottom: 1px dotted var(--border-strong); }
+        .stage.empty { color: var(--text-muted); }
+        .stage.current { color: var(--text); border-bottom: 1px solid var(--text); font-weight: 600; }
+        .lifecycle-row .arrow { color: var(--text-muted); font-size: 0.78rem; }
+
+        /* WIDGETS */
+        section.widget { padding: 36px 0; border-bottom: 1px solid var(--border); }
+        section.widget:last-of-type { border-bottom: none; }
+        .widget-header { display: flex; align-items: baseline; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+        .widget-header h2 { font-size: 1.05rem; font-weight: 700; }
+        .widget-source { font-family: 'JetBrains Mono', monospace; font-size: 0.74rem; color: var(--text-muted); }
+        .widget-source .arrow { color: var(--text-muted); margin: 0 4px; }
+        .terminal-hint { margin-left: auto; font-size: 0.78rem; color: var(--text-muted); font-style: italic; }
+        .terminal-hint::before { content: '⌨ '; font-style: normal; }
+
+        /* DOCUMENT */
+        details.document-widget { background: var(--bg); }
+        details.document-widget summary { cursor: pointer; list-style: none; }
+        details.document-widget summary::-webkit-details-marker { display: none; }
+
+        .document-frontmatter { background: var(--bg-soft); border: 1px solid var(--border); border-radius: 4px; padding: 10px 14px; font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 10px; }
+        .document-frontmatter dt { color: var(--text-muted); display: inline; }
+        .document-frontmatter dd { display: inline; margin-right: 14px; }
+        .document-frontmatter dt::after { content: ': '; }
+
+        .document-toc { font-size: 0.88rem; }
+        .document-toc h3 { font-size: 0.86rem; font-weight: 600; margin-bottom: 8px; color: var(--text); display: flex; align-items: center; gap: 8px; }
+        .document-toc h3::before { content: '▸'; color: var(--text-muted); transition: transform 0.15s; font-size: 0.7rem; }
+        details[open] .document-toc h3::before { transform: rotate(90deg); }
+        .document-toc ul { margin-left: 22px; color: var(--text-secondary); }
+        .document-toc li { margin: 2px 0; }
+        .document-toc li.focused { color: var(--text); font-weight: 500; }
+        .document-toc li .meta { font-family: 'JetBrains Mono', monospace; font-size: 0.74rem; color: var(--text-muted); margin-left: 6px; }
+
+        .document-body { font-size: 0.95rem; line-height: 1.7; max-width: 760px; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
+        .document-body h1 { font-size: 1.3rem; margin: 24px 0 8px; }
+        .document-body h2 { font-size: 1.1rem; margin: 20px 0 8px; }
+        .document-body h3 { font-size: 0.98rem; font-weight: 600; margin: 16px 0 6px; }
+        .document-body p { margin-bottom: 10px; }
+        .document-body ul { margin: 8px 0 12px 22px; }
+
+        /* TABLE */
+        .smart-table-wrap { overflow-x: auto; }
+        table.smart-table { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
+        table.smart-table thead th { text-align: left; padding: 8px 12px; font-weight: 600; font-size: 0.74rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; border-bottom: 1px solid var(--border); white-space: nowrap; }
+        table.smart-table thead th .sort-ind { color: var(--text-muted); margin-left: 4px; opacity: 0.5; }
+
+        .empty-state {
+            border: 1px dashed var(--border-strong);
+            border-radius: 4px;
+            padding: 24px 28px;
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            background: var(--bg-soft);
+        }
+
+        .empty-state .empty-icon {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-muted);
+            font-size: 0.78rem;
+            margin-bottom: 6px;
+        }
+
+        .empty-state strong { color: var(--text); font-weight: 600; }
+
+        /* INSPECTOR */
+        details.inspector { border-top: 1px solid var(--border); padding: 18px 0 32px; }
+        details.inspector summary { cursor: pointer; font-family: 'JetBrains Mono', monospace; font-size: 0.84rem; color: var(--text-secondary); list-style: none; display: flex; align-items: center; gap: 8px; }
+        details.inspector summary::-webkit-details-marker { display: none; }
+        details.inspector summary::before { content: '▸'; color: var(--text-muted); transition: transform 0.15s; font-size: 0.7rem; }
+        details.inspector[open] summary::before { transform: rotate(90deg); }
+        details.inspector summary .inspector-tag { color: var(--text-muted); font-size: 0.74rem; margin-left: 4px; }
+        details.inspector .inspector-body { margin-top: 14px; font-size: 0.85rem; color: var(--text-secondary); }
+        details.inspector h3 { font-size: 0.86rem; font-weight: 600; margin: 16px 0 8px; color: var(--text); }
+        details.inspector pre { background: var(--bg-soft); border: 1px solid var(--border); border-radius: 3px; padding: 12px 14px; margin: 8px 0 14px; overflow-x: auto; font-size: 0.78rem; line-height: 1.55; color: var(--text); }
+        details.inspector p { margin-bottom: 10px; }
+
+        .muted { color: var(--text-muted); }
+        .focus-tag {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.72rem;
+            background: var(--info-soft);
+            color: var(--info);
+            padding: 1px 7px;
+            border-radius: 3px;
+            margin-left: 6px;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- SHELL -->
+    <div class="shell-bar">
+        <div class="container shell-inner">
+            <span>workspace: <span class="val">draft-revision</span></span>
+            <span>blueprint: <span class="val">none</span></span>
+            <span>status: <span class="val">operating</span></span>
+            <span>stage: <span class="val">harvesting</span></span>
+            <span class="spacer"></span>
+            <a href="../../living-workspace-plugin/reference/index.html" class="shell-link">Reference</a>
+            <span><span class="live-pulse"></span><span class="muted">live</span></span>
+        </div>
+    </div>
+
+    <!-- GOAL -->
+    <section class="goal">
+        <div class="container">
+            <p class="section-eyebrow">Goal</p>
+            <h1>Take 'cmr take 2' of the AI-driven photo editing methodology spec and improve it — harvest what's good, cut what's weak, develop the good further.</h1>
+            <p class="deliverable">A revised version of the methodology document. Same kind of artifact (technical methodology spec for the Aftershoot photo editing coach), tighter and stronger than cmr take 2.</p>
+
+            <dl class="goal-meta">
+                <dt>Audience</dt>
+                <dd>Same as the source — Aftershoot engineering and product team</dd>
+                <dt>Source</dt>
+                <dd>cmr take 2 only — earlier versions are context, not material</dd>
+                <dt>Method</dt>
+                <dd>Harvest then rebuild (see workspace/method.md)</dd>
+                <dt>Out of scope</dt>
+                <dd>Synthesizing across all four versions · format transformation · adding new sections</dd>
+            </dl>
+        </div>
+    </section>
+
+    <!-- LIFECYCLE -->
+    <section class="lifecycle">
+        <div class="container">
+            <div class="lifecycle-row">
+                <span class="lifecycle-label" title="The work's progression. See workspace/method.md for the methodology.">Workflow stage</span>
+                <span class="stage" title="Input loaded.">intake</span>
+                <span class="arrow">→</span>
+                <span class="stage current" title="Reading cmr take 2 carefully; capturing what's good in stores/harvest.">harvesting</span>
+                <span class="arrow">→</span>
+                <span class="stage" title="Writing v1 from the harvest, cutting what's weak.">drafting</span>
+                <span class="arrow">→</span>
+                <span class="stage" title="Versions 2+, refining.">iterating</span>
+                <span class="arrow">→</span>
+                <span class="stage" title="Polish; ship.">finalizing</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- INPUTS / SOURCE -->
+    <section class="widget">
+        <div class="container">
+            <div class="widget-header">
+                <h2>Source</h2>
+                <span class="widget-source">document <span class="arrow">·</span> stores/inputs</span>
+                <span class="terminal-hint">read-only</span>
+            </div>
+
+            <dl class="document-frontmatter">
+                <dt>title</dt><dd>Aftershoot LLM-based Coach — Methodology Drafts</dd>
+                <dt>contains_versions</dt><dd>4</dd>
+                <dt>captured_at</dt><dd>2026-04-28</dd>
+                <dt>source</dt><dd><a href="https://docs.google.com/document/d/1GCkp0We-pvND54BwqALGKlSBBV5LRjBltiQx2LRBMO4/edit">Google Doc</a></dd>
+            </dl>
+
+            <details class="document-widget" open>
+                <div class="document-toc">
+                    <h3>Versions in source <span class="muted" style="font-weight: 400; font-size: 0.78rem; margin-left: 4px;">(focus is cmr take 2)</span></h3>
+                    <ul>
+                        <li>v1 — AI-Driven Photo Editing Methodology <span class="meta">~6 sections, baseline</span></li>
+                        <li>v2 — Updated AI-Driven Photo Editing Methodology / "Aftershoot: Orchestration-Based..." <span class="meta">v1 with light revisions; +token-cost line</span></li>
+                        <li>v3 — Draft - Aftershoot LLM Coach <span class="meta">Hypothesis + Options framing</span></li>
+                        <li class="focused">v4 — cmr take 2 <span class="focus-tag">focus</span> <span class="meta">Substantially expanded; new §3 (decomposition + library retrieval)</span></li>
+                    </ul>
+                </div>
+
+                <summary style="margin-top: 14px; font-size: 0.82rem; color: var(--link);">▸ Show full source body</summary>
+
+                <div class="document-body">
+                    <p class="muted" style="font-style: italic;">Full body in <code>workspace/stores/inputs/body.md</code>. Showing cmr take 2 sections only:</p>
+
+                    <h2>cmr take 2 — Section structure</h2>
+                    <ul>
+                        <li><strong>§1 Goal</strong> — what the system does, with a forward reference to §3</li>
+                        <li><strong>§2 Target User Experience</strong> — closed-loop interaction model</li>
+                        <li><strong>§3 Why a Mega-Prompt Falls Short — and What Orchestration Actually Buys</strong> — the substantive argument: decomposition + library-retrieval</li>
+                        <li><strong>§4 What This Translates to in the Build</strong> — workflow library, prompt library, orchestrator, LLM as 4 parts</li>
+                        <li><strong>§5 Development and Refinement Loop</strong> — how the methodology gets iteratively improved</li>
+                    </ul>
+                    <p class="muted" style="font-size: 0.85rem;">(Note: cmr take 2 dropped the "Critical Success Factors" section that earlier versions had.)</p>
+                </div>
+            </details>
+        </div>
+    </section>
+
+    <!-- HARVEST -->
+    <section class="widget">
+        <div class="container">
+            <div class="widget-header">
+                <h2>Harvest</h2>
+                <span class="widget-source">smart-table <span class="arrow">·</span> stores/harvest</span>
+                <span class="terminal-hint">type in terminal as we go through cmr take 2</span>
+            </div>
+
+            <div class="empty-state">
+                <div class="empty-icon">stores/harvest/</div>
+                <strong>No items yet.</strong> Harvest fills as we walk cmr take 2 section by section.<br>
+                Each row will be a passage, framing move, phrase, or argument worth preserving — categorized, with a note on why it works, and a state (raw → preserved / developed / relocated / dropped).
+            </div>
+        </div>
+    </section>
+
+    <!-- VERSIONS -->
+    <section class="widget">
+        <div class="container">
+            <div class="widget-header">
+                <h2>Versions</h2>
+                <span class="widget-source">smart-table <span class="arrow">·</span> stores/versions</span>
+                <span class="terminal-hint">first draft after harvest</span>
+            </div>
+
+            <div class="empty-state">
+                <div class="empty-icon">stores/versions/</div>
+                <strong>No versions yet.</strong> The first draft (v1) will appear here once harvest is rich enough.<br>
+                Each version is a row + sidecar markdown body. We can have many versions visible side-by-side.
+            </div>
+        </div>
+    </section>
+
+    <!-- INSPECTOR -->
+    <div class="container">
+        <details class="inspector">
+            <summary>Inspector <span class="inspector-tag">what's on disk</span></summary>
+            <div class="inspector-body">
+                <p>What the plugin reads to render this dashboard. For an explanation of the system (substrate, stores, contracts, blueprints, methodology), see the <a href="../../living-workspace-plugin/reference/index.html">Reference</a> link at the top.</p>
+
+                <h3>Files in this workspace</h3>
+                <pre>draft-revision/
+├── workspace/
+│   ├── _contract.json              workspace contract: 5 lifecycle states, 5-stage workflow (intake → harvesting → drafting → iterating → finalizing)
+│   ├── state.json                  status: operating, current_workflow_stage: harvesting
+│   ├── goal.json                   purpose, deliverable, scope
+│   ├── manual.md                   universal operating manual
+│   ├── method.md                   harvest-then-rebuild methodology
+│   ├── stores/
+│   │   ├── inputs/                 Document; the source draft (4 versions, focus = cmr take 2)
+│   │   │   ├── _contract.json
+│   │   │   └── body.md
+│   │   ├── harvest/                Table; items to preserve/develop. State machine: raw → preserved/developed/relocated/dropped
+│   │   │   └── _contract.json      (no instances yet)
+│   │   └── versions/               Table with document column; drafts of the rebuilt doc
+│   │       └── _contract.json      (no instances yet)
+│   ├── pages/
+│   │   └── dashboard.json          the page composition you're looking at
+│   └── escapes/                    (empty)
+├── log.md                          decisions + spine candidates
+└── dashboard.html                  this file</pre>
+
+                <h3>Three stores, simple shape</h3>
+                <p><strong>inputs</strong> (read-only) → <strong>harvest</strong> (extracted gold) → <strong>versions</strong> (rebuilds drawing on harvest)</p>
+
+                <h3>Where to start</h3>
+                <p>Workflow stage is <code>harvesting</code>. Next move: walk cmr take 2 section by section, capturing strong content into <code>stores/harvest</code> with state <code>raw</code>, then advancing those rows to <code>preserved</code> / <code>developed</code> as the new draft incorporates them.</p>
+            </div>
+        </details>
+    </div>
+
+</body>
+</html>

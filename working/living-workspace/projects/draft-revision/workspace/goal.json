@@ -1,0 +1,23 @@
+{
+  "purpose": "Take 'cmr take 2' of the AI-driven photo editing methodology spec and improve it — harvest what's good, cut what's weak, develop the good further. The result serves the same purpose as the source.",
+  "deliverable": "A revised version of the methodology document. Same kind of artifact (technical methodology spec for the Aftershoot photo editing coach), tighter and stronger than cmr take 2.",
+  "audience": "Same as the source — Aftershoot engineering and product team.",
+  "timeframe": "Working session(s).",
+  "scope_in": [
+    "Source: cmr take 2 only (other versions are context, not material)",
+    "Process: harvest good content, cut weak content, develop the good further",
+    "Output: a revised document of the same kind"
+  ],
+  "scope_out": [
+    "Synthesizing across all four source versions",
+    "Transforming format (no exec summary, no slide deck)",
+    "Adding sections that aren't already in cmr take 2",
+    "Pursuing every section equally — focus development effort on what's strongest"
+  ],
+  "success_criteria": [
+    "The strongest content in cmr take 2 is preserved and developed",
+    "Weak or filler content is removed",
+    "The revised document reads tighter and lands harder than the source",
+    "Same purpose served"
+  ]
+}

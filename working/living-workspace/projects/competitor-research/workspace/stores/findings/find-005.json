@@ -1,0 +1,9 @@
+{
+  "id": "find-005",
+  "competitor_ref": "comp-002",
+  "dimension_ref": "dim-002",
+  "finding": "Asana uses heavily feature-gated tiers: $13.49 Starter, $30.49 Advanced, custom Enterprise. Workflows, custom fields, and goals are gated behind higher tiers.",
+  "source_refs": ["src-005"],
+  "strength": "strong",
+  "captured_at": "2026-04-23T09:15:00Z"
+}

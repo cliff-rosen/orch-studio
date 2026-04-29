@@ -1,0 +1,12 @@
+{
+  "id": "comp-005",
+  "name": "Trello",
+  "url": "https://trello.com",
+  "founded": 2011,
+  "hq": "New York, NY",
+  "employees": "200+ (Atlassian subsidiary)",
+  "state": "dropped",
+  "drop_reason": "Different segment. Trello competes for very simple personal/team kanban use cases, not the structured project planning we target. Also not actively differentiated against any of our other final three.",
+  "captured_at": "2026-04-15T10:50:00Z",
+  "shortlisted_at": "2026-04-16T14:00:00Z"
+}

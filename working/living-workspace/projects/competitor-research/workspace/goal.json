@@ -1,0 +1,24 @@
+{
+  "purpose": "Identify and deeply research Plotpoint's top 3 direct competitors to inform Q2 strategic positioning.",
+  "deliverable": "A 6-page competitive analysis memo for the executive team, with structured profiles per competitor and a clear differentiation thesis.",
+  "audience": "Plotpoint executive team — CEO, Head of Product, Head of Marketing.",
+  "timeframe": "Two weeks: April 15 to April 30, 2026.",
+  "scope_in": [
+    "Top 3 direct competitors (after a wider candidate scan)",
+    "Profile each across product, pricing, target market, team, traction",
+    "Comparative findings with citations",
+    "Differentiation thesis: where Plotpoint can credibly win"
+  ],
+  "scope_out": [
+    "Indirect or adjacent competitors (general task tools beyond project planning)",
+    "Customer segment analysis (separate workstream)",
+    "Detailed pricing of Plotpoint itself",
+    "Internal capability assessment"
+  ],
+  "success_criteria": [
+    "Each final competitor has a complete profile across all 5 dimensions",
+    "Each finding cites at least one source",
+    "The memo lands a clear, evidence-backed differentiation thesis",
+    "Executive team comes away with a new view of the landscape"
+  ]
+}

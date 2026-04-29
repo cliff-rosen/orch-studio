@@ -1,0 +1,9 @@
+{
+  "id": "find-007",
+  "competitor_ref": "comp-003",
+  "dimension_ref": "dim-001",
+  "finding": "ClickUp's surface area is enormous (tasks, docs, whiteboards, chat, goals, time tracking) — but G2 reviews consistently flag complexity and performance as adoption barriers.",
+  "source_refs": ["src-003"],
+  "strength": "strong",
+  "captured_at": "2026-04-24T10:00:00Z"
+}

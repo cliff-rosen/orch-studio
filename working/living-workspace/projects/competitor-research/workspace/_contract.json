@@ -1,0 +1,48 @@
+{
+  "lifecycle": {
+    "states": [
+      { "name": "goal-defining", "description": "Eliciting goal." },
+      { "name": "contracts-drafting", "description": "Drafting workspace and store contracts." },
+      { "name": "operating", "description": "Doing the research and synthesis." },
+      { "name": "wrapping-up", "description": "Memo being finalized; refusing structural changes." },
+      { "name": "archived", "description": "Memo shipped; read-only.", "terminal": true }
+    ],
+    "transitions": [
+      { "from": "goal-defining", "to": "contracts-drafting" },
+      { "from": "contracts-drafting", "to": "goal-defining" },
+      { "from": "contracts-drafting", "to": "operating" },
+      { "from": "operating", "to": "contracts-drafting" },
+      { "from": "operating", "to": "wrapping-up" },
+      { "from": "wrapping-up", "to": "operating", "guard": "User wants to revise findings or add data; not just polish." },
+      { "from": "wrapping-up", "to": "archived" }
+    ]
+  },
+  "initial_state": "goal-defining",
+  "required_stores": [
+    { "state": "operating", "stores": ["stores/competitors", "stores/dimensions", "stores/findings", "stores/sources", "stores/memo"] }
+  ],
+  "workflow": {
+    "stages": [
+      { "name": "gathering", "description": "Wide candidate scan. Cast a wide net." },
+      { "name": "shortlisting", "description": "Narrow candidates to ~5-8 by direct fit." },
+      { "name": "researching", "description": "Deep research on the final three; populate findings." },
+      { "name": "synthesizing", "description": "Build the comparison; identify the differentiation thesis." },
+      { "name": "drafting", "description": "Write the memo." },
+      { "name": "finalizing", "description": "Polish, citations, executive review." }
+    ],
+    "transitions": [
+      { "from": "gathering", "to": "shortlisting" },
+      { "from": "shortlisting", "to": "researching" },
+      { "from": "researching", "to": "synthesizing" },
+      { "from": "synthesizing", "to": "drafting" },
+      { "from": "drafting", "to": "finalizing" },
+      { "from": "finalizing", "to": "drafting", "guard": "Revisions needed beyond polish." }
+    ]
+  },
+  "cross_store_invariants": [
+    { "description": "Every finding must reference an existing competitor.", "rule": null },
+    { "description": "Every finding must reference an existing dimension.", "rule": null },
+    { "description": "Every finding's source_refs must reference existing sources.", "rule": null },
+    { "description": "A competitor in 'final-three' state must have a profile document.", "rule": null }
+  ]
+}

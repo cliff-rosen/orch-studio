@@ -1,0 +1,54 @@
+{
+  "name": "dashboard",
+  "title": "Dashboard",
+  "rows": [
+    {
+      "widgets": [
+        {
+          "widget": "document",
+          "store": "stores/inputs",
+          "title": "Source"
+        }
+      ]
+    },
+    {
+      "widgets": [
+        {
+          "widget": "smart-table",
+          "store": "stores/harvest",
+          "title": "Harvest",
+          "config": {
+            "columns": [
+              { "field": "passage" },
+              { "field": "source_section" },
+              { "field": "category" },
+              { "field": "strength" },
+              { "field": "state" },
+              { "field": "why_it_works" }
+            ],
+            "sort": { "field": "source_section", "direction": "asc" }
+          }
+        }
+      ]
+    },
+    {
+      "widgets": [
+        {
+          "widget": "smart-table",
+          "store": "stores/versions",
+          "title": "Versions",
+          "config": {
+            "columns": [
+              { "field": "version_label" },
+              { "field": "state" },
+              { "field": "parent_version" },
+              { "field": "summary_of_changes" },
+              { "field": "created_at" }
+            ],
+            "sort": { "field": "created_at", "direction": "desc" }
+          }
+        }
+      ]
+    }
+  ]
+}

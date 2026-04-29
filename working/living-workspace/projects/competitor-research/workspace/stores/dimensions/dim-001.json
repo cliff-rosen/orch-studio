@@ -1,0 +1,6 @@
+{
+  "id": "dim-001",
+  "name": "Product depth",
+  "why_it_matters": "What can the product actually do? How well does it execute on the core promise of project planning?",
+  "weight": "high"
+}
