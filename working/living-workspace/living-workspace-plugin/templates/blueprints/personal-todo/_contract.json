@@ -1,0 +1,56 @@
+{
+  "lifecycle": {
+    "states": [
+      { "name": "goal-defining", "description": "Eliciting the workspace goal." },
+      { "name": "contracts-drafting", "description": "Goal set; drafting contracts." },
+      { "name": "operating", "description": "Doing the actual work. Long-running phase." },
+      { "name": "archived", "description": "Read-only record.", "terminal": true }
+    ],
+    "transitions": [
+      { "from": "goal-defining", "to": "contracts-drafting", "guard": "goal.json must validate" },
+      { "from": "contracts-drafting", "to": "goal-defining", "guard": "User wants to revise the goal." },
+      { "from": "contracts-drafting", "to": "operating", "guard": "User has approved contracts." },
+      { "from": "operating", "to": "contracts-drafting", "guard": "User wants to revise contracts." },
+      { "from": "operating", "to": "archived" }
+    ]
+  },
+  "initial_state": "goal-defining",
+  "required_stores": [
+    { "state": "operating", "stores": ["stores/tasks", "stores/projects", "stores/areas"] }
+  ],
+  "workflow": {
+    "stages": [
+      { "name": "inbox", "description": "Captured but not yet clarified." },
+      { "name": "next", "description": "Clarified and ready to work on when capacity allows." },
+      { "name": "doing", "description": "Actively in progress." },
+      { "name": "waiting", "description": "Blocked on someone else; not actively progressing." },
+      { "name": "someday", "description": "Maybe later. Revisited at weekly review." },
+      { "name": "done", "description": "Complete." },
+      { "name": "dropped", "description": "Decided not to do. Kept for record." }
+    ],
+    "transitions": [
+      { "from": "inbox", "to": "next" },
+      { "from": "inbox", "to": "someday" },
+      { "from": "inbox", "to": "dropped" },
+      { "from": "next", "to": "doing" },
+      { "from": "next", "to": "someday" },
+      { "from": "next", "to": "dropped" },
+      { "from": "doing", "to": "waiting" },
+      { "from": "doing", "to": "done" },
+      { "from": "doing", "to": "next" },
+      { "from": "waiting", "to": "doing" },
+      { "from": "someday", "to": "next" },
+      { "from": "someday", "to": "dropped" }
+    ]
+  },
+  "cross_store_invariants": [
+    {
+      "description": "If a task references a project, the project id must exist in stores/projects.",
+      "rule": null
+    },
+    {
+      "description": "If a task references an area, the area id must exist in stores/areas.",
+      "rule": null
+    }
+  ]
+}

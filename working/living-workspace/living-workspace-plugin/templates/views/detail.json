@@ -1,8 +1,0 @@
-{
-  "name": "{{ view_name }}",
-  "view_type": "detail",
-  "kind": "{{ kind }}",
-  "config": {
-    "fields": null
-  }
-}

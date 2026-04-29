@@ -1,0 +1,53 @@
+{
+  "name": "dashboard",
+  "title": "Dashboard",
+  "rows": [
+    {
+      "widgets": [
+        {
+          "widget": "smart-table",
+          "store": "stores/tasks",
+          "title": "Open tasks",
+          "config": {
+            "columns": [
+              { "field": "title" },
+              { "field": "state" },
+              { "field": "area" },
+              { "field": "project" },
+              { "field": "due" },
+              { "field": "priority" },
+              { "field": "age_days", "mode": "computed", "expression": "today - created_at" }
+            ],
+            "filters": { "state": ["inbox", "next", "doing", "waiting"] },
+            "sort": { "field": "due", "direction": "asc" }
+          }
+        }
+      ]
+    },
+    {
+      "widgets": [
+        {
+          "widget": "kanban",
+          "store": "stores/tasks",
+          "title": "Tasks by state"
+        }
+      ]
+    },
+    {
+      "widgets": [
+        {
+          "widget": "list",
+          "store": "stores/areas",
+          "title": "Areas",
+          "config": { "fields": ["name", "review_cadence"] }
+        },
+        {
+          "widget": "cards",
+          "store": "stores/projects",
+          "title": "Active projects",
+          "config": { "filters": { "state": "active" } }
+        }
+      ]
+    }
+  ]
+}

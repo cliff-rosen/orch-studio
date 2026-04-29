@@ -1,0 +1,19 @@
+{
+  "name": "dashboard",
+  "title": "Dashboard",
+  "rows": [
+    {
+      "widgets": [
+        {
+          "widget": "smart-table",
+          "store": "stores/{{ primary_store }}",
+          "title": "{{ primary_store_title }}",
+          "config": {
+            "filters": {},
+            "sort": { "field": "created_at", "direction": "desc" }
+          }
+        }
+      ]
+    }
+  ]
+}

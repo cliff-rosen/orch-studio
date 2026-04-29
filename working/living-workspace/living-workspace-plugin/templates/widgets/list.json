@@ -1,0 +1,11 @@
+{
+  "widget": "list",
+  "store": "stores/{{ store_name }}",
+  "title": "{{ widget_title }}",
+  "config": {
+    "fields": ["{{ title_field }}", "state"],
+    "filters": {},
+    "sort": { "field": "created_at", "direction": "desc" },
+    "group_by": null
+  }
+}

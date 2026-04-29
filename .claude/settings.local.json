@@ -31,7 +31,12 @@
       "Bash(mv contracts/area.contract.json contracts/area.json)",
       "Bash(mv views/open-tasks.view.json views/open-tasks.json)",
       "Read(//c/c/code/orch-studio/working/living-workspace/living-workspace-plugin/templates/**)",
-      "Read(//c/c/code/orch-studio/working/living-workspace/living-workspace-plugin/templates/workspace-skeleton/**)"
+      "Read(//c/c/code/orch-studio/working/living-workspace/living-workspace-plugin/templates/workspace-skeleton/**)",
+      "Bash(rm templates/dashboard.substrate-selecting.html templates/components/substrate-options.html)",
+      "Bash(mv templates/views templates/widgets)",
+      "Bash(mv schemas/view.schema.json schemas/widget.schema.json)",
+      "Bash(mv templates/starter-packs templates/blueprints)",
+      "Read(//c/c/code/orch-studio/working/living-workspace/living-workspace-plugin/**)"
     ]
   }
 }

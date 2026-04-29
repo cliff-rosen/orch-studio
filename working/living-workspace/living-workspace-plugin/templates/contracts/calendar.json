@@ -1,0 +1,28 @@
+{
+  "type": "Calendar",
+  "description": "{{ what_this_calendar_is }}",
+  "event_schema": {
+    "type": "object",
+    "required": ["id", "title", "start"],
+    "properties": {
+      "id": {
+        "type": "string",
+        "pattern": "^evt-\\d{3,}$"
+      },
+      "title": { "type": "string", "minLength": 1 },
+      "start": { "type": "string", "format": "date-time" },
+      "end": { "type": "string", "format": "date-time" },
+      "duration_minutes": { "type": "integer", "minimum": 0 },
+      "location": { "type": "string" },
+      "recurrence": {
+        "type": "object",
+        "description": "Optional recurrence rule."
+      }
+    }
+  },
+  "recurrence_rules": {},
+  "conflict_policy": "warn",
+  "invariants": [],
+  "id_field": "id",
+  "title_field": "title"
+}

@@ -1,0 +1,21 @@
+{
+  "type": "Table",
+  "description": "An ongoing area of life I have responsibility for. Doesn't get 'done'.",
+  "schema": {
+    "type": "object",
+    "required": ["id", "name"],
+    "properties": {
+      "id": { "type": "string", "pattern": "^area-\\d{3,}$" },
+      "name": { "type": "string", "minLength": 1, "maxLength": 80 },
+      "why_it_matters": { "type": "string" },
+      "review_cadence": {
+        "enum": ["daily", "weekly", "monthly", "quarterly", "ad-hoc"],
+        "default": "weekly"
+      }
+    }
+  },
+  "id_field": "id",
+  "title_field": "name",
+  "references": [],
+  "document_columns": []
+}

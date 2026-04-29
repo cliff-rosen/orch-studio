@@ -1,0 +1,8 @@
+{
+  "widget": "detail",
+  "store": "stores/{{ store_name }}",
+  "title": "{{ widget_title }}",
+  "config": {
+    "fields": null
+  }
+}

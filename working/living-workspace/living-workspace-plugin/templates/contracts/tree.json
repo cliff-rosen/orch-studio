@@ -1,0 +1,30 @@
+{
+  "type": "Tree",
+  "description": "{{ what_this_tree_is }}",
+  "node_schema": {
+    "type": "object",
+    "required": ["id", "{{ title_field }}"],
+    "properties": {
+      "id": {
+        "type": "string",
+        "pattern": "^node-\\d{3,}$"
+      },
+      "{{ title_field }}": { "type": "string", "minLength": 1 },
+      "parent": {
+        "type": ["string", "null"],
+        "description": "Reference to parent node id. Null for root."
+      },
+      "order": {
+        "type": "integer",
+        "description": "Sort order among siblings."
+      }
+    }
+  },
+  "parent_field": "parent",
+  "max_depth": null,
+  "max_branching": null,
+  "invariants": [],
+  "id_field": "id",
+  "title_field": "{{ title_field }}",
+  "ordered": true
+}

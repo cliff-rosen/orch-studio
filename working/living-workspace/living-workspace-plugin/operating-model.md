@@ -23,7 +23,7 @@ Everything that follows is implementation of that sentence.
 | **Browser** | Renders pages composed from widgets. Read-only in v0. |
 | **Workspace** | A folder of structured JSON describing one piece of work. |
 
-The user has one mental connection — they talk to Claude. Everything else is plumbing.
+The user has one mental connection — they talk to Claude. And their collabortion with Claude is reviewed through a custom browser interface. Everything else is plumbing.
 
 ---
 
@@ -259,7 +259,7 @@ On every interaction:
 
 The dashboard is composed at render time from **widgets** that render **stores**.
 
-- **Widgets** are reusable HTML+CSS components (smart-table, kanban, cards, list, detail, calendar, timeline, document, outline, tree, graph). Each widget knows what primitive(s) it can render.
+- **Widgets** are reusable HTML+CSS components (smart-table, kanban, cards, list, detail, calendar, timeline, document, outline, tree, graph, file-browser). Each widget knows what primitive(s) it can render. The `file-browser` widget is special — it can render any store as a file-system view, surfacing the actual files on disk (data files, sidecar attachments).
 - **Pages** are compositions of widgets. A page descriptor in `workspace/pages/<name>.json` declares which widgets to render, in what order, against which stores.
 - **The dashboard** is just the default page (`workspace/pages/dashboard.json`).
 
@@ -361,7 +361,8 @@ living-workspace-plugin/
     │   ├── calendar.json
     │   ├── tree.json
     │   └── graph.json
-    ├── widgets/                        (was: views/) Widget descriptor templates.
+    ├── widgets/                        Widget-spec snippets for page descriptors.
+    ├── pages/                          Page descriptor templates.
     └── components/                     Dashboard composition fragments.
 ```
 

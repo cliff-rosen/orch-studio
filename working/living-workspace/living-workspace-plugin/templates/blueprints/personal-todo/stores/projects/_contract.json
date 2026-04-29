@@ -1,0 +1,43 @@
+{
+  "type": "Table",
+  "description": "A multi-step outcome that requires multiple tasks to achieve.",
+  "schema": {
+    "type": "object",
+    "required": ["id", "title", "state", "created_at"],
+    "properties": {
+      "id": { "type": "string", "pattern": "^proj-\\d{3,}$" },
+      "title": { "type": "string", "minLength": 1, "maxLength": 200 },
+      "why": { "type": "string", "description": "Why this project matters." },
+      "outcome": { "type": "string", "description": "What 'done' looks like, concretely." },
+      "state": { "enum": ["active", "paused", "complete", "abandoned"] },
+      "area": { "type": "string", "description": "References an area id." },
+      "due": { "type": "string", "format": "date" },
+      "created_at": { "type": "string", "format": "date-time" },
+      "completed_at": { "type": "string", "format": "date-time" }
+    }
+  },
+  "states": ["active", "paused", "complete", "abandoned"],
+  "initial_state": "active",
+  "transitions": [
+    { "from": "active", "to": "paused" },
+    { "from": "active", "to": "complete" },
+    { "from": "active", "to": "abandoned" },
+    { "from": "paused", "to": "active" },
+    { "from": "paused", "to": "abandoned" }
+  ],
+  "invariants": [
+    {
+      "description": "If state == complete, completed_at must be set.",
+      "rule": {
+        "if": { "properties": { "state": { "const": "complete" } } },
+        "then": { "required": ["completed_at"] }
+      }
+    }
+  ],
+  "id_field": "id",
+  "title_field": "title",
+  "references": [
+    { "field": "area", "target_store": "stores/areas" }
+  ],
+  "document_columns": []
+}

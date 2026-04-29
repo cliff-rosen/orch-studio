@@ -1,0 +1,15 @@
+{
+  "widget": "file-browser",
+  "store": "stores/{{ store_name }}",
+  "title": "{{ widget_title }}",
+  "config": {
+    "show_metadata": true,
+    "show_sidecar_files": true,
+    "expandable_folders": true,
+    "default_expanded": false,
+    "preview": {
+      "enabled": true,
+      "extensions": [".md", ".txt", ".json"]
+    }
+  }
+}

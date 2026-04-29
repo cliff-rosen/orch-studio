@@ -1,0 +1,9 @@
+{
+  "widget": "kanban",
+  "store": "stores/{{ store_name }}",
+  "title": "{{ widget_title }}",
+  "config": {
+    "filters": {},
+    "group_by": "state"
+  }
+}

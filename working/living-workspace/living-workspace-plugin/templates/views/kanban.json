@@ -1,9 +1,0 @@
-{
-  "name": "{{ view_name }}",
-  "view_type": "kanban",
-  "kind": "{{ kind }}",
-  "config": {
-    "filters": {},
-    "sort": { "field": "created_at", "direction": "desc" }
-  }
-}

@@ -1,0 +1,38 @@
+{
+  "type": "Graph",
+  "description": "{{ what_this_graph_is }}",
+  "node_schema": {
+    "type": "object",
+    "required": ["id", "{{ title_field }}"],
+    "properties": {
+      "id": {
+        "type": "string",
+        "pattern": "^n-\\d{3,}$"
+      },
+      "{{ title_field }}": { "type": "string", "minLength": 1 }
+    }
+  },
+  "edge_schema": {
+    "type": "object",
+    "required": ["id", "from", "to", "type"],
+    "properties": {
+      "id": {
+        "type": "string",
+        "pattern": "^e-\\d{3,}$"
+      },
+      "from": { "type": "string" },
+      "to": { "type": "string" },
+      "type": { "type": "string" }
+    }
+  },
+  "edge_types": [
+    {
+      "name": "{{ edge_type_1 }}",
+      "description": "{{ edge_type_1_description }}",
+      "directed": true
+    }
+  ],
+  "invariants": [],
+  "node_id_field": "id",
+  "node_title_field": "{{ title_field }}"
+}

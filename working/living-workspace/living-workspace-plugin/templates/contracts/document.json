@@ -1,0 +1,15 @@
+{
+  "type": "Document",
+  "description": "{{ what_this_document_is }}",
+  "front_matter_schema": {
+    "type": "object",
+    "properties": {
+      "title": { "type": "string" },
+      "author": { "type": "string" },
+      "created_at": { "type": "string", "format": "date-time" }
+    }
+  },
+  "body_type": "markdown",
+  "embeds": [],
+  "invariants": []
+}

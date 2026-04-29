@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "lws://meta-schema/page",
+  "title": "Page Descriptor",
+  "description": "A page is a composition of widgets organized in rows. Lives at workspace/pages/<name>.json. The plugin renders it as the page body, wrapped by lifecycle-aware chrome.",
+  "type": "object",
+  "required": ["name", "rows"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Page identifier. Must match the filename (without .json)."
+    },
+    "title": {
+      "type": "string",
+      "description": "Display title."
+    },
+    "rows": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Ordered rows. Each row contains one or more widgets rendered side-by-side.",
+      "items": {
+        "type": "object",
+        "required": ["widgets"],
+        "properties": {
+          "widgets": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "$ref": "#/$defs/widgetSpec" }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "widgetSpec": {
+      "type": "object",
+      "required": ["widget", "store"],
+      "properties": {
+        "widget": {
+          "enum": [
+            "smart-table",
+            "kanban",
+            "cards",
+            "list",
+            "detail",
+            "calendar",
+            "timeline",
+            "document",
+            "outline",
+            "tree",
+            "graph",
+            "file-browser",
+            "custom"
+          ]
+        },
+        "store": {
+          "type": "string",
+          "description": "Path to the store this widget renders, e.g. 'stores/tasks'."
+        },
+        "title": {
+          "type": "string",
+          "description": "Optional display title for this widget instance."
+        },
+        "width": {
+          "type": "integer",
+          "description": "Optional width fraction within the row. Defaults to equal split."
+        },
+        "config": {
+          "type": "object",
+          "description": "Widget-specific configuration. Shape varies by widget type. See per-widget config schemas (TODO)."
+        },
+        "custom_html_path": {
+          "type": "string",
+          "description": "Path to custom HTML if widget == 'custom'."
+        }
+      }
+    }
+  }
+}

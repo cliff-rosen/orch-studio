@@ -1,0 +1,14 @@
+{
+  "widget": "smart-table",
+  "store": "stores/{{ store_name }}",
+  "title": "{{ widget_title }}",
+  "config": {
+    "columns": [
+      { "field": "{{ title_field }}" },
+      { "field": "state" },
+      { "field": "created_at" }
+    ],
+    "filters": {},
+    "sort": { "field": "created_at", "direction": "desc" }
+  }
+}
